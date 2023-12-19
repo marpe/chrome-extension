@@ -1,20 +1,20 @@
 function onContextMenuClicked(info) {
-  console.log("clicked context menu", info);
+  if (info.menuItemId === "options") {
+    chrome.runtime.openOptionsPage();
+  } else {
+    console.log("Context menu clicked", info);
+  }
 }
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
-  chrome.action.setBadgeText({
-    text: "OFF",
-  });
-
   if (reason == chrome.runtime.OnInstalledReason.INSTALL) {
     chrome.runtime.openOptionsPage();
   }
 
   chrome.contextMenus.create({
-    title: "Test context menu",
+    title: "marpe options",
     contexts: ["page"],
-    id: "page",
+    id: "options",
   });
 });
 

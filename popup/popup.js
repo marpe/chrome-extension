@@ -1,39 +1,41 @@
-// Store CSS data in the "local" storage area.
 const storage = chrome.storage.local;
 
-const message = document.querySelector('#message');
+const message = document.querySelector("#message");
+const insertButton = document.querySelector(".insert");
+const removeButton = document.querySelector(".remove");
+const enabledEl = document.getElementById("is_enabled");
 
-// Check if there is CSS specified.
-async function run() {
-  const items = await storage.get('css');
-  if (items.css) {
-    const [currentTab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true
-    });
-    try {
-      await chrome.scripting.insertCSS({
-        css: items.css,
-        target: {
-          tabId: currentTab.id
-        }
-      });
-      message.innerText = 'Injected style!';
-    } catch (e) {
-      console.error(e);
-      message.innerText = 'Injection failed. Are you on a special page?';
+async function getCurrentTab() {
+  const [currentTab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+  return currentTab;
+}
+
+async function handleClick(enabled) {
+  const { style } = await storage.get({ style: "" });
+  const currentTab = await getCurrentTab();
+
+  const styleOptions = {
+    css: style,
+    target: { tabId: currentTab.id },
+  };
+
+  try {
+    if (!enabled) {
+      await chrome.scripting.removeCSS(styleOptions);
+      console.log("Removed CSS");
+    } else {
+      await chrome.scripting.insertCSS(styleOptions);
+      console.log("Inserted CSS", style);
     }
-  } else {
-    const optionsUrl = chrome.runtime.getURL('options.html');
-    const optionsPageLink = document.createElement('a');
-    optionsPageLink.target = '_blank';
-    optionsPageLink.href = optionsUrl;
-    optionsPageLink.textContent = 'options page';
-    message.innerText = '';
-    message.appendChild(document.createTextNode('Set a style in the '));
-    message.appendChild(optionsPageLink);
-    message.appendChild(document.createTextNode(' first.'));
+
+    enabledEl.dataset.enabled = enabled;
+  } catch (error) {
+    console.error(error);
   }
 }
 
-run();
+insertButton.addEventListener("click", () => handleClick(true));
+removeButton.addEventListener("click", () => handleClick(false));

@@ -1,88 +1,65 @@
-let messageClearTimer;
-
-function message(msg) {
-  clearTimeout(messageClearTimer);
-  const messageEl = document.querySelector(".message");
-  messageEl.innerText = msg;
-  messageClearTimer = setTimeout(function () {
-    messageEl.innerText = "";
-  }, 3000);
-}
-
-async function saveChanges() {
-  const cssCode = textarea.value;
-  if (!cssCode) {
-    message("Error: No CSS specified");
-    return;
-  }
-  await storage.set({ css: cssCode });
-  message("Settings saved");
-}
-
-function loadChanges() {
-  storage.get("css", function (items) {
-    // To avoid checking items.css we could specify storage.get({css: ''}) to
-    // return a default value of '' if there is no css value yet.
-    if (items.css) {
-      textarea.value = items.css;
-      message("Loaded saved CSS.");
-    }
-  });
-}
-
-async function reset() {
-  await storage.remove("css");
-  message("Reset stored CSS");
-  textarea.value = "";
-}
-
 const storage = chrome.storage.local;
-
 const resetButton = document.querySelector("button.reset");
 const submitButton = document.querySelector("button.submit");
-const textarea = document.querySelector("textarea");
+const styleText = document.getElementById("custom_style");
+const scriptText = document.getElementById("custom_script");
+const messageEl = document.querySelector(".message");
 
-loadChanges();
+const USER_SCRIPT_ID = "default";
 
-submitButton.addEventListener("click", saveChanges);
-resetButton.addEventListener("click", reset);
-
-document.addEventListener("DOMContentLoaded", () => {
-  const increaseFontSizeButton = document.getElementById("increaseFontSize");
-  const decreaseFontSizeButton = document.getElementById("decreaseFontSize");
-  const fontSizeElement = document.getElementById("fontSize");
-  const minFontSizeElement = document.getElementById("minFontSize");
-
-  chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
-    fontSizeElement.textContent = fontInfo.pixelSize.toString();
-  });
-
-  function updateFontSize(newFontSize) {
-    chrome.fontSettings.setDefaultFontSize({ pixelSize: newFontSize }, () => {
-      fontSizeElement.textContent = newFontSize.toString();
-    });
+function isUserScriptsAvailable() {
+  try {
+    chrome.userScripts;
+    return true;
+  } catch {
+    return false;
   }
+}
 
-  function updateMinFontSize(newMinFontSize) {
-    chrome.fontSettings.setMinimumFontSize({ pixelSize: newMinFontSize });
+async function updateScript(code) {
+  const existingScripts = await chrome.userScripts.getScripts({
+    ids: [USER_SCRIPT_ID],
+  });
+
+  const scriptOptions = {
+    id: USER_SCRIPT_ID,
+    matches: ["*://*/*"],
+    js: [{ code }],
+  };
+
+  if (existingScripts.length > 0) {
+    await chrome.userScripts.update([scriptOptions]);
+  } else {
+    await chrome.userScripts.register([scriptOptions]);
   }
+  console.log("Updated script", code);
+}
 
-  increaseFontSizeButton.addEventListener("click", () => {
-    chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
-      const newFontSize = fontInfo.pixelSize + 2;
-      updateFontSize(newFontSize);
-    });
-  });
+async function onSave() {
+  const style = styleText.value ?? "";
+  const script = scriptText.value ?? "";
+  await storage.set({ style, script });
+  console.log("Saved changes", { style, script });
+  await updateScript(script);
+}
 
-  decreaseFontSizeButton.addEventListener("click", () => {
-    chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
-      const newFontSize = fontInfo.pixelSize - 2;
-      updateFontSize(newFontSize);
-    });
+async function updateUi() {
+  const { style, script } = await storage.get({
+    style: "",
+    script: "",
   });
+  styleText.value = style;
+  scriptText.value = script;
+  console.log("Updated UI");
+}
 
-  minFontSizeElement.addEventListener("change", () => {
-    const newMinFontSize = parseInt(minFontSizeElement.value);
-    updateMinFontSize(newMinFontSize);
-  });
-});
+async function onReset() {
+  await storage.clear();
+}
+
+updateUi();
+
+submitButton.addEventListener("click", onSave);
+resetButton.addEventListener("click", onReset);
+
+storage.onChanged.addListener(updateUi);

@@ -21,39 +21,29 @@
         padding: 5px;
       }
     </style>
+    <script defer src="options.js"></script>
   </head>
 
   <body>
     <div class="message"></div>
-    <h3>Stylizr Instructions</h3>
-
-    <ol>
-      <li>Write CSS in this textarea and save</li>
-      <li>Navigate to some page</li>
-      <li>Click the browser action icon <img src="icon.png" /></li>
-      <li>Hey presto! CSS is injected!</li>
-    </ol>
-
+    <label>CSS</label>
     <textarea
-      name="style_url"
-      id="style_url"
-      cols="80"
-      rows="24"
+      name="custom_style"
+      id="custom_style"
+      draggable="false"
+      rows="8"
       placeholder="eg: * { font-size: 110%; }"
     ></textarea>
-
     <br />
+    <label>Script</label>
+    <textarea
+      name="custom_script"
+      id="custom_script"
+      draggable="false"
+      rows="8"
+      placeholder="alert('hi')"
+    ></textarea>
     <button class="submit">Save</button>
     <button class="reset">Reset</button>
-
-    <h1>Font Settings</h1>
-    <label for="fontSize">Font Size:</label>
-    <button id="decreaseFontSize">-</button>
-    <span id="fontSize"></span>
-    <button id="increaseFontSize">+</button>
-    <label for="minFontSize">Minimum Font Size:</label>
-    <input type="number" id="minFontSize" min="0" />
-
-    <script src="options.js"></script>
   </body>
 </html>
