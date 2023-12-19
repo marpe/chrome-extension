@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 function deleteDirectory(dirPath) {
   if (fs.existsSync(dirPath)) {
@@ -17,21 +18,29 @@ function deleteDirectory(dirPath) {
   }
 }
 
-function copyHtmlFiles(srcDir, distDir) {
+function copyFiles(extensions, srcDir, distDir) {
   fs.readdirSync(srcDir).forEach((file) => {
     const srcFile = path.join(srcDir, file);
     const distFile = path.join(distDir, file);
 
     if (fs.statSync(srcFile).isDirectory()) {
       if (!fs.existsSync(distFile)) {
-        fs.mkdirSync(distFile);
+        fs.mkdirSync(distFile, { recursive: true });
       }
-      copyHtmlFiles(srcFile, distFile);
-    } else if (path.extname(srcFile) === ".html") {
+      copyFiles(extensions, srcFile, distFile);
+    } else if (extensions.includes(path.extname(srcFile))) {
       fs.copyFileSync(srcFile, distFile);
     }
   });
 }
 
+console.log("Deleting dist directory...");
 deleteDirectory("./dist");
-copyHtmlFiles("./src", "./dist");
+
+console.log("Copying files...");
+copyFiles([".html", ".json", ".png"], "./src", "./dist");
+
+console.log("Compiling TypeScript...");
+const result = execSync("tsc", { stdio: "inherit" });
+
+console.log("Done!");

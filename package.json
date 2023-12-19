@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "tsc -w",
-    "build": "tsc"
+    "build": "node ./build.js"
   },
   "author": "",
   "license": "ISC",

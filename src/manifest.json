@@ -8,7 +8,8 @@
     "128": "images/icon.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "devtools_page": "devtools/devtools.html",
   "options_ui": {
