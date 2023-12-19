@@ -55,3 +55,38 @@ function message(msg) {
   }, 3000);
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  const increaseFontSizeButton = document.getElementById('increaseFontSize');
+  const decreaseFontSizeButton = document.getElementById('decreaseFontSize');
+  const fontSizeElement = document.getElementById('fontSize');
+  const minFontSizeElement = document.getElementById('minFontSize');
+
+  function updateFontSize(newFontSize) {
+    chrome.fontSettings.setDefaultFontSize({ pixelSize: newFontSize }, () => {
+      fontSizeElement.textContent = newFontSize.toString();
+    });
+  }
+
+  function updateMinFontSize(newMinFontSize) {
+    chrome.fontSettings.setMinimumFontSize({ pixelSize: newMinFontSize });
+  }
+
+  increaseFontSizeButton.addEventListener('click', () => {
+    chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
+      const newFontSize = fontInfo.pixelSize + 2;
+      updateFontSize(newFontSize);
+    });
+  });
+
+  decreaseFontSizeButton.addEventListener('click', () => {
+    chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
+      const newFontSize = fontInfo.pixelSize - 2;
+      updateFontSize(newFontSize);
+    });
+  });
+
+  minFontSizeElement.addEventListener('change', () => {
+    const newMinFontSize = parseInt(minFontSizeElement.value);
+    updateMinFontSize(newMinFontSize);
+  });
+});

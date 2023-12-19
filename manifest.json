@@ -6,25 +6,34 @@
   "icons": {
     "128": "images/icon-128.png"
   },
-  "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   },
+  "devtools_page": "devtools.html",
   "content_scripts": [
     {
       "js": ["content.js"],
-      "matches": [
-        "https://developer.chrome.com/docs/extensions/*",
-        "https://developer.chrome.com/docs/webstore/*"
-      ]
+      "matches": ["<all_urls>"]
     }
   ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "action": {
     "default_icon": "icon.png",
     "default_title": "Stylize",
     "default_popup": "popup.html"
   },
-  "permissions": ["scripting", "storage", "activeTab"],
+  "permissions": [
+    "scripting",
+    "storage",
+    "activeTab",
+    "contextMenus",
+    "fontSettings",
+    "userScripts"
+  ],
+  "host_permissions": ["<all_urls>"],
   "commands": {
     "_execute_action": {
       "suggested_key": {
