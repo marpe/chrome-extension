@@ -34,13 +34,15 @@ function copyFiles(extensions, srcDir, distDir) {
   });
 }
 
-console.log("Deleting dist directory...");
+console.time("delete");
 deleteDirectory("./dist");
+console.timeEnd("delete")
 
-console.log("Copying files...");
+console.time("copy");
 copyFiles([".html", ".json", ".png"], "./src", "./dist");
+console.timeEnd("copy");
 
-console.log("Compiling TypeScript...");
-const result = execSync("tsc", { stdio: "inherit" });
-
-console.log("Done!");
+console.time("tsc");
+execSync("tsc", { stdio: "inherit" });
+console.timeEnd("tsc");
+console.log("done!");
