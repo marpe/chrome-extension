@@ -1,4 +1,5 @@
 const storage = chrome.storage.local;
+
 const resetButton = document.querySelector("button.reset");
 const submitButton = document.querySelector("button.submit");
 const styleText = document.getElementById("custom_style");

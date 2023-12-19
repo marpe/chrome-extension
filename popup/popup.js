@@ -5,6 +5,17 @@ const insertButton = document.querySelector(".insert");
 const removeButton = document.querySelector(".remove");
 const enabledEl = document.getElementById("is_enabled");
 
+const USER_SCRIPT_ID = "default";
+
+function isUserScriptsAvailable() {
+  try {
+    chrome.userScripts;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function getCurrentTab() {
   const [currentTab] = await chrome.tabs.query({
     active: true,
@@ -13,9 +24,37 @@ async function getCurrentTab() {
   return currentTab;
 }
 
+async function updateUi() {
+  if (!isUserScriptsAvailable()) {
+    message.textContent = "User scripts are not available";
+    return;
+  }
+}
+
+async function updateScript(code) {
+  const existingScripts = await chrome.userScripts.getScripts({
+    ids: [USER_SCRIPT_ID],
+  });
+
+  const scriptOptions = {
+    id: USER_SCRIPT_ID,
+    matches: ["*://*/*"],
+    js: [{ code }],
+  };
+
+  if (existingScripts.length > 0) {
+    await chrome.userScripts.update([scriptOptions]);
+  } else {
+    await chrome.userScripts.register([scriptOptions]);
+  }
+  console.log("Updated script", code);
+}
+
 async function handleClick(enabled) {
-  const { style } = await storage.get({ style: "" });
+  const { style, script } = await storage.get({ style: "", script: "" });
   const currentTab = await getCurrentTab();
+
+  await updateScript(script);
 
   const styleOptions = {
     css: style,
@@ -30,8 +69,6 @@ async function handleClick(enabled) {
       await chrome.scripting.insertCSS(styleOptions);
       console.log("Inserted CSS", style);
     }
-
-    enabledEl.dataset.enabled = enabled;
   } catch (error) {
     console.error(error);
   }
@@ -39,3 +76,5 @@ async function handleClick(enabled) {
 
 insertButton.addEventListener("click", () => handleClick(true));
 removeButton.addEventListener("click", () => handleClick(false));
+
+updateUi();
