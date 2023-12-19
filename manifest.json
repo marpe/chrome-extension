@@ -8,8 +8,7 @@
     "128": "images/icon.png"
   },
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "devtools_page": "devtools/devtools.html",
   "options_ui": {
@@ -35,6 +34,12 @@
       "suggested_key": {
         "default": "Ctrl+B"
       }
+    },
+    "reload-extension": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+B"
+      },
+      "description": "Reload the extension"
     }
   }
 }
