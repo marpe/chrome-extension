@@ -61,3 +61,47 @@ chrome.commands.onCommand.addListener((command, tab) => {
     chrome.runtime.reload();
   }
 });
+
+let webSocket: WebSocket | null = null;
+
+function keepAlive() {
+  const keepAliveIntervalId = setInterval(
+      () => {
+        if (webSocket) {
+          console.log("sending keepalive");
+          webSocket.send('keepalive');
+        } else {
+          clearInterval(keepAliveIntervalId);
+        }
+      },
+      // Set the interval to 20 seconds to prevent the service worker from becoming inactive.
+      20 * 1000
+  );
+}
+
+function connect() {
+  webSocket = new WebSocket('ws://localhost:8080');
+
+  webSocket.onopen = (event) => {
+    console.log('websocket open');
+    keepAlive();
+  };
+
+  webSocket.onmessage = (event) => {
+    console.log(`websocket received message: ${event.data}`);
+  };
+
+  webSocket.onclose = (event) => {
+    console.log('websocket connection closed');
+    webSocket = null;
+  };
+}
+
+connect();
+
+function disconnect() {
+  if (webSocket == null) {
+    return;
+  }
+  webSocket.close();
+}
