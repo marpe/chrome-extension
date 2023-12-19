@@ -1,4 +1,3 @@
-
 const types = {};
 chrome.devtools.inspectedWindow.getResources((resources) => {
   resources.forEach((resource) => {
@@ -13,8 +12,8 @@ chrome.devtools.inspectedWindow.getResources((resources) => {
       const [type, count] = entry;
       return `${type}: ${count}`;
     })
-    .join('\n')}`;
-  let div = document.createElement('div');
+    .join("\n")}`;
+  let div = document.createElement("div");
   div.innerText = result;
   document.body.appendChild(div);
 });

@@ -1,65 +1,61 @@
-// Store CSS data in the "local" storage area.
-const storage = chrome.storage.local;
+let messageClearTimer;
 
-// Get at the DOM controls used in the sample.
-const resetButton = document.querySelector('button.reset');
-const submitButton = document.querySelector('button.submit');
-const textarea = document.querySelector('textarea');
-
-// Load any CSS that may have previously been saved.
-loadChanges();
-
-submitButton.addEventListener('click', saveChanges);
-resetButton.addEventListener('click', reset);
+function message(msg) {
+  clearTimeout(messageClearTimer);
+  const messageEl = document.querySelector(".message");
+  messageEl.innerText = msg;
+  messageClearTimer = setTimeout(function () {
+    messageEl.innerText = "";
+  }, 3000);
+}
 
 async function saveChanges() {
-  // Get the current CSS snippet from the form.
   const cssCode = textarea.value;
-  // Check that there's some code there.
   if (!cssCode) {
-    message('Error: No CSS specified');
+    message("Error: No CSS specified");
     return;
   }
-  // Save it using the Chrome extension storage API.
   await storage.set({ css: cssCode });
-  message('Settings saved');
+  message("Settings saved");
 }
 
 function loadChanges() {
-  storage.get('css', function (items) {
+  storage.get("css", function (items) {
     // To avoid checking items.css we could specify storage.get({css: ''}) to
     // return a default value of '' if there is no css value yet.
     if (items.css) {
       textarea.value = items.css;
-      message('Loaded saved CSS.');
+      message("Loaded saved CSS.");
     }
   });
 }
 
 async function reset() {
-  // Remove the saved value from storage. storage.clear would achieve the same
-  // thing.
-  await storage.remove('css');
-  message('Reset stored CSS');
-  // Refresh the text area.
-  textarea.value = '';
+  await storage.remove("css");
+  message("Reset stored CSS");
+  textarea.value = "";
 }
 
-let messageClearTimer;
-function message(msg) {
-  clearTimeout(messageClearTimer);
-  const message = document.querySelector('.message');
-  message.innerText = msg;
-  messageClearTimer = setTimeout(function () {
-    message.innerText = '';
-  }, 3000);
-}
+const storage = chrome.storage.local;
 
-document.addEventListener('DOMContentLoaded', () => {
-  const increaseFontSizeButton = document.getElementById('increaseFontSize');
-  const decreaseFontSizeButton = document.getElementById('decreaseFontSize');
-  const fontSizeElement = document.getElementById('fontSize');
-  const minFontSizeElement = document.getElementById('minFontSize');
+const resetButton = document.querySelector("button.reset");
+const submitButton = document.querySelector("button.submit");
+const textarea = document.querySelector("textarea");
+
+loadChanges();
+
+submitButton.addEventListener("click", saveChanges);
+resetButton.addEventListener("click", reset);
+
+document.addEventListener("DOMContentLoaded", () => {
+  const increaseFontSizeButton = document.getElementById("increaseFontSize");
+  const decreaseFontSizeButton = document.getElementById("decreaseFontSize");
+  const fontSizeElement = document.getElementById("fontSize");
+  const minFontSizeElement = document.getElementById("minFontSize");
+
+  chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
+    fontSizeElement.textContent = fontInfo.pixelSize.toString();
+  });
 
   function updateFontSize(newFontSize) {
     chrome.fontSettings.setDefaultFontSize({ pixelSize: newFontSize }, () => {
@@ -71,21 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.fontSettings.setMinimumFontSize({ pixelSize: newMinFontSize });
   }
 
-  increaseFontSizeButton.addEventListener('click', () => {
+  increaseFontSizeButton.addEventListener("click", () => {
     chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
       const newFontSize = fontInfo.pixelSize + 2;
       updateFontSize(newFontSize);
     });
   });
 
-  decreaseFontSizeButton.addEventListener('click', () => {
+  decreaseFontSizeButton.addEventListener("click", () => {
     chrome.fontSettings.getDefaultFontSize({}, (fontInfo) => {
       const newFontSize = fontInfo.pixelSize - 2;
       updateFontSize(newFontSize);
     });
   });
 
-  minFontSizeElement.addEventListener('change', () => {
+  minFontSizeElement.addEventListener("change", () => {
     const newMinFontSize = parseInt(minFontSizeElement.value);
     updateMinFontSize(newMinFontSize);
   });
