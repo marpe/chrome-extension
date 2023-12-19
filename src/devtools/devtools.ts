@@ -1,3 +1,5 @@
+export {};
+
 chrome.devtools.panels.create(
   "marpes panel",
   "images/devtools-icon.png",

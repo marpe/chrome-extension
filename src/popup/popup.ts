@@ -1,8 +1,10 @@
+export {};
+
 const storage = chrome.storage.local;
 
-const message = document.querySelector("#message");
-const insertButton = document.querySelector(".insert");
-const removeButton = document.querySelector(".remove");
+const message = document.querySelector("#message") as HTMLDivElement;
+const insertButton = document.querySelector(".insert") as HTMLButtonElement;
+const removeButton = document.querySelector(".remove") as HTMLButtonElement;
 const enabledEl = document.getElementById("is_enabled");
 
 const USER_SCRIPT_ID = "default";
@@ -31,7 +33,7 @@ async function updateUi() {
   }
 }
 
-async function updateScript(code) {
+async function updateScript(code: string) {
   const existingScripts = await chrome.userScripts.getScripts({
     ids: [USER_SCRIPT_ID],
   });
@@ -50,15 +52,15 @@ async function updateScript(code) {
   console.log("Updated script", code);
 }
 
-async function handleClick(enabled) {
-  const { style, script } = await storage.get({ style: "", script: "" });
+async function handleClick(enabled: boolean) {
+  const { style, script } = (await storage.get({ style: "", script: "" })) as { style: string, script: string };
   const currentTab = await getCurrentTab();
 
   await updateScript(script);
 
   const styleOptions = {
     css: style,
-    target: { tabId: currentTab.id },
+    target: { tabId: currentTab.id! },
   };
 
   try {

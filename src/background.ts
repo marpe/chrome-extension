@@ -1,9 +1,17 @@
+import OnClickData = chrome.contextMenus.OnClickData;
+
+export {};
+
 async function checkCommandShortcuts() {
   const commands = await chrome.commands.getAll();
 
-  let missingShortcuts = [];
-  for (let { name, shortcut } of commands) {
+  let missingShortcuts: string[] = [];
+  for (let {name, shortcut} of commands) {
     if (shortcut === "") {
+      if (!name) {
+        console.error("Missing name for command", name);
+        continue;
+      }
       missingShortcuts.push(name);
     }
   }
@@ -13,7 +21,7 @@ async function checkCommandShortcuts() {
   }
 }
 
-function onContextMenuClicked(info) {
+function onContextMenuClicked(info: OnClickData) {
   if (info.menuItemId === "options") {
     chrome.runtime.openOptionsPage();
   } else {
@@ -21,27 +29,27 @@ function onContextMenuClicked(info) {
   }
 }
 
-chrome.runtime.onInstalled.addListener(({ reason }) => {
+chrome.runtime.onInstalled.addListener(({reason}) => {
   console.log(`onInstalled ${reason}`);
 
-  if (reason == chrome.runtime.OnInstalledReason.INSTALL) {
+  if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
     chrome.runtime.openOptionsPage();
     checkCommandShortcuts();
-  } else if (reason == chrome.runtime.OnInstalledReason.UPDATE) {
-    chrome.tabs.reload(); // reloads the selected tab of the current window
+  } else if (reason === chrome.runtime.OnInstalledReason.UPDATE) {
+    void chrome.tabs.reload(); // reloads the selected tab of the current window
   }
 
   chrome.contextMenus.create(
-    {
-      title: "marpe options",
-      contexts: ["all"],
-      id: "options",
-    },
-    function () {
-      if (chrome.runtime.lastError) {
-        console.error(chrome.runtime.lastError.message);
+      {
+        title: "marpe options",
+        contexts: ["all"],
+        id: "options",
+      },
+      function () {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError.message);
+        }
       }
-    }
   );
 });
 

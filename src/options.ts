@@ -1,9 +1,11 @@
+export {};
+
 const storage = chrome.storage.local;
 
 const resetButton = document.querySelector("button.reset");
 const submitButton = document.querySelector("button.submit");
-const styleText = document.getElementById("custom_style");
-const scriptText = document.getElementById("custom_script");
+const styleText = document.getElementById("custom_style") as HTMLTextAreaElement;
+const scriptText = document.getElementById("custom_script") as HTMLTextAreaElement;
 const messageEl = document.querySelector(".message");
 
 const USER_SCRIPT_ID = "default";
@@ -17,7 +19,7 @@ function isUserScriptsAvailable() {
   }
 }
 
-async function updateScript(code) {
+async function updateScript(code: string) {
   const existingScripts = await chrome.userScripts.getScripts({
     ids: [USER_SCRIPT_ID],
   });
@@ -60,7 +62,7 @@ async function onReset() {
 
 updateUi();
 
-submitButton.addEventListener("click", onSave);
-resetButton.addEventListener("click", onReset);
+submitButton!.addEventListener("click", onSave);
+resetButton!.addEventListener("click", onReset);
 
 storage.onChanged.addListener(updateUi);
