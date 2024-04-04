@@ -1,49 +1,189 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Stylizr</title>
-    <style>
+<html lang="en">
+<head>
+  <title>Stylizr</title>
+  <style>
       body {
-        font-family: sans-serif;
+          background: #333;
+          font-family: sans-serif;
+          color: #f0f0f0;
+          font-size: 16px;
       }
 
       label {
-        display: block;
+          display: block;
+          margin-bottom: 5px;
+          font-weight: bold;
+          font-size: 14px;
       }
 
       textarea {
-        font-family: monospace;
+          font-family: monospace;
+          min-width: 400px;
+          background: #4f4f4f;
+          border: 1px solid #6e6e6e;
+          border-radius: 4px;
+          color: #f0f0f0;
+      }
+
+      input, select {
+          min-width: 200px;
+          margin-bottom: 10px;
+          height: 24px;
+          padding: 2px;
+          border-radius: 4px;
+          background: #4f4f4f;
+          border: 1px solid #6e6e6e;
+          color: #f0f0f0;
+      }
+
+      input:focus-within, select:focus-within, button:focus-within, textarea:focus-within {
+          border: 1px solid #626de5;
+          outline: none;
+      }
+
+      button {
+          height: 30px;
+          border-radius: 4px;
+          padding: 2px 6px;
+          border: 1px solid #6e6e6e;
+          background: #4f4f4f;
+          color: #f0f0f0;
       }
 
       .message {
-        height: 20px;
-        background: #eee;
-        padding: 5px;
+          height: 20px;
+          padding: 5px;
       }
-    </style>
-    <script defer type="module" src="options.js"></script>
-  </head>
 
-  <body>
-    <div class="message"></div>
-    <label>CSS</label>
-    <textarea
+      #log {
+          white-space: pre-wrap;
+          font-size: 12px;
+          font-family: monospace;
+          border: 1px solid #6e6e6e;
+          border-radius: 4px;
+          min-height: 100px;
+          padding: 10px;
+      }
+
+      .form-group {
+          margin-bottom: 20px;
+      }
+
+      .muted {
+          color: #999;
+          font-size: 12px;
+          font-style: italic;
+      }
+
+      #build {
+          font-size: 10px;
+          display: flex;
+          justify-content: center;
+      }
+
+      input[readonly] {
+          background: #232323;
+          color: #949494;
+      }
+  </style>
+  <script defer type="module" src="options.js"></script>
+</head>
+
+<body>
+<div id="build"></div>
+
+<div class="form-group">
+  <label for="newId">
+    New
+  </label>
+  <input type="text" id="newId"/>
+  <button class="add">Add</button>
+</div>
+
+<div class="form-group">
+  <label for="styleSelect">
+    Id
+    <span id="numEntries"></span>
+  </label>
+  <select id="styleSelect"></select>
+</div>
+
+<div id="nameInput" class="form-group">
+  <label for="id">Name</label>
+  <input type="text"
+         readonly="readonly"
+         name="id"
+         id="id"
+         placeholder="eg: My Style"/>
+  <button id="rename" name="rename" class="rename">Rename</button>
+</div>
+
+<div id="renameInput" class="form-group">
+  <label for="renamedId">New Name</label>
+  <input type="text"
+         name="renamedId"
+         id="renamedId"
+         placeholder="eg: My Style"/>
+  <button id="renameSave" name="renameSave" class="renameSave">Save</button>
+</div>
+
+<div class="form-group">
+  <label for="site_filter">Site Filter</label>
+  <textarea
+      name="site_filter"
+      id="site_filter"
+      draggable="false"
+      rows="4"
+      placeholder="eg: youtube.com (<scheme>://<host>/<path>)">
+</textarea>
+</div>
+
+<div class="form-group">
+  <label for="custom_style">CSS</label>
+  <textarea
       name="custom_style"
       id="custom_style"
       draggable="false"
       rows="8"
       placeholder="eg: * { font-size: 110%; }"
-    ></textarea>
-    <br />
-    <label>Script</label>
-    <textarea
+  ></textarea>
+</div>
+
+<div class="form-group">
+  <label for="custom_script">Script</label>
+  <textarea
       name="custom_script"
       id="custom_script"
       draggable="false"
       rows="8"
       placeholder="alert('hi')"
-    ></textarea>
-    <button class="submit">Save</button>
-    <button class="reset">Reset</button>
-  </body>
+  ></textarea>
+</div>
+
+<div class="form-group">
+  <label for="isRegistered">Registered</label>
+  <input type="checkbox" name="registered" id="isRegistered"/>
+</div>
+
+<div class="form-group">
+  <button class="submit" id="save">Save</button>
+  <button class="delete" id="delete">Delete</button>
+  <button class="clear" id="clear">Clear</button>
+  <button id="resetAll" class="resetAll">Reset All</button>
+</div>
+
+<div class="form-group">
+  <label>Registered Scripts</label>
+  <div id="registeredScripts">
+  </div>
+</div>
+
+<div class="form-group">
+  <label>Log</label>
+  <pre class="log" id="log"></pre>
+  <button id="logClear" class="logClear">Clear Log</button>
+</div>
+
+</body>
 </html>

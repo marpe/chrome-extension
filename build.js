@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const {execSync} = require("child_process");
 
 function deleteDirectory(dirPath) {
   if (fs.existsSync(dirPath)) {
@@ -25,7 +25,7 @@ function copyFiles(extensions, srcDir, distDir) {
 
     if (fs.statSync(srcFile).isDirectory()) {
       if (!fs.existsSync(distFile)) {
-        fs.mkdirSync(distFile, { recursive: true });
+        fs.mkdirSync(distFile, {recursive: true});
       }
       copyFiles(extensions, srcFile, distFile);
     } else if (extensions.includes(path.extname(srcFile))) {
@@ -43,6 +43,6 @@ copyFiles([".html", ".json", ".png"], "./src", "./dist");
 console.timeEnd("copy");
 
 console.time("tsc");
-execSync("tsc", { stdio: "inherit" });
+execSync("tsc", {stdio: "inherit"});
 console.timeEnd("tsc");
 console.log("done!");

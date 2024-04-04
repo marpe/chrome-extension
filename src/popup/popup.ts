@@ -1,30 +1,15 @@
-export {};
+import {
+  getStoredEntries,
+  isUserScriptsAvailable,
+  logMessage, registerEntry,
+  unregisterEntry,
+} from "../common.js";
 
-const storage = chrome.storage.local;
+export {};
 
 const message = document.querySelector("#message") as HTMLDivElement;
 const insertButton = document.querySelector(".insert") as HTMLButtonElement;
 const removeButton = document.querySelector(".remove") as HTMLButtonElement;
-const enabledEl = document.getElementById("is_enabled");
-
-const USER_SCRIPT_ID = "default";
-
-function isUserScriptsAvailable() {
-  try {
-    chrome.userScripts;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function getCurrentTab() {
-  const [currentTab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-  return currentTab;
-}
 
 async function updateUi() {
   if (!isUserScriptsAvailable()) {
@@ -33,50 +18,34 @@ async function updateUi() {
   }
 }
 
-async function updateScript(code: string) {
-  const existingScripts = await chrome.userScripts.getScripts({
-    ids: [USER_SCRIPT_ID],
-  });
-
-  const scriptOptions = {
-    id: USER_SCRIPT_ID,
-    matches: ["*://*/*"],
-    js: [{ code }],
-  };
-
-  if (existingScripts.length > 0) {
-    await chrome.userScripts.update([scriptOptions]);
-  } else {
-    await chrome.userScripts.register([scriptOptions]);
-  }
-  console.log("Updated script", code);
-}
-
 async function handleClick(enabled: boolean) {
-  const { style, script } = (await storage.get({ style: "", script: "" })) as { style: string, script: string };
-  const currentTab = await getCurrentTab();
+  const entries = await getStoredEntries();
 
-  await updateScript(script);
+  for (const [id, {matches}] of Object.entries(entries)) {
+    /*if (!currentUrl.match(matches)) {
+      continue;
+    }*/
 
-  const styleOptions = {
-    css: style,
-    target: { tabId: currentTab.id! },
-  };
-
-  try {
-    if (!enabled) {
-      await chrome.scripting.removeCSS(styleOptions);
-      console.log("Removed CSS");
-    } else {
-      await chrome.scripting.insertCSS(styleOptions);
-      console.log("Inserted CSS", style);
+    try {
+      if (!enabled) {
+        await unregisterEntry(id)
+        await chrome.action.setBadgeText({text: "OFF"});
+        await logMessage("Unregistered entry", {id});
+      } else {
+        await registerEntry(id)
+        await chrome.action.setBadgeText({text: "ON"});
+        await logMessage("Registered entry", {id});
+      }
+    } catch (error) {
+      console.error(error);
+      await chrome.action.setBadgeText({text: "ERROR"});
+      await logMessage("An error occurred when registering/unregistering an entry", {error, id});
+    } finally {
     }
-  } catch (error) {
-    console.error(error);
   }
 }
 
 insertButton.addEventListener("click", () => handleClick(true));
 removeButton.addEventListener("click", () => handleClick(false));
 
-updateUi();
+await updateUi();

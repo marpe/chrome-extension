@@ -10,7 +10,8 @@
     "isolatedModules": true,
     "types": ["chrome-types"],
     "lib": ["esnext", "dom", "dom.iterable"],
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true
   },
   "include": [
     "src/**/*",

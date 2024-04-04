@@ -1,5 +1,7 @@
 import OnClickData = chrome.contextMenus.OnClickData;
 
+const storage = chrome.storage.local;
+
 export {};
 
 async function checkCommandShortcuts() {
@@ -21,22 +23,29 @@ async function checkCommandShortcuts() {
   }
 }
 
-function onContextMenuClicked(info: OnClickData) {
+async function onContextMenuClicked(info: OnClickData) {
   if (info.menuItemId === "options") {
-    chrome.runtime.openOptionsPage();
+    await chrome.runtime.openOptionsPage();
   } else {
     console.log("Context menu clicked", info);
   }
 }
 
-chrome.runtime.onInstalled.addListener(({reason}) => {
+chrome.runtime.onInstalled.addListener(async ({reason}) => {
   console.log(`onInstalled ${reason}`);
 
+  await chrome.action.setBadgeText({
+    text: "OFF",
+  });
+  
   if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    chrome.runtime.openOptionsPage();
-    checkCommandShortcuts();
+    await storage.set({installed: Date.now()});
+    await chrome.runtime.openOptionsPage();
+    await checkCommandShortcuts();
   } else if (reason === chrome.runtime.OnInstalledReason.UPDATE) {
-    void chrome.tabs.reload(); // reloads the selected tab of the current window
+    await storage.set({build: Date.now()});
+    await chrome.tabs.reload(); // reloads the selected tab of the current window
+    await chrome.runtime.openOptionsPage();
   }
 
   chrome.contextMenus.create(
@@ -55,10 +64,14 @@ chrome.runtime.onInstalled.addListener(({reason}) => {
 
 chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
 
-chrome.commands.onCommand.addListener((command, tab) => {
+chrome.commands.onCommand.addListener(async (command, tab) => {
   console.log(`Command: ${command}, ${tab}`);
   if (command === "reload-extension") {
     chrome.runtime.reload();
+  }
+
+  if (command === "open-options") {
+    await chrome.runtime.openOptionsPage();
   }
 });
 
@@ -88,12 +101,28 @@ function connect() {
   };
 
   webSocket.onmessage = (event) => {
-    console.log(`websocket received message: ${event.data}`);
+    if (event.data === "reload") {
+      console.log('websocket received reload message');
+      chrome.runtime.reload();
+    } else {
+      console.log(`websocket received message: ${event.data}`);
+    }
   };
 
   webSocket.onclose = (event) => {
     console.log('websocket connection closed');
     webSocket = null;
+
+    const reconnectIntervalId = setInterval(
+        () => { 
+          console.log('reconnecting websocket');
+          connect();
+          if (webSocket) {
+            clearInterval(reconnectIntervalId);
+          }
+        },
+        5000
+    );
   };
 }
 

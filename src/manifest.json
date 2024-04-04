@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Reading time",
+  "name": "marpes Stylizr",
   "version": "1.0",
   "minimum_chrome_version": "120",
-  "description": "Add the reading time to Chrome Extension documentation articles",
+  "description": "Add custom CSS or JavaScript to execute to any website",
   "icons": {
     "128": "images/icon.png"
   },
@@ -22,6 +22,7 @@
     "default_popup": "popup/popup.html"
   },
   "permissions": [
+    "debugger",
     "scripting",
     "storage",
     "activeTab",
@@ -29,12 +30,22 @@
     "fontSettings",
     "userScripts"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>",
+    "http://*/*",
+    "https://*/*"
+  ],
   "commands": {
     "_execute_action": {
       "suggested_key": {
         "default": "Ctrl+B"
       }
+    },
+    "open-options": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+V"
+      },
+      "description": "Open options page"
     },
     "reload-extension": {
       "suggested_key": {
