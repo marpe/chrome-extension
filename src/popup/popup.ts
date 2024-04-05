@@ -9,6 +9,14 @@ export {};
 
 let isEnabled = false;
 
+async function getCurrentTab() {
+  const [currentTab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+  return currentTab;
+}
+
 const message = document.querySelector("#message") as HTMLDivElement;
 // const insertButton = document.querySelector(".insert") as HTMLButtonElement;
 // const removeButton = document.querySelector(".remove") as HTMLButtonElement;
@@ -23,7 +31,7 @@ async function updateUi() {
 
 async function handleClick() {
   isEnabled = !isEnabled;
-  
+
   const entries = await getStoredEntries();
 
   for (const [id, entry] of Object.entries(entries)) {
@@ -32,12 +40,17 @@ async function handleClick() {
     }*/
 
     try {
+      const currentTab = await getCurrentTab();
+      if (!currentTab?.id) {
+        await logMessage("No tab found", {entry});
+        continue;
+      }
       if (!isEnabled) {
-        await unregisterEntry(id)
+        await unregisterEntry(id, currentTab.id);
         await chrome.action.setBadgeText({text: "OFF"});
         await logMessage("Unregistered entry", entry);
       } else {
-        await registerEntry(id)
+        await registerEntry(id, currentTab.id);
         await chrome.action.setBadgeText({text: "ON"});
         await logMessage("Registered entry", entry);
       }
@@ -48,7 +61,7 @@ async function handleClick() {
     } finally {
     }
   }
-  
+
   toggleButton.textContent = isEnabled ? "Disable" : "Enable";
   toggleButton.classList.toggle("enabled", isEnabled);
 }

@@ -72,7 +72,7 @@ export async function clearStoredEntries() {
   await storage.set({entries: {}});
 }
 
-export async function registerEntry(id: string) {
+export async function registerEntry(id: string, tabId: number) {
   const entries = await getStoredEntries();
   const entry = entries[id];
   if (!entry) {
@@ -92,38 +92,29 @@ export async function registerEntry(id: string) {
     await chrome.userScripts.register([scriptOptions]);
   }
 
-  const tabs = await getTabs();
-  for (const tab of tabs) {
-    if (/*tab.url?.match(entry.matches) &&*/ tab.id) {
-      const styleOptions = {css: entry.style, target: {tabId: tab.id}};
-      try {
-        await chrome.scripting.insertCSS(styleOptions);
-      } catch (error) {
-        await logMessage("An error occurred when inserting CSS", {styleOptions, tab, error});
-      }
-    }
+  const styleOptions = {css: entry.style, target: {tabId}};
+  try {
+    await chrome.scripting.insertCSS(styleOptions);
+  } catch (error) {
+    await logMessage("An error occurred when inserting CSS", {styleOptions, tabId, error});
   }
 
   await storage.set({entries: {...entries, [id]: {...entry, registered: true}}});
 }
 
-export async function unregisterEntry(id: string) {
+export async function unregisterEntry(id: string, tabId: number) {
   const entries = await getStoredEntries();
   const entry = entries[id];
   if (!entry) {
     return;
   }
-  await chrome.userScripts.unregister({ids: [id]});
-  const tabs = await getTabs();
-  for (const tab of tabs) {
-    if (/*tab.url?.match(entry.matches) &&*/ tab.id) {
-      const styleOptions = {css: entry.style, target: {tabId: tab.id}};
-      try {
-        await chrome.scripting.removeCSS(styleOptions);
-      } catch (error) {
-        await logMessage("An error occurred when removing CSS", {styleOptions, tab, error});
-      }
-    }
+
+  const styleOptions = {css: entry.style, target: {tabId}};
+  try {
+    await chrome.userScripts.unregister({ids: [id]});
+    await chrome.scripting.removeCSS(styleOptions);
+  } catch (error) {
+    await logMessage("An error occurred when unregistering", {styleOptions, tabId, error});
   }
 
   await storage.set({entries: {...entries, [id]: {...entry, registered: false}}});

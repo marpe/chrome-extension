@@ -1,4 +1,5 @@
 import OnClickData = chrome.contextMenus.OnClickData;
+import {getStoredEntries, logMessage, registerEntry, unregisterEntry} from "./common.js";
 
 const storage = chrome.storage.local;
 
@@ -37,7 +38,7 @@ chrome.runtime.onInstalled.addListener(async ({reason}) => {
   await chrome.action.setBadgeText({
     text: "OFF",
   });
-  
+
   if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
     await storage.set({installed: Date.now()});
     await chrome.runtime.openOptionsPage();
@@ -61,6 +62,33 @@ chrome.runtime.onInstalled.addListener(async ({reason}) => {
       }
   );
 });
+
+async function registerListeners() {
+  const entries = await getStoredEntries();
+  for (const [id, entry] of Object.entries(entries)) {
+    try {
+      console.log("adding listener", entry.matches);
+      chrome.webNavigation.onCompleted.addListener(async (details) => {
+        try {
+          const e = await getStoredEntries();
+          if (e[id].registered) {
+            await logMessage("Entry already registered, unregistering", {entry: e[id], details});
+            await unregisterEntry(id, details.tabId);
+          }
+          await registerEntry(id, details.tabId);
+        } catch (error) {
+          await logMessage("Error when unregistering/registering", {error, entry, details, runtimeError: chrome.runtime.lastError});
+        }
+      }, {url: [{urlMatches: entry.matches}]});
+
+      await logMessage("Added listener", entry);
+    } catch (error) {
+      await logMessage("Error adding listener", {error, entry, runtimeError: chrome.runtime.lastError});
+    }
+  }
+}
+
+void registerListeners();
 
 chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
 
@@ -114,7 +142,7 @@ function connect() {
     webSocket = null;
 
     const reconnectIntervalId = setInterval(
-        () => { 
+        () => {
           console.log('reconnecting websocket');
           connect();
           if (webSocket) {

@@ -6,8 +6,8 @@ import {
   formatDate,
   getStoredEntries,
   LogEntry,
-  logMessage,
-  removeEntry, unregisterAll,
+  logMessage, registerEntry,
+  removeEntry, unregisterAll, unregisterEntry,
   updateStoredEntry,
 } from "./common.js";
 
@@ -44,8 +44,8 @@ async function onAdd() {
     await addEntry(newId.value);
     await updateEntryList();
   } else {
-    await logMessage("No id provided");
-  }
+    await logMessage("No id provided"); 
+  } 
 }
 
 async function onClear() {
@@ -83,14 +83,14 @@ async function onDelete() {
 
 async function onSave() {
   const id = idText.value ?? "default";
-  const siteFilter = siteFilterText.value ?? DEFAULT_SITE_FILTER;
+  const matches = siteFilterText.value ?? DEFAULT_SITE_FILTER;
   const style = styleText.value ?? "";
   const script = scriptText.value ?? "";
   const registered = isRegisteredCheckbox.checked;
 
   try {
-    await updateStoredEntry(id, siteFilter, style, script, registered);
-    await logMessage("Saved changes", {siteFilter, style, script});
+    await updateStoredEntry(id, matches, style, script, registered);
+    await logMessage("Saved changes", {matches, style, script});
   } catch (e) {
     await logMessage("Failed to update script", {error: e, runtimeError: chrome.runtime.lastError});
   }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "marpes Stylizr",
-  "version": "1.0",
+  "version": "1.1",
   "minimum_chrome_version": "120",
   "description": "Add custom CSS or JavaScript to execute to any website",
   "icons": {
@@ -28,10 +28,10 @@
     "activeTab",
     "contextMenus",
     "fontSettings",
-    "userScripts"
+    "userScripts",
+    "webNavigation"
   ],
   "host_permissions": [
-    "<all_urls>",
     "http://*/*",
     "https://*/*"
   ],
