@@ -78,10 +78,12 @@ export async function registerEntry(id: string, tabId: number) {
   if (!entry) {
     return;
   }
-
+  
+  const matches = entry.matches.split("\n").filter((match) => match.trim() !== "");
+  
   const scriptOptions = {
     id: id,
-    matches: entry.matches.split("\n"),
+    matches,
     js: [{code: entry.code}],
   };
 
