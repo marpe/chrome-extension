@@ -1,3 +1,5 @@
+import ExecutionWorld = chrome.scripting.ExecutionWorld;
+
 const storage = chrome.storage.local;
 
 export const DEFAULT_SITE_FILTER = "*://*/*";
@@ -31,6 +33,13 @@ export async function clearLogs() {
 
 function getTabs() {
   return chrome.tabs.query({active: true, currentWindow: true});
+}
+
+function appendScript(code: string) {
+  const script = document.createElement("script");
+  script.textContent = code;
+  document.documentElement.appendChild(script);
+  script.remove();
 }
 
 export async function unregisterAll() {
@@ -78,27 +87,30 @@ export async function registerEntry(id: string, tabId: number) {
   if (!entry) {
     return;
   }
-  
-  const matches = entry.matches.split("\n").filter((match) => match.trim() !== "");
-  
-  const scriptOptions = {
-    id: id,
-    matches,
-    js: [{code: entry.code}],
-  };
 
-  const existingScript = await chrome.userScripts.getScripts({ids: [id]});
-  if (existingScript.length > 0) {
-    await chrome.userScripts.update([scriptOptions]);
-  } else {
-    await chrome.userScripts.register([scriptOptions]);
-  }
-
+  // const scriptOptions = {id, matches: [`*://${entry.matches.split("\n")[0]}/*`], js: [{code: entry.code}]};
   const styleOptions = {css: entry.style, target: {tabId}};
+  const scriptOptions = {
+    target: {tabId},
+    func: appendScript as () => void,
+    args: [entry.code],
+    world: "MAIN" as ExecutionWorld,
+    injectImmediately: true
+  };
+  // const scriptOptions = {target: {tabId}, func: () => eval(entry.code), injectImmediately: true};
+
   try {
+    /*const existingScript = await chrome.userScripts.getScripts({ids: [id]});
+    if (existingScript.length > 0) {
+      await chrome.userScripts.update([scriptOptions]);
+    } else {
+      await chrome.userScripts.register([scriptOptions]);
+    }*/
     await chrome.scripting.insertCSS(styleOptions);
+    await chrome.scripting.executeScript(scriptOptions);
+    await logMessage("Entry executed", {tabId, entry, styleOptions, scriptOptions});
   } catch (error) {
-    await logMessage("An error occurred when inserting CSS", {styleOptions, tabId, error});
+    await logMessage("An error occurred when inserting CSS", {styleOptions, scriptOptions, tabId, error});
   }
 
   await storage.set({entries: {...entries, [id]: {...entry, registered: true}}});
@@ -113,7 +125,7 @@ export async function unregisterEntry(id: string, tabId: number) {
 
   const styleOptions = {css: entry.style, target: {tabId}};
   try {
-    await chrome.userScripts.unregister({ids: [id]});
+    // await chrome.userScripts.unregister({ids: [id]});
     await chrome.scripting.removeCSS(styleOptions);
   } catch (error) {
     await logMessage("An error occurred when unregistering", {styleOptions, tabId, error});

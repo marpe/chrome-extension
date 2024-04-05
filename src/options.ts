@@ -124,7 +124,7 @@ async function updateUi() {
   const selectedId = styleSelect.value;
 
   let existingScript = "";
-  let siteFilter = "";
+  let siteFilter = DEFAULT_SITE_FILTER;
   let existingStyle = "";
   let isRegistered = false;
 

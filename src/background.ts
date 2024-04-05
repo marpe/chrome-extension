@@ -71,11 +71,12 @@ async function registerListeners() {
       chrome.webNavigation.onCompleted.addListener(async (details) => {
         try {
           const e = await getStoredEntries();
-          if (e[id].registered) {
+          /*if (e[id].registered) {
             await logMessage("Entry already registered, unregistering", {entry: e[id], details});
             await unregisterEntry(id, details.tabId);
-          }
+          }*/
           await registerEntry(id, details.tabId);
+          await logMessage("Entry registered", {entry: e[id], details});
         } catch (error) {
           await logMessage("Error when unregistering/registering", {error, entry, details, runtimeError: chrome.runtime.lastError});
         }
