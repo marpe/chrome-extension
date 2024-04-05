@@ -99,16 +99,24 @@ async function onSave() {
 async function updateEntryList() {
   const entries = await getStoredEntries();
   let entryArr = Object.keys(entries);
-  styleSelect.innerHTML = entryArr.map((id) => `<option value="${id}">${id}</option>`).join("");
   numEntries.textContent = `${entryArr.length}`;
+  if (entryArr.length === 0) {
+    styleSelect.innerHTML = "<option value=''>No entries</option>";
+    styleSelect.value = "";
+    return;
+  }
+  styleSelect.innerHTML = entryArr.map((id) => `<option value="${id}">${id}</option>`).join("");
+  if (!styleSelect.value) {
+    styleSelect.value = entryArr[0];
+  }
 }
 
 async function updateUi() {
   const registeredScriptIds = await chrome.userScripts.getScripts();
-  if(registeredScriptIds.length === 0) {
+  if (registeredScriptIds.length === 0) {
     registeredScripts.innerHTML = "<div class='muted'>No registered scripts</div>";
   } else {
-    registeredScripts.innerHTML = registeredScriptIds.map((id) => `<div>${id}</div>`).join("");
+    registeredScripts.innerHTML = registeredScriptIds.map((script) => `<div>Id: ${script.id}, Matches: ${script.matches}</div>`).join("");
   }
 
   const existingEntries = await getStoredEntries();
@@ -125,6 +133,7 @@ async function updateUi() {
       existingScript = entry.code;
       existingStyle = entry.style;
       siteFilter = entry.matches;
+      isRegistered = entry.registered;
       break;
     }
   }
@@ -150,7 +159,13 @@ async function updateUi() {
   }
 
   const {log} = await storage.get({log: []}) as { log: LogEntry[] };
-  logText.textContent = log.map(({message, date}) => `${formatDate(new Date(date))}: ${message}`).join("\n");
+  logText.innerHTML = log.map(function ({message, date, data}) {
+    let formatted = `<span class="date">${formatDate(new Date(date))}</span>: ${message}`;
+    if (!data) {
+      return formatted;
+    }
+    return `${formatted}\n<div class="data">\n${JSON.stringify(data, null, 2)}\n</div>`;
+  }).join("\n");
 }
 
 async function onResetAll() {
@@ -159,8 +174,8 @@ async function onResetAll() {
   await logMessage("Cleared all stored entries");
 }
 
-await updateUi();
 await updateEntryList();
+await updateUi();
 
 submitButton.addEventListener("click", onSave);
 resetAllButton.addEventListener("click", onResetAll);

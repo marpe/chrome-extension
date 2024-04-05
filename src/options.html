@@ -2,91 +2,7 @@
 <html lang="en">
 <head>
   <title>Stylizr</title>
-  <style>
-      body {
-          background: #333;
-          font-family: sans-serif;
-          color: #f0f0f0;
-          font-size: 16px;
-      }
-
-      label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: bold;
-          font-size: 14px;
-      }
-
-      textarea {
-          font-family: monospace;
-          min-width: 400px;
-          background: #4f4f4f;
-          border: 1px solid #6e6e6e;
-          border-radius: 4px;
-          color: #f0f0f0;
-      }
-
-      input, select {
-          min-width: 200px;
-          margin-bottom: 10px;
-          height: 24px;
-          padding: 2px;
-          border-radius: 4px;
-          background: #4f4f4f;
-          border: 1px solid #6e6e6e;
-          color: #f0f0f0;
-      }
-
-      input:focus-within, select:focus-within, button:focus-within, textarea:focus-within {
-          border: 1px solid #626de5;
-          outline: none;
-      }
-
-      button {
-          height: 30px;
-          border-radius: 4px;
-          padding: 2px 6px;
-          border: 1px solid #6e6e6e;
-          background: #4f4f4f;
-          color: #f0f0f0;
-      }
-
-      .message {
-          height: 20px;
-          padding: 5px;
-      }
-
-      #log {
-          white-space: pre-wrap;
-          font-size: 12px;
-          font-family: monospace;
-          border: 1px solid #6e6e6e;
-          border-radius: 4px;
-          min-height: 100px;
-          padding: 10px;
-      }
-
-      .form-group {
-          margin-bottom: 20px;
-      }
-
-      .muted {
-          color: #999;
-          font-size: 12px;
-          font-style: italic;
-      }
-
-      #build {
-          font-size: 10px;
-          display: flex;
-          justify-content: center;
-      }
-
-      input[readonly] {
-          background: #232323;
-          color: #949494;
-      }
-  </style>
+  <link rel="stylesheet" href="style.css">
   <script defer type="module" src="options.js"></script>
 </head>
 
@@ -106,7 +22,7 @@
     Id
     <span id="numEntries"></span>
   </label>
-  <select id="styleSelect"></select>
+  <select id="styleSelect" size="10"></select>
 </div>
 
 <div id="nameInput" class="form-group">
@@ -145,7 +61,7 @@
       name="custom_style"
       id="custom_style"
       draggable="false"
-      rows="8"
+      rows="20"
       placeholder="eg: * { font-size: 110%; }"
   ></textarea>
 </div>
@@ -156,14 +72,16 @@
       name="custom_script"
       id="custom_script"
       draggable="false"
-      rows="8"
+      rows="20"
       placeholder="alert('hi')"
   ></textarea>
 </div>
 
 <div class="form-group">
-  <label for="isRegistered">Registered</label>
-  <input type="checkbox" name="registered" id="isRegistered"/>
+  <label for="isRegistered">
+    <input type="checkbox" disabled="disabled" name="registered" id="isRegistered"/>
+    Registered
+  </label>
 </div>
 
 <div class="form-group">
@@ -181,7 +99,7 @@
 
 <div class="form-group">
   <label>Log</label>
-  <pre class="log" id="log"></pre>
+  <div class="log" id="log"></div>
   <button id="logClear" class="logClear">Clear Log</button>
 </div>
 

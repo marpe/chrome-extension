@@ -1,18 +1,29 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Stylizr</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        width: 200px;
+<html lang="en">
+<head>
+  <title>Stylizr</title>
+  <link rel="stylesheet" href="../style.css">
+  <script defer src="popup.js" type="module"></script>
+  <style>
+      .centered {
+          min-width: 400px;
+          min-height: 400px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
       }
-    </style>
-    <script defer src="popup.js" type="module"></script>
-  </head>
-  <body>
-    <div id="message"></div>
-    <button class="insert">Insert</button>
-    <button class="remove">Remove</button>
-  </body>
+      
+      .enabled {
+          background-color: #277a27;
+          border: 1px solid #3ba93b;
+          color: #000;
+      }
+  </style>
+</head>
+<body class="centered">
+<div id="message"></div>
+<button class="toggle" style="min-width: 200px;">Insert</button>
+<!--    <button class="insert">Insert</button>-->
+<!--    <button class="remove">Remove</button>-->
+</body>
 </html>

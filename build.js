@@ -39,7 +39,7 @@ deleteDirectory("./dist");
 console.timeEnd("delete")
 
 console.time("copy");
-copyFiles([".html", ".json", ".png"], "./src", "./dist");
+copyFiles([".html", ".json", ".png", ".css"], "./src", "./dist");
 console.timeEnd("copy");
 
 console.time("tsc");
