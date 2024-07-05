@@ -7,15 +7,14 @@
 import {Glob} from 'bun';
 import {readFile, writeFile} from 'fs/promises';
 import {join} from 'path';
-import {djb2} from './hash';
+import {djb2} from './hash.ts';
 
 /**
  * Remove inline scripts and styles from the generated HTML files.
  *
  * @param directory The directory to remove inline scripts and styles from.
  */
-async function removeInlineScriptAndStyle(directory: string) {
-  console.log('Removing Inline Scripts and Styles');
+export async function removeInlineScriptAndStyle(directory: string) {
   const scriptRegx = /<script[^>]*>([\s\S]+?)<\/script>/g;
   const styleRegx = /<style[^>]*>([\s\S]+?)<\/style>/g;
   const glob = new Glob('**/*.html');
@@ -26,8 +25,6 @@ async function removeInlineScriptAndStyle(directory: string) {
     absolute: false,
   })) {
     const filePath = join(directory, file);
-    // console.log(`Found ${files.length} files`);
-    console.log(`Edit file: ${filePath}`);
     let f = await readFile(filePath, {encoding: 'utf-8'});
 
     let script;
@@ -45,7 +42,7 @@ async function removeInlineScriptAndStyle(directory: string) {
           `<script type="module" src="${fn}"></script>`,
       );
       await writeFile(`${directory}${fn}`, inlineScriptContent);
-      console.log(`Inline script extracted and saved at: ${directory}${fn}`);
+      console.log(`Inline script extracted (from: ${filePath}) and saved at: ${directory}${fn}`);
     }
 
     let style;
@@ -58,11 +55,9 @@ async function removeInlineScriptAndStyle(directory: string) {
           `<link rel="stylesheet" href="${fn}" />`,
       );
       await writeFile(`${directory}${fn}`, inlineStyleContent);
-      console.log(`Inline style extracted and saved at: ${directory}${fn}`);
+      console.log(`Inline style extracted (from: ${filePath}) and saved at: ${directory}${fn}`);
     }
 
     await writeFile(filePath, f);
   }
 }
-
-await removeInlineScriptAndStyle("./dist");

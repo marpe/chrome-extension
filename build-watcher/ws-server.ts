@@ -35,13 +35,17 @@ function watchChanges(dir: string, lastTimestamp: number, callback: () => void) 
   }
 }
 
-let lastBuild = Date.now();
+let lastBuildStart = Date.now();
+let lastBuildEnd = Date.now();
+
+let isBuilding = false;
 
 function build() {
-  lastBuild = Date.now();
+  lastBuildStart = Date.now();
+  isBuilding = true;
   console.log('running build...');
   try {
-    child_process.execSync('node ./build.js', {stdio: "inherit"});
+    child_process.execSync('bun run build', {stdio: "inherit"});
   } catch (error) {
     console.error(error);
     console.error("build failed")
@@ -50,10 +54,15 @@ function build() {
   console.log('build completed');
   console.log('sending reload message');
   ws?.send('reload');
+  isBuilding = false;
+  lastBuildEnd = Date.now();
 }
 
-console.log('watching for changes...');
-
+const watchDir = "./src";
+console.log(`watching for changes in "${watchDir}"`);
 setInterval(() => {
-  watchChanges('src', lastBuild, build);
+  if (isBuilding) {
+    return;
+  }
+  watchChanges(watchDir, lastBuildEnd, build);
 }, 1000);

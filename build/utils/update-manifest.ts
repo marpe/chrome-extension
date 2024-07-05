@@ -27,5 +27,3 @@ export async function updateManifest() {
     process.exit(1);
   }
 }
-
-updateManifest();

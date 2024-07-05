@@ -11,15 +11,15 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "devtools_page": "devtools/devtools.html",
+  "devtools_page": "devtools/devtools/index.html",
   "options_ui": {
-    "page": "options.html",
+    "page": "index.html",
     "open_in_tab": true
   },
   "action": {
     "default_icon": "images/icon.png",
     "default_title": "Stylize",
-    "default_popup": "popup/popup.html"
+    "default_popup": "popup/popup/index.html"
   },
   "permissions": [
     "debugger",

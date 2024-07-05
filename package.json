@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "bun ./build/update-manifest.ts && astro build && bun ./build/extract-inline.ts && bun ./build/bundler.ts",
-    "build-server": "node ./ws-server.js",
+    "build": "astro build && bun ./build/build.ts",
+    "build-watcher": "bun ./build-watcher/ws-server.ts",
     "preview": "astro preview"
   },
   "author": "",
@@ -20,6 +20,7 @@
     "ws": "^8.15.1"
   },
   "devDependencies": {
+    "@types/bun": "^1.1.6",
     "monaco-editor": "^0.50.0"
   }
 }

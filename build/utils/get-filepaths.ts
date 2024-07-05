@@ -5,7 +5,6 @@
 import {readdir} from 'fs/promises';
 import {extname, join} from 'path';
 
-const sourceDir = './src/scripts';
 
 /**
  * Recursively get all .ts and .js filepaths from the directory.
@@ -15,7 +14,7 @@ const sourceDir = './src/scripts';
  * @returns The entrypoints.
  */
 export async function getFilepaths({
-                                     dir = sourceDir,
+                                     dir,
                                      deep = false,
                                    }: {
   dir?: string;
