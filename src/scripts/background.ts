@@ -1,5 +1,4 @@
-import OnClickData = chrome.contextMenus.OnClickData;
-import {getStoredEntries, logMessage, registerEntry, unregisterEntry} from "./common.js";
+import {getStoredEntries, logMessage, registerEntry, unregisterEntry} from "./common.ts";
 
 const storage = chrome.storage.local;
 
@@ -24,7 +23,7 @@ async function checkCommandShortcuts() {
   }
 }
 
-async function onContextMenuClicked(info: OnClickData) {
+async function onContextMenuClicked(info: chrome.contextMenus.OnClickData) {
   if (info.menuItemId === "options") {
     await chrome.runtime.openOptionsPage();
   } else {

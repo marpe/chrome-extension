@@ -1,5 +1,3 @@
-import ExecutionWorld = chrome.scripting.ExecutionWorld;
-
 const storage = chrome.storage.local;
 
 export const DEFAULT_SITE_FILTER = "*://*/*";
@@ -94,7 +92,7 @@ export async function registerEntry(id: string, tabId: number) {
     target: {tabId},
     func: appendScript as () => void,
     args: [entry.code],
-    world: "MAIN" as ExecutionWorld,
+    world: "MAIN" as chrome.scripting.ExecutionWorld,
     injectImmediately: true
   };
   // const scriptOptions = {target: {tabId}, func: () => eval(entry.code), injectImmediately: true};
@@ -138,10 +136,10 @@ export function formatDate(date: Date) {
   return `${date.toLocaleDateString()}, ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 }
 
-export async function logMessage(message: string, ...data: any) {
+export async function logMessage(message: string, ...data: any[]) {
   console.log(message, ...data);
   const {log} = await storage.get({log: []}) as { log: LogEntry[] };
-  await storage.set({log: [...log, {message, data, date: Date.now()}]});
+  await storage.set({log: [...log.slice(0, 100), {message, data, date: Date.now()}]});
 }
 
 export async function getStoredEntries() {

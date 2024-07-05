@@ -33,7 +33,7 @@ input:not([type="checkbox"]), select, textarea {
 
 textarea {
     font-family: monospace;
-    min-width: 800px;
+    width: 100%;
 }
 
 
@@ -72,16 +72,19 @@ button {
     max-height: 800px;
     overflow: auto;
     margin-bottom: 20px;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
 }
 
 .data {
     white-space: pre;
     font-size: 10px;
     max-height: 200px;
-    overflow: auto;
-    max-width: 600px;
     margin-bottom: 20px;
-    scrollbar-width: thin;
+
+    &[aria-hidden] {
+        display: none;
+    }
 }
 
 .date {
@@ -107,4 +110,15 @@ button {
 input[readonly] {
     background: #232323;
     color: #949494;
+}
+
+.container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr;
 }

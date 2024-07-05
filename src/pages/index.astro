@@ -1,0 +1,383 @@
+---
+console.log('index.astro');
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Stylizr</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+
+  <body>
+    <div class="container">
+      <div id="build"></div>
+
+      <div class="main-grid">
+        <aside>
+          <div class="form-group">
+            <label for="newId">
+              New
+            </label>
+            <input type="text"
+                   id="newId"/>
+            <button class="add">Add</button>
+          </div>
+
+          <div class="form-group">
+            <label for="styleSelect">
+              Id
+              <span id="numEntries"></span>
+            </label>
+            <select id="styleSelect"
+                    size="10"></select>
+          </div>
+
+          <div id="nameInput"
+               class="form-group">
+            <label for="id">Name</label>
+            <input type="text"
+                   readonly="readonly"
+                   name="id"
+                   id="id"
+                   placeholder="eg: My Style"/>
+            <button id="rename"
+                    name="rename"
+                    class="rename">Rename
+            </button>
+          </div>
+
+          <div id="renameInput"
+               class="form-group">
+            <label for="renamedId">New Name</label>
+            <input type="text"
+                   name="renamedId"
+                   id="renamedId"
+                   placeholder="eg: My Style"/>
+            <button id="renameSave"
+                    name="renameSave"
+                    class="renameSave">Save
+            </button>
+          </div>
+
+        </aside>
+
+        <div>
+
+          <div class="form-group">
+            <label for="site_filter">Site Filter</label>
+            <textarea
+                name="site_filter"
+                id="site_filter"
+                draggable="false"
+                rows="4"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="eg: youtube.com (<scheme>://<host>/<path>)">
+            </textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="custom_style">CSS</label>
+            <textarea
+                name="custom_style"
+                id="custom_style"
+                draggable="false"
+                rows="20"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="eg: * { font-size: 110%; }"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="custom_script">Script</label>
+            <textarea
+                name="custom_script"
+                id="custom_script"
+                draggable="false"
+                rows="20"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="alert('hi')"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="isRegistered">
+              <input type="checkbox"
+                     disabled="disabled"
+                     name="registered"
+                     id="isRegistered"/>
+              Registered
+            </label>
+          </div>
+
+          <div class="form-group">
+            <button class="submit"
+                    id="save">Save
+            </button>
+            <button class="delete"
+                    id="delete">Delete
+            </button>
+            <button class="clear"
+                    id="clear">Clear
+            </button>
+            <button id="resetAll"
+                    class="resetAll">Reset All
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Registered Scripts</label>
+            <div id="registeredScripts">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Log <span id="logCount"></span></label>
+        <div class="log"
+             id="log"></div>
+        <button id="logClear"
+                class="logClear">Clear Log
+        </button>
+      </div>
+    </div>
+  </body>
+  
+  <script>
+    import {
+      addEntry,
+      clearLogs,
+      clearStoredEntries,
+      DEFAULT_SITE_FILTER,
+      formatDate,
+      getStoredEntries,
+      type LogEntry,
+      logMessage,
+      removeEntry,
+      unregisterAll,
+      updateStoredEntry,
+    } from "../scripts/common.ts";
+    import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+
+    export {};
+
+    const storage = chrome.storage.local;
+
+    const nameInputDiv = document.getElementById("nameInput") as HTMLDivElement;
+    const renameInputDiv = document.getElementById("renameInput") as HTMLDivElement;
+    const registeredScripts = document.getElementById("registeredScripts") as HTMLDivElement;
+    const styleSelect = document.getElementById("styleSelect") as HTMLSelectElement;
+    const buildText = document.getElementById("build") as HTMLDivElement;
+    const numEntries = document.getElementById("numEntries") as HTMLDivElement;
+    const deleteButton = document.querySelector("button.delete") as HTMLButtonElement;
+    const clearButton = document.querySelector("button.clear") as HTMLButtonElement;
+    const addButton = document.querySelector("button.add") as HTMLButtonElement;
+    const renameButton = document.querySelector("button.rename") as HTMLButtonElement;
+    const resetAllButton = document.querySelector("button.resetAll") as HTMLButtonElement;
+    const submitButton = document.querySelector("button.submit") as HTMLButtonElement;
+    const siteFilterText = document.getElementById("site_filter") as HTMLTextAreaElement;
+    const styleText = document.getElementById("custom_style") as HTMLTextAreaElement;
+    const idText = document.getElementById("id") as HTMLInputElement;
+    const renamedIdText = document.getElementById("renamedId") as HTMLInputElement;
+    const newId = document.getElementById("newId") as HTMLInputElement;
+    const logText = document.getElementById("log") as HTMLInputElement;
+    const logCountText = document.getElementById("logCount") as HTMLSpanElement;
+    const scriptText = document.getElementById("custom_script") as HTMLTextAreaElement;
+    const logClearButton = document.getElementById("logClear") as HTMLButtonElement;
+    const renameSaveButton = document.getElementById("renameSave") as HTMLButtonElement;
+    const isRegisteredCheckbox = document.getElementById("isRegistered") as HTMLInputElement;
+    let isRenaming = false;
+
+    async function onAdd() {
+      if (newId.value) {
+        await addEntry(newId.value);
+        await updateEntryList();
+      } else {
+        await logMessage("No id provided");
+      }
+    }
+
+    async function onClear() {
+      await removeEntry(styleSelect.value);
+
+      await updateEntryList();
+    }
+
+    async function onRenameSave() {
+      const oldId = styleSelect.value;
+      const newId = renamedIdText.value;
+
+      await removeEntry(oldId);
+
+      idText.value = newId;
+      await onSave();
+
+      await updateEntryList();
+      styleSelect.value = newId;
+
+      isRenaming = !isRenaming;
+      await updateUi();
+    }
+
+    async function onDelete() {
+      const id = styleSelect.value;
+      if (!id) {
+        await logMessage("No id selected");
+        return;
+      }
+      await onClear()
+      await updateEntryList();
+      await logMessage(`Deleted id: ${id}`);
+    }
+
+    async function onSave() {
+      const id = idText.value ?? "default";
+      const matches = siteFilterText.value ?? DEFAULT_SITE_FILTER;
+      const style = styleText.value ?? "";
+      const script = scriptText.value ?? "";
+      const registered = isRegisteredCheckbox.checked;
+
+      try {
+        await updateStoredEntry(id, matches, style, script, registered);
+        await logMessage("Saved changes", {matches, style, script});
+      } catch (e) {
+        await logMessage("Failed to update script", {error: e, runtimeError: chrome.runtime.lastError});
+      }
+    }
+
+    async function updateEntryList() {
+      const entries = await getStoredEntries();
+      let entryArr = Object.keys(entries);
+      numEntries.textContent = `${entryArr.length}`;
+      if (entryArr.length === 0) {
+        styleSelect.innerHTML = "<option value=''>No entries</option>";
+        styleSelect.value = "";
+        return;
+      }
+      styleSelect.innerHTML = entryArr.map((id) => `<option value="${id}">${id}</option>`).join("");
+      if (!styleSelect.value) {
+        styleSelect.value = entryArr[0];
+      }
+    }
+
+    async function updateUi() {
+      const registeredScriptIds = await chrome.userScripts.getScripts();
+      if (registeredScriptIds.length === 0) {
+        registeredScripts.innerHTML = "<div class='muted'>No registered scripts</div>";
+      } else {
+        registeredScripts.innerHTML = registeredScriptIds.map((script) => `<div>Id: ${script.id}, Matches: ${script.matches}</div>`).join("");
+      }
+
+      const existingEntries = await getStoredEntries();
+      let entries = Object.entries(existingEntries);
+      const selectedId = styleSelect.value;
+
+      let existingScript = "";
+      let siteFilter = DEFAULT_SITE_FILTER;
+      let existingStyle = "";
+      let isRegistered = false;
+
+      for (const [id, entry] of entries) {
+        if (entry.id === selectedId) {
+          existingScript = entry.code;
+          existingStyle = entry.style;
+          siteFilter = entry.matches;
+          isRegistered = entry.registered;
+          break;
+        }
+      }
+
+      renamedIdText.value = selectedId;
+      idText.value = selectedId;
+      siteFilterText.value = siteFilter;
+      styleText.value = existingStyle;
+      scriptText.value = existingScript;
+      isRegisteredCheckbox.checked = isRegistered;
+
+      const {installed, build} = await storage.get({build: null, installed: null});
+      const buildStr = build ? formatDate(new Date(build)) : "N/A";
+      const installedStr = installed ? formatDate(new Date(installed)) : "N/A";
+      buildText.textContent = `Version: ${chrome.runtime.getManifest().version}, Installed: ${installedStr}, Build: ${buildStr}`;
+
+      if (isRenaming) {
+        nameInputDiv.style.display = "none";
+        renameInputDiv.style.display = "block";
+      } else {
+        nameInputDiv.style.display = "block";
+        renameInputDiv.style.display = "none";
+      }
+
+      const {log} = await storage.get({log: []}) as { log: LogEntry[] };
+      const logCount = log.length;
+
+      logCountText.textContent = `${logCount}`;
+
+      log.slice(0, 100).forEach(function ({message, date, data}) {
+        const formattedDate = `${formatDate(new Date(date))}`;
+        const rootEntry = document.createElement("div");
+        rootEntry.classList.add("log-entry");
+        const header = document.createElement("div");
+        header.classList.add("header");
+        header.addEventListener("click", () => {
+          console.log("Toggling data");
+          const dataEl = rootEntry.querySelector(".data");
+          if (dataEl) {
+            dataEl.toggleAttribute("aria-hidden");
+          }
+        });
+        const dateEl = document.createElement("span");
+        dateEl.classList.add("date");
+        dateEl.innerHTML = formattedDate;
+        header.appendChild(dateEl);
+
+        const messageElement = document.createElement("span");
+        messageElement.classList.add("message");
+        messageElement.innerHTML = message;
+        header.appendChild(messageElement);
+
+        rootEntry.appendChild(header);
+
+        const formattedData = document.createElement("div");
+        formattedData.classList.add("data");
+        formattedData.setAttribute("aria-hidden", "true");
+        formattedData.innerHTML = JSON.stringify(data, null, 2);
+        rootEntry.appendChild(formattedData);
+
+        logText.appendChild(rootEntry);
+      });
+
+      console.log("Updated UI");
+    }
+
+    async function onResetAll() {
+      await unregisterAll();
+      await clearStoredEntries();
+      await logMessage("Cleared all stored entries");
+    }
+
+    await updateEntryList();
+    await updateUi();
+
+    submitButton.addEventListener("click", onSave);
+    resetAllButton.addEventListener("click", onResetAll);
+    clearButton.addEventListener("click", onClear);
+    addButton.addEventListener("click", onAdd);
+    renameButton.addEventListener("click", async () => {
+      isRenaming = !isRenaming;
+      await updateUi();
+    });
+    renameSaveButton.addEventListener("click", onRenameSave);
+    deleteButton.addEventListener("click", onDelete);
+    logClearButton.addEventListener("click", async () => clearLogs());
+    storage.onChanged.addListener(updateUi);
+    styleSelect.addEventListener("change", updateUi);
+
+    monaco.editor.create(scriptText, {
+      language: 'javascript'
+    });
+  </script>
+</html>

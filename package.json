@@ -3,15 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "tsc -w",
-    "build": "node ./build.js"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "bun ./build/update-manifest.ts && astro build && bun ./build/extract-inline.ts && bun ./build/bundler.ts",
+    "build-server": "node ./ws-server.js",
+    "preview": "astro preview"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/chrome": "^0.0.268",
     "@types/ws": "^8.5.10",
+    "astro": "^4.11.5",
     "chrome-types": "^0.1.246",
     "typescript": "^5.3.3",
     "ws": "^8.15.1"
+  },
+  "devDependencies": {
+    "monaco-editor": "^0.50.0"
   }
 }

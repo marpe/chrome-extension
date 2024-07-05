@@ -29,6 +29,7 @@ function copyFiles(extensions, srcDir, distDir) {
       }
       copyFiles(extensions, srcFile, distFile);
     } else if (extensions.includes(path.extname(srcFile))) {
+      console.log(`Copying ${srcFile}`);
       fs.copyFileSync(srcFile, distFile);
     }
   });

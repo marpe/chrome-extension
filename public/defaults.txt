@@ -1,0 +1,21 @@
+setTimeout(function(){
+
+console.log("hello from marpe lol");
+document.querySelector(".vsc-controller").style.left = "200px";
+document.querySelector(".vsc-controller").style.position = "absolute";
+
+}, 5000);
+
+
+var videos = document.querySelectorAll("video");
+[...videos].forEach((video) => {
+     video.setAttribute("controls", "true");
+});
+
+#main-content {
+    max-width: unset !important;
+}
+
+ytd-reel-shelf-renderer {
+ display: none !important;
+}

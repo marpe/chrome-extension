@@ -40,3 +40,6 @@ fabric.properties
 node_modules
 dist
 .vscode
+
+# generated types
+.astro/
