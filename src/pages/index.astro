@@ -6,12 +6,18 @@ console.log('index.astro');
 <html lang="en">
   <head>
     <title>Stylizr</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet"
+          href="/style.css">
   </head>
 
   <body>
     <div class="container">
-      <div id="build"></div>
+      <div class="text-center">
+        <span id="build"></span>
+        <span id="isConnected"></span>
+      </div>
+
+      <div id="warning"></div>
 
       <div class="main-grid">
         <aside>
@@ -126,6 +132,9 @@ console.log('index.astro');
             <button id="resetAll"
                     class="resetAll">Reset All
             </button>
+            <button id="testMessage"
+                    class="testMessage">Test Message
+            </button>
           </div>
 
           <div class="form-group">
@@ -146,7 +155,7 @@ console.log('index.astro');
       </div>
     </div>
   </body>
-  
+
   <script>
     import {
       addEntry,
@@ -162,11 +171,13 @@ console.log('index.astro');
       updateStoredEntry,
     } from "../scripts/common.ts";
     import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+    import {isUserScriptsAvailable} from "../scripts/common";
 
     export {};
 
     const storage = chrome.storage.local;
 
+    const warningDiv = document.getElementById("warning") as HTMLDivElement;
     const nameInputDiv = document.getElementById("nameInput") as HTMLDivElement;
     const renameInputDiv = document.getElementById("renameInput") as HTMLDivElement;
     const registeredScripts = document.getElementById("registeredScripts") as HTMLDivElement;
@@ -190,7 +201,18 @@ console.log('index.astro');
     const logClearButton = document.getElementById("logClear") as HTMLButtonElement;
     const renameSaveButton = document.getElementById("renameSave") as HTMLButtonElement;
     const isRegisteredCheckbox = document.getElementById("isRegistered") as HTMLInputElement;
+    const isConnectedIndicator = document.getElementById("isConnected") as HTMLDivElement;
     let isRenaming = false;
+
+    function refreshConnected(connected: boolean) {
+      isConnectedIndicator.style.color = connected ? "green" : "red";
+      isConnectedIndicator.textContent = connected ? "Connected" : "Disconnected";
+    }
+
+    if (!isUserScriptsAvailable()) {
+      warningDiv.innerHTML = "User scripts are not available";
+      warningDiv.style.display = "block";
+    }
 
     async function onAdd() {
       if (newId.value) {
@@ -265,6 +287,9 @@ console.log('index.astro');
     }
 
     async function updateUi() {
+      if (!isUserScriptsAvailable()) {
+        return;
+      }
       const registeredScriptIds = await chrome.userScripts.getScripts();
       if (registeredScriptIds.length === 0) {
         registeredScripts.innerHTML = "<div class='muted'>No registered scripts</div>";
@@ -377,7 +402,26 @@ console.log('index.astro');
     styleSelect.addEventListener("change", updateUi);
 
     monaco.editor.create(scriptText, {
-      language: 'javascript'
+      language: 'javascript',
     });
+
+    async function getConnectionStatus() {
+      const response = await chrome.runtime.sendMessage<{ type: string }, boolean>({type: "get-is-connected"});
+      console.log("response", response);
+      refreshConnected(response);
+    }
+
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log("Received message", message);
+      if (message["set-is-connected"] !== undefined) {
+        refreshConnected(message["set-is-connected"]);
+      }
+    });
+
+    const testMessageButton = document.getElementById("testMessage");
+    testMessageButton.addEventListener("click", async () => {
+      await getConnectionStatus();
+    });
+
   </script>
 </html>

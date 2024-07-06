@@ -1,8 +1,7 @@
-import {getStoredEntries, logMessage, registerEntry, unregisterEntry} from "./common.ts";
+import {getStoredEntries, logMessage, registerEntry, type ScriptAndStyleEntry} from "./common.ts";
+import {connectToBuildServer} from "./ws-client.ts";
 
 const storage = chrome.storage.local;
-
-export {};
 
 async function checkCommandShortcuts() {
   const commands = await chrome.commands.getAll();
@@ -23,16 +22,81 @@ async function checkCommandShortcuts() {
   }
 }
 
-async function onContextMenuClicked(info: chrome.contextMenus.OnClickData) {
-  if (info.menuItemId === "options") {
-    await chrome.runtime.openOptionsPage();
-  } else {
-    console.log("Context menu clicked", info);
+function getListener(id: string, entry: ScriptAndStyleEntry) {
+  return async (details: chrome.webNavigation.WebNavigationFramedCallbackDetails) => {
+    try {
+      const e = await getStoredEntries();
+      /*if (e[id].registered) {
+        await logMessage("Entry already registered, unregistering", {entry: e[id], details});
+        await unregisterEntry(id, details.tabId);
+      }*/
+      await registerEntry(id, details.tabId);
+      await logMessage("Entry registered", {entry: e[id], details});
+    } catch (error) {
+      await logMessage("Error when unregistering/registering", {
+        error,
+        entry,
+        details,
+        runtimeError: chrome.runtime.lastError,
+      });
+    }
   }
 }
 
-chrome.runtime.onInstalled.addListener(async ({reason}) => {
-  console.log(`onInstalled ${reason}`);
+async function registerNavigationCompleteHandlersForStoredEntries() {
+  const entries = await getStoredEntries();
+  for (const [id, entry] of Object.entries(entries)) {
+    try {
+      const listener = getListener(id, entry);
+      const filters = {url: [{urlMatches: entry.matches}]};
+      chrome.webNavigation.onCompleted.addListener(listener, filters);
+      await logMessage("Added listener", entry);
+    } catch (error) {
+      await logMessage("Error adding listener", {error, entry, runtimeError: chrome.runtime.lastError});
+    }
+  }
+}
+
+function createContextMenu() {
+  let menuCreated = function () {
+    if (chrome.runtime.lastError) {
+      void logMessage(chrome.runtime.lastError.message);
+    }
+  };
+  const optionsId = chrome.contextMenus.create(
+      {
+        title: "marpe options",
+        contexts: ["all"],
+        id: "options",
+      },
+      menuCreated,
+  );
+
+  const connectWebSocketId = chrome.contextMenus.create(
+      {
+        title: "Connect WebSocket",
+        contexts: ["all"],
+        id: "connect-websocket",
+      },
+      menuCreated,
+  );
+
+  async function onContextMenuClicked(info: chrome.contextMenus.OnClickData) {
+    if (info.menuItemId === optionsId) {
+      await chrome.runtime.openOptionsPage();
+    } else if (info.menuItemId === connectWebSocketId) {
+      connectToBuildServer();
+      console.log("Connecting to WebSocket - Context Menu");
+    } else {
+      console.log("Context menu clicked", info);
+    }
+  }
+
+  chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
+}
+
+async function onInstalled({reason}) {
+  await logMessage(`onInstalled: ${reason}`);
 
   await chrome.action.setBadgeText({
     text: "OFF",
@@ -48,51 +112,10 @@ chrome.runtime.onInstalled.addListener(async ({reason}) => {
     await chrome.runtime.openOptionsPage();
   }
 
-  chrome.contextMenus.create(
-      {
-        title: "marpe options",
-        contexts: ["all"],
-        id: "options",
-      },
-      function () {
-        if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError.message);
-        }
-      }
-  );
-});
-
-async function registerListeners() {
-  const entries = await getStoredEntries();
-  for (const [id, entry] of Object.entries(entries)) {
-    try {
-      console.log("adding listener", entry.matches);
-      chrome.webNavigation.onCompleted.addListener(async (details) => {
-        try {
-          const e = await getStoredEntries();
-          /*if (e[id].registered) {
-            await logMessage("Entry already registered, unregistering", {entry: e[id], details});
-            await unregisterEntry(id, details.tabId);
-          }*/
-          await registerEntry(id, details.tabId);
-          await logMessage("Entry registered", {entry: e[id], details});
-        } catch (error) {
-          await logMessage("Error when unregistering/registering", {error, entry, details, runtimeError: chrome.runtime.lastError});
-        }
-      }, {url: [{urlMatches: entry.matches}]});
-
-      await logMessage("Added listener", entry);
-    } catch (error) {
-      await logMessage("Error adding listener", {error, entry, runtimeError: chrome.runtime.lastError});
-    }
-  }
+  createContextMenu();
 }
 
-void registerListeners();
-
-chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
-
-chrome.commands.onCommand.addListener(async (command, tab) => {
+const onCommand = async (command: string, tab: chrome.tabs.Tab) => {
   console.log(`Command: ${command}, ${tab}`);
   if (command === "reload-extension") {
     chrome.runtime.reload();
@@ -101,64 +124,36 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === "open-options") {
     await chrome.runtime.openOptionsPage();
   }
-});
 
-let webSocket: WebSocket | null = null;
-
-function keepAlive() {
-  const keepAliveIntervalId = setInterval(
-      () => {
-        if (webSocket) {
-          console.log("sending keepalive");
-          webSocket.send('keepalive');
-        } else {
-          clearInterval(keepAliveIntervalId);
-        }
-      },
-      // Set the interval to 20 seconds to prevent the service worker from becoming inactive.
-      20 * 1000
-  );
-}
-
-function connect() {
-  webSocket = new WebSocket('ws://localhost:8080');
-
-  webSocket.onopen = (event) => {
-    console.log('websocket open');
-    keepAlive();
-  };
-
-  webSocket.onmessage = (event) => {
-    if (event.data === "reload") {
-      console.log('websocket received reload message');
-      chrome.runtime.reload();
-    } else {
-      console.log(`websocket received message: ${event.data}`);
-    }
-  };
-
-  webSocket.onclose = (event) => {
-    console.log('websocket connection closed');
-    webSocket = null;
-
-    const reconnectIntervalId = setInterval(
-        () => {
-          console.log('reconnecting websocket');
-          connect();
-          if (webSocket) {
-            clearInterval(reconnectIntervalId);
-          }
-        },
-        5000
-    );
-  };
-}
-
-connect();
-
-function disconnect() {
-  if (webSocket == null) {
-    return;
+  if (command === "connect-websocket") {
+    connectToBuildServer();
+    console.log("Connecting to WebSocket - Command");
   }
-  webSocket.close();
+};
+
+function setup() {
+  chrome.runtime.onInstalled.addListener(onInstalled);
+
+  chrome.commands.onCommand.addListener(onCommand);
+  
+  chrome.runtime.onConnect.addListener(function (port) {
+    console.assert(port.name === "knockknock");
+    port.onMessage.addListener(function (msg) {
+      console.log("msg", msg);
+      if (msg.joke === "Knock knock")
+        port.postMessage({question: "Who's there?"});
+      else if (msg.answer === "Madame")
+        port.postMessage({question: "Madame who?"});
+      else if (msg.answer === "Madame... Bovary")
+        port.postMessage({question: "I don't get it."});
+    });
+
+  });
+
+  connectToBuildServer();
+
+  void registerNavigationCompleteHandlersForStoredEntries();
 }
+
+setup();
+

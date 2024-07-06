@@ -45,10 +45,14 @@ function build() {
   isBuilding = true;
   console.log('running build...');
   try {
-    child_process.execSync('bun run build', {stdio: "inherit"});
+    child_process.execSync('bun run build', {
+      stdio: "inherit",
+    });
   } catch (error) {
     console.error(error);
     console.error("build failed")
+    isBuilding = false;
+    lastBuildEnd = Date.now();
     return;
   }
   console.log('build completed');

@@ -4,7 +4,13 @@ export const DEFAULT_SITE_FILTER = "*://*/*";
 
 export type LogEntry = { message: string, data: any, date: number };
 
-export type Entry = { id: string, matches: string, style: string, code: string, registered: boolean };
+export type ScriptAndStyleEntry = {
+  id: string,
+  matches: string,
+  style: string,
+  code: string,
+  registered: boolean
+};
 
 export {};
 
@@ -59,7 +65,7 @@ export async function unregisterAll() {
   const updatedEntries = Object.entries(entries).reduce((prev, [id, entry]) => {
     prev[id] = {...entry, registered: false};
     return prev;
-  }, {} as { [id: string]: Entry });
+  }, {} as { [id: string]: ScriptAndStyleEntry });
   await storage.set({entries: updatedEntries});
 }
 
@@ -93,7 +99,7 @@ export async function registerEntry(id: string, tabId: number) {
     func: appendScript as () => void,
     args: [entry.code],
     world: "MAIN" as chrome.scripting.ExecutionWorld,
-    injectImmediately: true
+    injectImmediately: true,
   };
   // const scriptOptions = {target: {tabId}, func: () => eval(entry.code), injectImmediately: true};
 
@@ -136,6 +142,12 @@ export function formatDate(date: Date) {
   return `${date.toLocaleDateString()}, ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 }
 
+export async function logError(message: string, ...data: any[]) {
+  console.error(message, ...data);
+  const {log} = await storage.get({log: []}) as { log: LogEntry[] };
+  await storage.set({log: [...log.slice(0, 100), {message, data, date: Date.now()}]});
+}
+
 export async function logMessage(message: string, ...data: any[]) {
   console.log(message, ...data);
   const {log} = await storage.get({log: []}) as { log: LogEntry[] };
@@ -143,6 +155,6 @@ export async function logMessage(message: string, ...data: any[]) {
 }
 
 export async function getStoredEntries() {
-  const {entries} = await storage.get({entries: {}}) as { entries: { [id: string]: Entry } };
+  const {entries} = await storage.get({entries: {}}) as { entries: { [id: string]: ScriptAndStyleEntry } };
   return entries;
 }
