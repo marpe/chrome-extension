@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     assets: 'app',
   },
+  devToolbar: {
+    enabled: false
+  },
   vite: {
     server: {
       hmr: {
