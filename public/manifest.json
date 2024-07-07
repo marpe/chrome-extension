@@ -17,7 +17,11 @@
     "open_in_tab": true
   },
   "action": {
-    "default_icon": "images/icon.png",
+    "default_icon": {
+      "16": "images/icon.png",
+      "24": "images/icon.png",
+      "32": "images/icon.png"
+    },
     "default_title": "Stylize",
     "default_popup": "popup/popup/index.html"
   },
