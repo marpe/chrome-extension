@@ -1,26 +1,22 @@
 {
   "name": "marpe-chrome-extension",
-  "version": "1.0.0",
-  "description": "",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build && bun ./build/build.ts",
-    "build-watcher": "bun ./build-watcher/ws-server.ts",
-    "preview": "astro preview"
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@types/chrome": "^0.0.268",
-    "@types/ws": "^8.5.10",
-    "astro": "^4.11.5",
-    "chrome-types": "^0.1.246",
-    "typescript": "^5.3.3",
-    "ws": "^8.15.1"
+    "vue": "^3.4.29"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.6",
-    "monaco-editor": "^0.50.0"
+    "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vue-tsc": "^2.0.21"
   }
 }
