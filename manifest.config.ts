@@ -21,6 +21,10 @@ export default defineManifest(async (env) => ({
   action: {
     default_popup: 'src/popup/index.html',
   },
+  options_ui: {
+    page: 'src/options/index.html',
+    open_in_tab: true,
+  },
   background: {
     service_worker: 'src/background/index.ts',
     type: 'module',

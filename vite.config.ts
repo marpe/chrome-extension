@@ -1,15 +1,28 @@
-import { crx } from '@crxjs/vite-plugin'
+import {dirname, relative} from 'node:path'
+import {fileURLToPath, URL} from 'node:url'
+import {crx} from '@crxjs/vite-plugin'
 import vue from '@vitejs/plugin-vue'
-import { dirname, relative } from 'node:path'
-import { URL, fileURLToPath } from 'node:url'
 import AutoImport from 'unplugin-auto-import/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
-import { defineConfig } from 'vite'
-import Pages from 'vite-plugin-pages'
-import { defineViteConfig as define } from './define.config'
+import {defineConfig} from 'vite'
+import VueRouter from 'unplugin-vue-router/vite'
+import {VueRouterAutoImports} from 'unplugin-vue-router'
+import {defineViteConfig as define} from './define.config'
 import manifest from './manifest.config'
+
+const getPagesPath = (file: string) => {
+  // /src/options/pages/index.vue -> options/index.vue
+  const matches = /\/([A-Za-z0-9]+)\/pages\/(.*)/.exec(file);
+  if (matches) {
+    const result = `${matches[1]}/${matches[2]}`;
+    console.log(result);
+    return result;
+  }
+  console.log("no match", file);
+  return file;
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -21,44 +34,47 @@ export default defineConfig({
     },
   },
   plugins: [
-    // legacy({
-    //   targets: ['defaults'],
-    // }),
-
     crx({
       manifest,
       browser: 'chrome',
     }),
 
-    vue(),
-
-    Pages({
-      dirs: [
+    // https://uvr.esm.is/introduction.html
+    VueRouter({
+      dts: "src/types/typed-router.d.ts",
+      routesFolder: [
         {
-          dir: 'src/pages',
-          baseRoute: '',
+          src: "src/pages",
+          path: 'common/',
         },
         {
-          dir: 'src/setup/pages',
-          baseRoute: 'setup',
+          src: "src/setup/pages",
+          path: getPagesPath,
         },
         {
-          dir: 'src/popup/pages',
-          baseRoute: 'popup',
+          src: "src/popup/pages",
+          path: getPagesPath,
         },
         {
-          dir: 'src/options/pages',
-          baseRoute: 'options',
+          src: "src/options/pages",
+          path: getPagesPath,
         },
         {
-          dir: 'src/content-script/iframe/pages',
-          baseRoute: 'iframe',
+          src: "src/content-script/iframe/pages",
+          path: getPagesPath,
         },
       ],
+      extendRoute: (route) => {
+        if (route.name === '/options') {
+          route.insert("about", "src/pages/about.vue");
+        }
+      }
     }),
 
+    vue(),
+
     AutoImport({
-      imports: ['vue', 'vue-router', 'vue/macros', '@vueuse/core'],
+      imports: ['vue', VueRouterAutoImports, 'vue/macros', '@vueuse/core'],
       dts: 'src/types/auto-imports.d.ts',
       dirs: ['src/composables/', 'src/stores/', 'src/utils/'],
     }),
@@ -89,10 +105,10 @@ export default defineConfig({
       name: 'assets-rewrite',
       enforce: 'post',
       apply: 'build',
-      transformIndexHtml(html, { path }) {
+      transformIndexHtml(html, {path}) {
         return html.replace(
-          /"\/assets\//g,
-          `"${relative(dirname(path), '/assets')}/`
+            /"\/assets\//g,
+            `"${relative(dirname(path), '/assets')}/`,
         )
       },
     },

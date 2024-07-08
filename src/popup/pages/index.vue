@@ -15,17 +15,17 @@ const count = computed(() => store.count)
 
 <template>
   <div class="text-center m-4 flex flex-col gap-y-2">
-    <h1 class="text-3xl font-bold underline pb-6">
+    <h1 class="text-2xl pb-6">
       Hello world from Popup!
     </h1>
 
-    <p>Vesion: {{ version }}</p>
+    <p>Version: {{ version }}</p>
     <p>Display name: {{ displayName }}</p>
 
     <p>
       GIT URL:
       <a
-        class="undeline text-green-500"
+        class="text-green-500"
         :href="gitURL"
       >
         {{ gitURL }}

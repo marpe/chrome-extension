@@ -10,12 +10,8 @@
     "url": "https://github.com/marpe/chrome-extension"
   },
   "scripts": {
-    "build": "npm run build:chrome && npm run build:firefox",
-    "build:chrome": "vite build",
-    "build:firefox": "vite build -c vite.firefox.config.js",
-    "dev": "concurrently \"npm run dev:chrome\" \"npm run dev:firefox\"",
-    "dev:chrome": "vite",
-    "dev:firefox": "vite build --mode development --watch -c vite.firefox.config.js",
+    "build": "vite build",
+    "dev": "vite",
     "format": "prettier --write .",
     "lint": "eslint . --fix",
     "lint:manifest": "web-ext lint --pretty",
@@ -26,7 +22,7 @@
     "marked": "^12.0.2",
     "pinia": "^2.1.7",
     "vue": "^3.4.27",
-    "vue-router": "^4.3.3",
+    "vue-router": "^4.4.0",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
@@ -58,9 +54,8 @@
     "unplugin-auto-import": "^0.17.6",
     "unplugin-icons": "^0.19.0",
     "unplugin-vue-components": "^0.27.0",
-    "unplugin-vue-router": "^0.9.1",
+    "unplugin-vue-router": "^0.10.0",
     "vite": "^5.2.13",
-    "vite-plugin-pages": "^0.32.2",
     "vite-plugin-vue-devtools": "^7.2.1",
     "vue-tsc": "^2.0.21",
     "web-ext": "^8.0.0",

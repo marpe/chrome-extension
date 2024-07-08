@@ -1,22 +1,48 @@
-<script setup lang="ts">
-import { useAppStore } from '@/stores/app.store';
+<script setup
+        lang="ts"
+>
+import {useAppStore} from '@/stores/app.store';
 
 const store = useAppStore();
 
 const count = computed(() => store.count);
+console.log(count);
+
+const version = __VERSION__;
+const buildDateTime = __BUILD_TIME__;
+const buildTime = buildDateTime.split('T')[1].slice(0, 5);
 </script>
 
 <template>
-  <header aria-label="Site Header" class="bg-gray-50">
-    Options Header
+  <header class="my-6">
+    <div class="flex items-center justify-center gap-4">
+      <div class="text-blue-500 hover:text-blue-200">
+        <NavLink :to="{ path: '/options' }">
+          Options
+        </NavLink>
+      </div>
+      <div class="text-blue-500 hover:text-blue-200">
+        <NavLink :to="{ path: '/options/something' }">
+          Something
+        </NavLink>
+      </div>
+      <div class="text-blue-500 hover:text-blue-200">
+        <NavLink :to="{ path: '/options/about' }">
+          About
+        </NavLink>
+      </div>
+    </div>
   </header>
-
+  
   <RouterView />
 
-  <p>Count: {{ count }}</p>
-
-  <footer aria-label="Site Footer" class="bg-gray-50">
-    Options Footer
+  <footer class="flex items-center justify-center gap-4">
+    <div class="badge badge-primary badge-outline">
+      v{{ version }}
+    </div>
+    <div>
+      🕑 {{ buildTime }}
+    </div>
   </footer>
 </template>
 

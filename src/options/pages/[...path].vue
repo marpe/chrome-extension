@@ -4,11 +4,8 @@
 </script>
 
 <template>
-  <div class="flex-1">
-    No options here yet!
+  <div class="flex-1 flex flex-col items-center">
+    <NotFound />
   </div>
 </template>
 
-<style scoped>
-
-</style>

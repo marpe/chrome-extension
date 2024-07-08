@@ -37,8 +37,8 @@ export default antfu(
       'no-restricted-globals': 'warn',
       'import/order': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'warn',
-      'vue/multi-word-component-names': 'warn',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      'vue/multi-word-component-names': 'off',
       '@eslint-community/eslint-comments/no-unlimited-disable': 'off',
     },
   }

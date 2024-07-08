@@ -9,7 +9,7 @@ const commitURL = `${gitURL}/commit/${gitCommit}`
 </script>
 
 <template>
-  <div style="grid-area: content">
+  <div style="flex: 1 1 0; grid-area: content">
     <div
       style="grid-area: version"
       class="self-start"
@@ -24,7 +24,7 @@ const commitURL = `${gitURL}/commit/${gitCommit}`
           (#{{ gitCommit }})
         </a>
       </p>
-      <h1>Changelog</h1>
+      <h1 class="text-center mb-12">Changelog</h1>
     </div>
     <!-- eslint-disable vue/no-v-html -->
     <div

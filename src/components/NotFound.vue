@@ -4,11 +4,11 @@
 </script>
 
 <template>
-  <div class="flex-1">
-    No options here yet!
-  </div>
+  <h1 class="text-2xl">Error 404</h1>
+  <p>
+    Page not found 😭
+  </p>
 </template>
 
 <style scoped>
-
 </style>
