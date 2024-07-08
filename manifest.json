@@ -8,12 +8,12 @@
     "128": "images/icon.png"
   },
   "background": {
-    "service_worker": "src/background.ts",
+    "service_worker": "src/worker/index.ts",
     "type": "module"
   },
-  "devtools_page": "devtools/devtools/index.html",
+  "devtools_page": "devtools/index.html",
   "options_ui": {
-    "page": "index.html",
+    "page": "options/index.html",
     "open_in_tab": true
   },
   "action": {
@@ -23,7 +23,7 @@
       "32": "images/icon.png"
     },
     "default_title": "Stylize",
-    "default_popup": "popup/popup/index.html"
+    "default_popup": "popup/index.html"
   },
   "permissions": [
     "debugger",

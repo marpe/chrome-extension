@@ -1,6 +1,4 @@
-import {getStoredEntries, logMessage, registerEntry, type ScriptAndStyleEntry} from "./common.ts";
-import {connectToBuildServer} from "./ws-client.ts";
-
+import {getStoredEntries, logMessage, registerEntry, type ScriptAndStyleEntry} from "../lib/common.ts";
 const storage = chrome.storage.local;
 
 async function checkCommandShortcuts() {
@@ -85,8 +83,7 @@ function createContextMenu() {
     if (info.menuItemId === optionsId) {
       await chrome.runtime.openOptionsPage();
     } else if (info.menuItemId === connectWebSocketId) {
-      connectToBuildServer();
-      console.log("Connecting to WebSocket - Context Menu");
+      console.log("Disabled...");
     } else {
       console.log("Context menu clicked", info);
     }
@@ -124,11 +121,6 @@ const onCommand = async (command: string, tab: chrome.tabs.Tab) => {
   if (command === "open-options") {
     await chrome.runtime.openOptionsPage();
   }
-
-  if (command === "connect-websocket") {
-    connectToBuildServer();
-    console.log("Connecting to WebSocket - Command");
-  }
 };
 
 function setup() {
@@ -149,8 +141,6 @@ function setup() {
     });
 
   });
-
-  connectToBuildServer();
 
   void registerNavigationCompleteHandlersForStoredEntries();
 }

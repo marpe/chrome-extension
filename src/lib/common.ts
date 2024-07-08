@@ -145,13 +145,13 @@ export function formatDate(date: Date) {
 export async function logError(message: string, ...data: any[]) {
   console.error(message, ...data);
   const {log} = await storage.get({log: []}) as { log: LogEntry[] };
-  await storage.set({log: [...log.slice(0, 100), {message, data, date: Date.now()}]});
+  await storage.set({log: [...log, {message, data, date: Date.now()}].slice(-100)});
 }
 
 export async function logMessage(message: string, ...data: any[]) {
   console.log(message, ...data);
   const {log} = await storage.get({log: []}) as { log: LogEntry[] };
-  await storage.set({log: [...log.slice(0, 100), {message, data, date: Date.now()}]});
+  await storage.set({log: [...log, {message, data, date: Date.now()}].slice(-100)});
 }
 
 export async function getStoredEntries() {

@@ -1,15 +1,10 @@
----
----
-
-<!DOCTYPE html>
-<button>Display Types</button>
-<script>
+export const createDevToolButton = () => {
   chrome.devtools.panels.create(
       "marpes panel",
       "images/devtools-icon.png",
       "devtools/panel.html",
       () => {
         console.log("user switched to this panel");
-      }
+      },
   );
-</script>
+}
