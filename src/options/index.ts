@@ -4,9 +4,7 @@ import App from './app.vue'
 import './index.scss'
 import { setupRouter } from "@/lib/utils.ts";
 
-const dirname = import.meta.url.split('/').slice(-2)[0]
-console.log('dirname', dirname)
-const router = setupRouter(dirname)
+const router = setupRouter('/options');
 
 createApp(App).use(router).use(createPinia()).mount('#app')
 
@@ -18,3 +16,4 @@ console.table(
 )
 
 setupErrorHandling()
+

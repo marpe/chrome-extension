@@ -1,4 +1,4 @@
-import path, { dirname, relative } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 import { crx } from '@crxjs/vite-plugin'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -26,7 +26,7 @@ const getPagesPath = (file: string) => {
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': resolve(__dirname, './src'),
     },
   },
   plugins: [
@@ -123,8 +123,8 @@ export default defineConfig({
       apply: 'build',
       transformIndexHtml(html, { path }) {
         return html.replace(
-          /"\/assets\//g,
-          `"${relative(dirname(path), '/assets')}/`
+            /"\/assets\//g,
+            `"${relative(dirname(path), '/assets')}/`,
         )
       },
     },
@@ -132,11 +132,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        iframe: 'src/content-script/iframe/index.html',
-        popup: 'src/popup/index.html',
-        setup: 'src/setup/index.html',
-        options: 'src/options/index.html',
-        offscreen: 'src/offscreen/index.html',
+        iframe: resolve(__dirname, 'src/content-script/iframe/index.html'),
+        popup: resolve(__dirname, 'src/popup/index.html'),
+        setup: resolve(__dirname, 'src/setup/index.html'),
+        options: resolve(__dirname, 'src/options/index.html'),
+        offscreen: resolve(__dirname, 'src/offscreen/index.html'),
         // "side-panel": "src/side-panel/index.html",
       },
     },

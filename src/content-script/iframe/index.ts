@@ -4,9 +4,7 @@ import App from './app.vue'
 import './index.scss'
 import { setupErrorHandling, setupRouter } from '@/lib/utils'
 
-const dirname = import.meta.url.split('/').slice(-2)[0]
-console.log('dirname', dirname)
-const router = setupRouter(dirname)
+const router = setupRouter('/content-script/iframe') // not sure this is correct
 
 createApp(App).use(router).mount('#app')
 
