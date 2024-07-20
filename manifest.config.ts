@@ -1,13 +1,13 @@
 import { defineManifest } from '@crxjs/vite-plugin'
-import packageJson from './package.json' assert { type: 'json' }
+import packageJson from './package.json'
 
 const { version, name, description, displayName } = packageJson
 // Convert from Semver (example: 0.1.0-beta6)
 const [major, minor, patch, label = '0'] = version
-    // can only contain digits, dots, or dash
-    .replace(/[^\d.-]+/g, '')
-    // split into version parts
-    .split(/[.-]/)
+  // can only contain digits, dots, or dash
+  .replace(/[^\d.-]+/g, '')
+  // split into version parts
+  .split(/[.-]/)
 
 export default defineManifest(async (env) => ({
   name: env.mode === 'staging' ? `[INTERNAL] ${name}` : displayName || name,
@@ -29,29 +29,29 @@ export default defineManifest(async (env) => ({
     service_worker: 'src/background/index.ts',
     type: 'module',
   },
-  "commands": {
-    "eyedropper": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+E",
+  commands: {
+    eyedropper: {
+      suggested_key: {
+        default: 'Ctrl+Shift+E',
       },
-      "description": "Toggle EyeDropper",
-      "global": true,
+      description: 'Toggle EyeDropper',
+      global: true,
     },
-    "reload": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+R",
+    reload: {
+      suggested_key: {
+        default: 'Ctrl+Shift+R',
       },
-      "description": "Reload extension",
+      description: 'Reload extension',
     },
   },
-  content_scripts: [
+  /*content_scripts: [
     {
       all_frames: false,
       js: ['src/content-script/index.ts'],
-      matches: ['*://*/*'],
+      matches: ['*://!*!/!*'],
       run_at: 'document_end',
     },
-  ],
+  ],*/
   offline_enabled: false,
   host_permissions: [],
   permissions: [
@@ -61,20 +61,20 @@ export default defineManifest(async (env) => ({
     'background',
     'offscreen',
     'contextMenus',
-    'sidePanel',
+    // 'sidePanel',
   ],
-  "side_panel": {
+  /*side_panel: {
     "default_path": "src/side-panel/index.html"
-  },
+  },*/
   web_accessible_resources: [
-    {
-      matches: ['*://*/*'],
+    /*{
+      matches: ['*://!*!/!*'],
       resources: ['src/content-script/index.ts'],
     },
     {
-      matches: ['*://*/*'],
+      matches: ['*://!*!/!*'],
       resources: ['src/content-script/iframe/index.html'],
-    },
+    },*/
   ],
   icons: {
     16: 'src/assets/logo.png',

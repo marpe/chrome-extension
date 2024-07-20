@@ -1,10 +1,8 @@
-<script setup
-        lang="ts"
->
-const testColor = ref("");
+<script setup lang="ts">
+const testColor = ref('')
 
 function logStuff() {
-  console.log('testColor', { testColor });
+  console.log('testColor', { testColor })
 }
 </script>
 

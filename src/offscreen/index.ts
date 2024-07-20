@@ -1,11 +1,11 @@
-import { MESSAGE_TARGET, MESSAGE_TYPE } from "@/lib/consts";
+import { MESSAGE_TARGET, MESSAGE_TYPE } from '@/lib/constants.ts'
 
 const sendLog = async (...data: any[]) => {
   return chrome.runtime.sendMessage({
     target: MESSAGE_TARGET.BACKGROUND,
     type: MESSAGE_TYPE.CONSOLE_LOG,
     data,
-  });
+  })
 }
 
 const consoleFunctions = [
@@ -13,25 +13,25 @@ const consoleFunctions = [
   console.info,
   console.warn,
   console.error,
-];
+]
 
 consoleFunctions.forEach((func) => {
-    const oldFunc = func;
-    // @ts-expect-error - we are overriding the default console functions
-    console[func.name] = (...data: any[]) => {
-      void sendLog(...data);
-      oldFunc(...data);
-    }
-});
+  const oldFunc = func
+  // @ts-expect-error - we are overriding the default console functions
+  console[func.name] = (...data: any[]) => {
+    void sendLog(...data)
+    oldFunc(...data)
+  }
+})
 
-const orgOnError = window.onerror;
+const orgOnError = window.onerror
 window.onerror = (...data) => {
-  void sendLog(...data);
-  orgOnError?.(...data);
+  void sendLog(...data)
+  orgOnError?.(...data)
 }
 
 window.addEventListener('unhandledrejection', (event) => {
-  void sendLog(event.reason);
-});
+  void sendLog(event.reason)
+})
 
-console.log('hello world from offscreen');
+console.log('hello world from offscreen')

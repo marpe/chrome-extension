@@ -24,7 +24,9 @@ const commitURL = `${gitURL}/commit/${gitCommit}`
           (#{{ gitCommit }})
         </a>
       </p>
-      <h1 class="text-center mb-12">Changelog</h1>
+      <h1 class="text-center mb-12">
+        Changelog
+      </h1>
     </div>
     <!-- eslint-disable vue/no-v-html -->
     <div

@@ -24,7 +24,7 @@ interface EyeDropper {
 }
 
 interface EyeDropperConstructor {
-  new(): EyeDropper
+  new (): EyeDropper
 }
 
 interface Window {

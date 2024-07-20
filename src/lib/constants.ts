@@ -4,20 +4,20 @@ export const MESSAGE_TARGET = {
   POPUP: 'POPUP',
   SIDE_PANEL: 'SIDE_PANEL',
   CONTENT_SCRIPT: 'CONTENT_SCRIPT',
-} as const;
+} as const
 
 export const MESSAGE_TYPE = {
   CONSOLE_LOG: 'CONSOLE_LOG',
   EYEDROPPER: 'EYEDROPPER',
-} as const;
+} as const
 
 export const COMMANDS = {
   eyedropper: 'eyedropper',
   reload: 'reload',
-} as const;
+} as const
 
 export interface Message<T = any> {
-  target: keyof typeof MESSAGE_TARGET,
-  type: keyof typeof MESSAGE_TYPE,
+  target: keyof typeof MESSAGE_TARGET
+  type: keyof typeof MESSAGE_TYPE
   data: T
 }

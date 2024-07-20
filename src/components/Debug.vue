@@ -1,8 +1,5 @@
-<script setup
-        lang="ts"
->
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <pre><slot /></pre>
+  <pre class="font-mono text-2xs"><slot /></pre>
 </template>

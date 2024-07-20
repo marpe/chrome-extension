@@ -1,24 +1,27 @@
 {
   "compilerOptions": {
     "composite": true,
+    "target": "ESNext",
+    "jsx": "preserve",
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "ESNext.Array", "WebWorker"],
+    "useDefineForClassFields": true,
     "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "strict": true,
     "noEmit": true,
-    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
     "skipLibCheck": true
   },
   "include": [
-    "vite.config.ts",
-    "define.config.ts",
-    "manifest.config.ts"
+    "./src"
   ]
 }

@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { inject, watchEffect } from 'vue'
-
 import type { ISetup } from './index'
-
 const setup = inject<ISetup>('setupType')
 
 watchEffect(() => {

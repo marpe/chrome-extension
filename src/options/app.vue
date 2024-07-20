@@ -1,16 +1,11 @@
-<script setup
-        lang="ts"
->
-import {useAppStore} from '@/stores/app.store';
+<script setup lang="ts">
+const store = useAppStore()
 
-const store = useAppStore();
+const count = computed(() => store.count)
+console.log(count)
 
-const count = computed(() => store.count);
-console.log(count);
-
-const version = __VERSION__;
-const buildDateTime = __BUILD_TIME__;
-const buildTime = buildDateTime.split('T')[1].slice(0, 5);
+const version = __VERSION__
+const buildTime = __BUILD_TIME__.split('T')[1].slice(0, 5)
 </script>
 
 <template>
@@ -33,16 +28,14 @@ const buildTime = buildDateTime.split('T')[1].slice(0, 5);
       </div>
     </div>
   </header>
-  
+
   <RouterView />
 
   <footer class="flex items-center justify-center gap-4">
     <div class="badge badge-primary badge-outline">
       v{{ version }}
     </div>
-    <div>
-      🕑 {{ buildTime }}
-    </div>
+    <div>🕑 {{ buildTime }}</div>
   </footer>
 </template>
 

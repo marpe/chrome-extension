@@ -1,13 +1,11 @@
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
 import { RouterLink } from 'vue-router'
-
 defineOptions({
   inheritAttrs: false,
 })
 
 const props = defineProps({
-  // @ts-expect-error
+  // @ts-expect-error -- documentation said to add this?
   ...RouterLink.props,
   inactiveClass: String,
 })
@@ -18,7 +16,12 @@ const isExternalLink = computed(() => {
 </script>
 
 <template>
-  <a v-if="isExternalLink" v-bind="$attrs" :href="to" target="_blank">
+  <a
+    v-if="isExternalLink"
+    v-bind="$attrs"
+    :href="to"
+    target="_blank"
+  >
     <slot />
   </a>
   <RouterLink

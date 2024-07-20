@@ -1,36 +1,35 @@
 async function hasOffscreenDocument() {
   const contexts = await chrome.runtime.getContexts({
     contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
-  });
-  return Boolean(contexts.length);
+  })
+  return Boolean(contexts.length)
 }
 
-let creating: Promise<void> | null = null;
+let creating: Promise<void> | null = null
 async function createOffscreenDocument(path: string) {
   if (!creating) {
     creating = chrome.offscreen.createDocument({
       url: path,
       reasons: [chrome.offscreen.Reason.CLIPBOARD],
       justification: 'reason for needing the document',
-    });
-    await creating;
-    creating = null;
+    })
+    await creating
+    creating = null
   } else {
-    await creating;
+    await creating
   }
 }
 
 export async function setupOffscreenDocument(path: string) {
-  const hasDoc = await hasOffscreenDocument();
+  const hasDoc = await hasOffscreenDocument()
 
   if (hasDoc) {
-    await closeOffscreenDocument();
+    await closeOffscreenDocument()
   }
 
-  await createOffscreenDocument(path);
+  await createOffscreenDocument(path)
 }
 
 async function closeOffscreenDocument() {
-  return chrome.offscreen.closeDocument();
+  return chrome.offscreen.closeDocument()
 }
-

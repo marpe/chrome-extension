@@ -1,17 +1,20 @@
-import {createPinia} from 'pinia'
-import {createApp} from 'vue'
+import { createPinia } from 'pinia'
 import '../assets/base.scss'
 import App from './app.vue'
 import './index.scss'
-import {setupErrorHandling, setupRouter} from "@/utils";
+import { setupRouter } from "@/lib/utils.ts";
 
-const router = setupRouter('/options');
+const dirname = import.meta.url.split('/').slice(-2)[0]
+console.log('dirname', dirname)
+const router = setupRouter(dirname)
 
 createApp(App).use(router).use(createPinia()).mount('#app')
 
-console.table(router.getRoutes().map(({name, path}) => ({
-  name,
-  path,
-})));
+console.table(
+  router.getRoutes().map(({ name, path }) => ({
+    name,
+    path,
+  }))
+)
 
-setupErrorHandling();
+setupErrorHandling()
