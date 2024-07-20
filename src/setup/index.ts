@@ -10,8 +10,7 @@ export interface ISetup {
 
 const setupType = new URLSearchParams(window.location.search).get('type')
 
-const dirname = import.meta.url.split('/').slice(-2)[0]
-const router = setupRouter(dirname);
+const router = setupRouter('/setup');
 
 router.beforeEach((to, _from, next) => {
   if (to.path === '/' || to.path === '/setup') {

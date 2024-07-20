@@ -1,13 +1,27 @@
 import '@/assets/base.scss'
-import {createPinia} from 'pinia'
-import {createApp} from 'vue'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 import App from './app.vue'
 import './index.scss'
-import {setupErrorHandling, setupRouter} from "@/utils";
+import { setupErrorHandling, setupRouter } from "@/utils";
+import type { Message } from "@/lib/consts.ts";
+import { MESSAGE_TARGET } from "@/lib/consts.ts";
 
-const dirname = import.meta.url.split('/').slice(-2)[0]
-const router = setupRouter(dirname);
+const router = setupRouter('/popup');
 
 createApp(App).use(router).use(createPinia()).mount('#app')
 
 setupErrorHandling();
+
+const handleMessage = (message: Message) => {
+  if (message.target !== MESSAGE_TARGET.POPUP) {
+    return;
+  }
+  console.log('popup received message', message);
+  switch (message.type) {
+    default:
+      console.warn(`Unexpected message type received: '${message.type}'.`);
+      return false;
+  }
+};
+chrome.runtime.onMessage.addListener(handleMessage);

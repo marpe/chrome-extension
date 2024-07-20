@@ -14,14 +14,13 @@ import manifest from './manifest.config'
 
 const getPagesPath = (file: string) => {
   // /src/options/pages/index.vue -> options/index.vue
-  const matches = /\/([A-Za-z0-9]+)\/pages\/(.*)/.exec(file);
+  const matches = /\/([A-Za-z0-9-]+)\/pages\/(.*)/.exec(file);
   if (matches) {
     const result = `${matches[1]}/${matches[2]}`;
     console.log(result);
     return result;
   }
-  console.log("no match", file);
-  return file;
+  throw new Error(`no match for: ${file}`);
 }
 
 // https://vitejs.dev/config/
@@ -61,6 +60,10 @@ export default defineConfig({
         },
         {
           src: "src/content-script/iframe/pages",
+          path: getPagesPath,
+        },
+        {
+          src: "src/side-panel/pages",
           path: getPagesPath,
         },
       ],
@@ -120,6 +123,8 @@ export default defineConfig({
         popup: 'src/popup/index.html',
         setup: 'src/setup/index.html',
         options: 'src/options/index.html',
+        offscreen: "src/offscreen/index.html",
+        "side-panel": "src/side-panel/index.html",
       },
     },
     minify: 'terser',

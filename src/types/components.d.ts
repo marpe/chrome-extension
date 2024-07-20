@@ -9,6 +9,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppLink: typeof import('./../components/AppLink.vue')['default']
     Changelog: typeof import('./../components/Changelog.vue')['default']
+    Debug: typeof import('./../components/Debug.vue')['default']
+    EyeDropper: typeof import('./../components/EyeDropper.vue')['default']
     NavLink: typeof import('./../components/NavLink.vue')['default']
     NotFound: typeof import('./../components/NotFound.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

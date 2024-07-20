@@ -4,10 +4,10 @@ import packageJson from './package.json' assert { type: 'json' }
 const { version, name, description, displayName } = packageJson
 // Convert from Semver (example: 0.1.0-beta6)
 const [major, minor, patch, label = '0'] = version
-  // can only contain digits, dots, or dash
-  .replace(/[^\d.-]+/g, '')
-  // split into version parts
-  .split(/[.-]/)
+    // can only contain digits, dots, or dash
+    .replace(/[^\d.-]+/g, '')
+    // split into version parts
+    .split(/[.-]/)
 
 export default defineManifest(async (env) => ({
   name: env.mode === 'staging' ? `[INTERNAL] ${name}` : displayName || name,
@@ -29,6 +29,21 @@ export default defineManifest(async (env) => ({
     service_worker: 'src/background/index.ts',
     type: 'module',
   },
+  "commands": {
+    "eyedropper": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+      },
+      "description": "Toggle EyeDropper",
+      "global": true,
+    },
+    "reload": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R",
+      },
+      "description": "Reload extension",
+    },
+  },
   content_scripts: [
     {
       all_frames: false,
@@ -39,7 +54,18 @@ export default defineManifest(async (env) => ({
   ],
   offline_enabled: false,
   host_permissions: [],
-  permissions: ['storage', 'tabs', 'background'],
+  permissions: [
+    'storage',
+    'tabs',
+    'activeTab',
+    'background',
+    'offscreen',
+    'contextMenus',
+    'sidePanel',
+  ],
+  "side_panel": {
+    "default_path": "src/side-panel/index.html"
+  },
   web_accessible_resources: [
     {
       matches: ['*://*/*'],

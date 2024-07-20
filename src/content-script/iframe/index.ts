@@ -5,9 +5,9 @@ import './index.scss'
 import {setupErrorHandling, setupRouter} from "@/utils";
 
 const dirname = import.meta.url.split('/').slice(-2)[0];
+console.log('dirname', dirname);
 const router = setupRouter(dirname);
 
 createApp(App).use(router).mount('#app')
 
 setupErrorHandling();
-
