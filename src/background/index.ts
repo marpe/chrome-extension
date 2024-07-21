@@ -1,4 +1,3 @@
-import { setupErrorHandling } from '@/lib/utils.ts'
 import { COMMANDS, MESSAGE_TARGET, MESSAGE_TYPE } from '@/lib/constants.ts'
 
 const CONTEXT_MENU_ID = {
@@ -114,8 +113,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     `Unexpected context menu item ID received: '${info.menuItemId}'.`
   )
 })
-
-setupErrorHandling()
 
 chrome.commands.onCommand.addListener((command) => {
   console.log(`command triggered: ${command}`)

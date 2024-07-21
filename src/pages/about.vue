@@ -1,30 +1,12 @@
-<script setup
-        lang="ts"
->
-const router = useRouter();
-
-const meta = import.meta;
-const url = import.meta.url;
+<script setup lang="ts">
 const env = import.meta.env;
-const routes = router.getRoutes().map(({ name, path }) => ({
-  name,
-  path,
-}));
+const url = import.meta.url;
 </script>
 
 <template>
-  <Changelog />
-
   <Debug>env: {{ stringify(env) }}</Debug>
   <Debug>url: {{ stringify(url) }}</Debug>
-  <Debug>meta: {{ stringify(meta) }}</Debug>
-  <Debug>router: {{ stringify(routes) }}</Debug>
-  <NavLink
-    to="/"
-    @click="router.go(-1)"
-  >
-    Back
-  </NavLink>
+  <Changelog />
 </template>
 
 <style scoped></style>

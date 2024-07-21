@@ -1,8 +1,5 @@
-import '@/assets/base.scss'
-import { createApp } from 'vue'
-import App from './app.vue'
-import './index.scss'
-import { setupErrorHandling, setupRouter } from '@/lib/utils.ts'
+import { setupApp } from '@/lib/utils.ts'
+import App from "@/components/App.vue";
 
 export interface ISetup {
   setupType: 'install' | 'update'
@@ -10,24 +7,19 @@ export interface ISetup {
 
 const setupType = new URLSearchParams(window.location.search).get('type')
 
-const router = setupRouter('/setup')
-
-router.beforeEach((to, _from, next) => {
-  if (to.path === '/' || to.path === '/setup') {
-    if (setupType === 'install') {
-      return next('/setup/install')
-    } else {
-      return next('/setup/update')
+setupApp(App, "/setup", (app, router) => {
+  router.beforeEach((to, _from, next) => {
+    if (to.path === '/' || to.path === '/setup') {
+      if (setupType === 'install') {
+        return next('/setup/install')
+      } else {
+        return next('/setup/update')
+      }
     }
-  }
 
-  next()
-})
+    next()
+  });
 
-const app = createApp(App)
+  app.provide('setupType', { setupType } as ISetup)
+});
 
-app.provide('setupType', { setupType } as ISetup)
-
-app.use(router).mount('#app')
-
-setupErrorHandling()

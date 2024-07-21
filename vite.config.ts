@@ -8,6 +8,8 @@ import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import VueRouter from 'unplugin-vue-router/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
+import { unheadVueComposablesImports } from "@unhead/vue";
+import vueDevTools from 'vite-plugin-vue-devtools'
 import { defineViteConfig as define } from './define.config'
 import manifest from './manifest.config'
 
@@ -50,6 +52,7 @@ export default defineConfig({
         // 'vue-router', // replacing with VueRouterAutoImports (https://uvr.esm.is/introduction.html#auto-imports)
         'vue/macros',
         '@vueuse/core',
+        unheadVueComposablesImports,
         VueRouterAutoImports,
         {
           'vue-router/auto': ['useLink'],
@@ -72,34 +75,9 @@ export default defineConfig({
     VueRouter({
       root: '.',
       dts: 'src/types/typed-router.d.ts',
-      routesFolder: [
-        {
-          src: 'src/pages',
-          path: 'common/',
-        },
-        {
-          src: 'src/setup/pages',
-          path: getPagesPath,
-        },
-        {
-          src: 'src/popup/pages',
-          path: getPagesPath,
-        },
-        {
-          src: 'src/options/pages',
-          path: getPagesPath,
-        },
-        {
-          src: 'src/content-script/iframe/pages',
-          path: getPagesPath,
-        },
-        /*{
-          src: "src/side-panel/pages",
-          path: getPagesPath,
-        },*/
-      ],
+      routesFolder: ['src/pages', 'src/setup/pages', 'src/popup/pages', 'src/options/pages', 'src/content-script/iframe/pages'],
       extendRoute: (route) => {
-        if (route.name === '/options') {
+        if (['/options', '/popup'].includes(route.name)) {
           route.insert('about', "@/pages/about.vue")
         }
       },
@@ -108,6 +86,8 @@ export default defineConfig({
     // must be placed after vue router
     vue(),
 
+    vueDevTools({
+    }),
 
     // https://github.com/antfu/unplugin-icons
     Icons({
@@ -153,8 +133,10 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    esbuildOptions: {
+      sourcemap: 'inline',
+    },
     include: ['vue', '@vueuse/core'],
-    exclude: ['vue-demi'],
   },
   assetsInclude: ['src/assets/*/**'],
   define,

@@ -1,17 +1,9 @@
-import '@/assets/base.scss'
-import { createPinia } from 'pinia'
-import { createApp } from 'vue'
-import App from './app.vue'
-import './index.scss'
-import { setupErrorHandling, setupRouter } from '@/lib/utils.ts'
+import { setupApp } from '@/lib/utils.ts'
 import type { Message } from '@/lib/constants.ts'
 import { MESSAGE_TARGET } from '@/lib/constants'
+import App from "@/components/App.vue";
 
-const router = setupRouter('/popup')
-
-createApp(App).use(router).use(createPinia()).mount('#app')
-
-setupErrorHandling()
+setupApp(App, '/popup');
 
 const handleMessage = (message: Message) => {
   if (message.target !== MESSAGE_TARGET.POPUP) {

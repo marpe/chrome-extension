@@ -1,19 +1,9 @@
-import { createPinia } from 'pinia'
-import '../assets/base.scss'
-import App from './app.vue'
-import './index.scss'
-import { setupRouter } from "@/lib/utils.ts";
+import { setupApp } from "@/lib/utils.ts";
+import App from "@/components/App.vue";
 
-const router = setupRouter('/options');
-
-createApp(App).use(router).use(createPinia()).mount('#app')
-
-console.table(
-  router.getRoutes().map(({ name, path }) => ({
-    name,
-    path,
-  }))
-)
-
-setupErrorHandling()
-
+(async () => {
+  console.log('connecting to devtools');
+  // await devtools.connect();
+  console.log("creating app");
+  setupApp(App, '/options');
+})();

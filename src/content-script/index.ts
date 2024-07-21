@@ -1,9 +1,5 @@
-import './index.scss'
 // import { onMessage, sendMessage } from 'webext-bridge/content-script'
-import { setupErrorHandling } from '@/lib/utils.ts'
 import { MESSAGE_TARGET } from '@/lib/constants.ts'
-
-setupErrorHandling()
 
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (message.target !== MESSAGE_TARGET.CONTENT_SCRIPT) {

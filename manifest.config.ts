@@ -4,10 +4,10 @@ import packageJson from './package.json'
 const { version, name, description, displayName } = packageJson
 // Convert from Semver (example: 0.1.0-beta6)
 const [major, minor, patch, label = '0'] = version
-  // can only contain digits, dots, or dash
-  .replace(/[^\d.-]+/g, '')
-  // split into version parts
-  .split(/[.-]/)
+    // can only contain digits, dots, or dash
+    .replace(/[^\d.-]+/g, '')
+    // split into version parts
+    .split(/[.-]/)
 
 export default defineManifest(async (env) => ({
   name: env.mode === 'staging' ? `[INTERNAL] ${name}` : displayName || name,
@@ -44,16 +44,10 @@ export default defineManifest(async (env) => ({
       description: 'Reload extension',
     },
   },
-  /*content_scripts: [
-    {
-      all_frames: false,
-      js: ['src/content-script/index.ts'],
-      matches: ['*://!*!/!*'],
-      run_at: 'document_end',
-    },
-  ],*/
   offline_enabled: false,
-  host_permissions: [],
+  host_permissions: [
+    '*://localhost:*/*',
+  ],
   permissions: [
     'storage',
     'tabs',
@@ -61,20 +55,6 @@ export default defineManifest(async (env) => ({
     'background',
     'offscreen',
     'contextMenus',
-    // 'sidePanel',
-  ],
-  /*side_panel: {
-    "default_path": "src/side-panel/index.html"
-  },*/
-  web_accessible_resources: [
-    /*{
-      matches: ['*://!*!/!*'],
-      resources: ['src/content-script/index.ts'],
-    },
-    {
-      matches: ['*://!*!/!*'],
-      resources: ['src/content-script/iframe/index.html'],
-    },*/
   ],
   icons: {
     16: 'src/assets/logo.png',
