@@ -18,7 +18,7 @@ const getPagesPath = (file: string) => {
   const matches = /\/([A-Za-z0-9-]+)\/pages\/(.*)/.exec(file)
   if (matches) {
     const result = `${matches[1]}/${matches[2]}`
-    console.log(result)
+    // console.log(result)
     return result
   }
   throw new Error(`no match for: ${file}`)
@@ -75,7 +75,7 @@ export default defineConfig({
     VueRouter({
       root: '.',
       dts: 'src/types/typed-router.d.ts',
-      routesFolder: ['src/pages', 'src/setup/pages', 'src/popup/pages', 'src/options/pages', 'src/content-script/iframe/pages'],
+     routesFolder: ['src/pages', 'src/setup/pages', 'src/popup/pages', 'src/options/pages', 'src/content-script/iframe/pages'],
       extendRoute: (route) => {
         if (['/options', '/popup'].includes(route.name)) {
           route.insert('about', "@/pages/about.vue")
@@ -86,8 +86,7 @@ export default defineConfig({
     // must be placed after vue router
     vue(),
 
-    vueDevTools({
-    }),
+    vueDevTools({}),
 
     // https://github.com/antfu/unplugin-icons
     Icons({
@@ -110,13 +109,11 @@ export default defineConfig({
     },
   ],
   build: {
+    sourcemap: 'inline',
     rollupOptions: {
       input: {
         iframe: resolve(__dirname, 'src/content-script/iframe/index.html'),
-        popup: resolve(__dirname, 'src/popup/index.html'),
-        setup: resolve(__dirname, 'src/setup/index.html'),
-        options: resolve(__dirname, 'src/options/index.html'),
-        offscreen: resolve(__dirname, 'src/offscreen/index.html'),
+        // offscreen: resolve(__dirname, 'src/offscreen/index.html'),
         // "side-panel": "src/side-panel/index.html",
       },
     },

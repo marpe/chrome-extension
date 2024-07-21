@@ -57,9 +57,9 @@ export default defineManifest(async (env) => ({
     'contextMenus',
   ],
   icons: {
-    16: 'src/assets/logo.png',
-    24: 'src/assets/logo.png',
-    32: 'src/assets/logo.png',
-    128: 'src/assets/logo.png',
+    16: 'public/logo.png',
+    24: 'public/logo.png',
+    32: 'public/logo.png',
+    128: 'public/logo.png',
   },
 }))
