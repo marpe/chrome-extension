@@ -5,7 +5,6 @@ import vueLogo from "@/assets/vue.svg";
 <template>
   <div class="container">
     <img :src="vueLogo">
-    <p>Hello World</p>
   </div>
 </template>
 
@@ -14,19 +13,20 @@ import vueLogo from "@/assets/vue.svg";
   position: fixed;
   right: 16px;
   top: 16px;
-  width: 250px;
-  height: 200px;
+  width: 24px;
+  height: 24px;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: #000;
   border-radius: 8px;
-  color: black;
+  color: #cecece;
+  z-index: 999999;
 }
 
 img {
-  width: 72px;
+  width: 24px;
 }
 </style>

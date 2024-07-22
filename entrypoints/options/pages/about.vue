@@ -3,6 +3,6 @@
 
 
 <template>
-  Some options
+  About Lal!
 </template>
 

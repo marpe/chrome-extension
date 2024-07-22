@@ -1,5 +1,4 @@
 import App from "./App.vue";
-import "./reset.css";
 
 export default defineContentScript({
   matches: ['<all_urls>'],

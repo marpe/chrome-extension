@@ -11,6 +11,9 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig({
   manifest: {
     permissions: ['storage'],
+    content_security_policy: {
+      extension_pages: "script-src 'self' http://localhost:3000; object-src 'self'",
+    },
   },
   modules: ['@wxt-dev/module-vue'],
   vite: (vite) => {
@@ -52,7 +55,7 @@ export default defineConfig({
         VueRouter({
           root: '.',
           dts: 'typed-router.d.ts',
-          routesFolder: ['./pages'],
+          routesFolder: ['entrypoints/options/pages'],
           extendRoute: (route) => {
             if (['/options', '/popup'].includes(route.name)) {
               route.insert('about', "@/pages/about.vue")
@@ -61,7 +64,11 @@ export default defineConfig({
         }),
         // must be placed after vue router
         // vue(),
-        vueDevTools({}),
+        vueDevTools({
+          launchEditor: 'webstorm',
+          appendTo: 'entrypoints/options/main.ts',
+        }),
+
         // https://github.com/antfu/unplugin-icons
         Icons({
           autoInstall: true,

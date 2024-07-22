@@ -1,31 +1,56 @@
 <script lang="ts" setup>
-const scriptValue = ref((await storedScript.getValue()))
 
-const saveScript = () => {
-  storedScript.setValue(scriptValue.value)
+import { useOptionsStore } from "@/stores/options.store";
+
+const scriptValue = ref()
+
+const saveScript = async () => {
+  const storedOptions = await useOptionsStore();
+  storedScript.setValue(storedOptions)
   alert('Script saved!')
 }
+
+onMounted(async () => {
+  scriptValue.value = await storedScript.getValue()
+})
+
 </script>
 
 <template>
   <div>
-    <a href="https://wxt.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="WXT logo">
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="@/assets/vue.svg" class="logo vue" alt="Vue logo">
-    </a>
-  </div>
-  <HelloWorld msg="WXT + Vue" />
-  <MessageButtons />
+    <div class="bg-blue-500 color-blue-500">
+      Hello!
+    </div>
 
-  <textarea v-model="scriptValue" />
-  <button class="btn btn-primary" @click="saveScript">
-    Save
-  </button>
+    <div class="flex gap-4">
+      <div>
+        <a href="https://wxt.dev" target="_blank">
+          <img src="/vite.svg" class="logo" alt="WXT logo">
+        </a>
+      </div>
+      <div>
+        <a href="https://vuejs.org/" target="_blank">
+          <img src="@/assets/vue.svg" class="logo vue" alt="Vue logo">
+        </a>
+      </div>
+    </div>
+    Hello this is popup
+    <HelloWorld msg="WXT + Vue" />
+
+    <MessageButtons />
+
+    <textarea v-model="scriptValue" />
+    <button class="btn btn-primary" @click="saveScript">
+      Save
+    </button>
+  </div>
 </template>
 
 <style scoped>
+body {
+  height: 400px;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

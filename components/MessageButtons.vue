@@ -1,8 +1,6 @@
 <script lang="ts"
         setup
 >
-import type { HTMLUListElement } from "linkedom";
-
 const helloResponse = ref('');
 const sendHello = async () => {
   try {
@@ -27,7 +25,7 @@ const sendUnknown = async () => {
   }
 };
 
-const longLivedMessageList = ref<HTMLUListElement>(null);
+const longLivedMessageList = ref<HTMLUListElement>();
 const port = browser.runtime.connect();
 port.onMessage.addListener((message) => {
   const li = document.createElement("li");
