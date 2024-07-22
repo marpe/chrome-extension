@@ -1,4 +1,8 @@
 import App from './App.vue';
+import { setupApp } from "@/utils/utils";
 
-createApp(App).mount('#app');
+const app = setupApp(App)
+    .mount('#app');
+
+
 

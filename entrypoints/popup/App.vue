@@ -1,18 +1,14 @@
 <script lang="ts" setup>
 
-import { useOptionsStore } from "@/stores/options.store";
+import { useAppStore } from "@/stores/app.store";
 
 const scriptValue = ref()
+const store = useAppStore();
 
-const saveScript = async () => {
-  const storedOptions = await useOptionsStore();
-  storedScript.setValue(storedOptions)
-  alert('Script saved!')
+const incremenet = () => {
+  store.increment();
+  console.log(store.count);
 }
-
-onMounted(async () => {
-  scriptValue.value = await storedScript.getValue()
-})
 
 </script>
 
@@ -30,7 +26,7 @@ onMounted(async () => {
       </div>
       <div>
         <a href="https://vuejs.org/" target="_blank">
-          <img src="@/assets/vue.svg" class="logo vue" alt="Vue logo">
+          <img src="/vue.svg" class="logo vue" alt="Vue logo">
         </a>
       </div>
     </div>
@@ -39,9 +35,10 @@ onMounted(async () => {
 
     <MessageButtons />
 
+    {{ store.count }}
     <textarea v-model="scriptValue" />
-    <button class="btn btn-primary" @click="saveScript">
-      Save
+    <button class="btn btn-primary" @click="incremenet">
+      Increment
     </button>
   </div>
 </template>

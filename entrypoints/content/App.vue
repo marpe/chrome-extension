@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import vueLogo from "@/assets/vue.svg";
+import vueLogo from "@/public/vue.svg";
 </script>
 
 <template>

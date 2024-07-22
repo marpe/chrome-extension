@@ -56,11 +56,6 @@ export default defineConfig({
           root: '.',
           dts: 'typed-router.d.ts',
           routesFolder: ['entrypoints/options/pages'],
-          extendRoute: (route) => {
-            if (['/options', '/popup'].includes(route.name)) {
-              route.insert('about', "@/pages/about.vue")
-            }
-          },
         }),
         // must be placed after vue router
         // vue(),
