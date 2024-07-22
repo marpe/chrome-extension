@@ -6,8 +6,8 @@ const router = useRouter();
 
 <template>
   <NavLink
-      to="/"
-      @click="router.go(-1)"
+    to="/"
+    @click="router.go(-1)"
   >
     Back
   </NavLink>

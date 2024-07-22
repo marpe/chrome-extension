@@ -1,5 +1,4 @@
 import antfu from '@antfu/eslint-config'
-import globals from 'globals'
 import autoImports from './.wxt/eslint-auto-imports.mjs';
 
 export default antfu(
@@ -32,9 +31,9 @@ export default antfu(
     {
       languageOptions: {
         globals: {
-          ...globals.browser,
-          ...globals.worker,
-          ...globals.webextensions,
+          // ...globals.browser,
+          // ...globals.worker,
+          // ...globals.webextensions,
           ...autoImports.globals,
         },
       },
@@ -49,6 +48,7 @@ export default antfu(
         'vue/multi-word-component-names': 'off',
         '@eslint-community/eslint-comments/no-unlimited-disable': 'off',
         'no-alert': 'off',
+        'unused-imports/no-unused-vars': "warn",
       },
     },
 )

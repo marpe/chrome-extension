@@ -1,10 +1,9 @@
 import { defineConfig } from 'wxt';
 import VueRouter from 'unplugin-vue-router/vite'
 import Components from 'unplugin-vue-components/vite'
-import Icons from 'unplugin-icons/vite'
-import IconsResolver from 'unplugin-icons/resolver'
+// import Icons from 'unplugin-icons/vite'
+// import IconsResolver from 'unplugin-icons/resolver'
 import vueDevTools from 'vite-plugin-vue-devtools'
-
 // See https://wxt.dev/api/config.html
 // https://wxt.dev/guide/key-concepts/manifest.html
 
@@ -16,10 +15,10 @@ export default defineConfig({
     },
   },
   modules: ['@wxt-dev/module-vue'],
-  vite: (vite) => {
+  vite: (configEnv) => {
     return {
-      esbuild: {
-        sourcemap: 'inline'
+      build: {
+        sourcemap: 'inline',
       },
       plugins: [
         // https://github.com/antfu/unplugin-vue-components
@@ -27,13 +26,6 @@ export default defineConfig({
           dirs: ['components'],
           // generate `components.d.ts` for ts support with Volar
           dts: 'components.d.ts',
-          resolvers: [
-            // auto import icons
-            IconsResolver({
-              prefix: 'i',
-              enabledCollections: ['mdi'],
-            }),
-          ],
         }),
         /*AutoImport({
           imports: [
@@ -65,15 +57,7 @@ export default defineConfig({
           launchEditor: 'webstorm',
           appendTo: 'entrypoints/options/main.ts',
         }),
-
-        // https://github.com/antfu/unplugin-icons
-        Icons({
-          autoInstall: true,
-          compiler: 'vue3',
-          scale: 1.5,
-        }),
       ],
-      ...vite,
     };
   },
   imports: {
