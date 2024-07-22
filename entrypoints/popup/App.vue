@@ -1,45 +1,15 @@
 <script lang="ts" setup>
-
-import { useAppStore } from "@/stores/app.store";
-
-const scriptValue = ref()
-const store = useAppStore();
-
-const incremenet = () => {
-  store.increment();
-  console.log(store.count);
-}
-
+import  Options  from "@/entrypoints/options/pages/options.vue";
 </script>
 
 <template>
   <div>
     <div class="bg-blue-500 color-blue-500">
-      Hello!
+      Popup
     </div>
-
-    <div class="flex gap-4">
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src="/vite.svg" class="logo" alt="WXT logo">
-        </a>
-      </div>
-      <div>
-        <a href="https://vuejs.org/" target="_blank">
-          <img src="/vue.svg" class="logo vue" alt="Vue logo">
-        </a>
-      </div>
-    </div>
-    Hello this is popup
-    <HelloWorld msg="WXT + Vue" />
-
-    <MessageButtons />
-
-    {{ store.count }}
-    <textarea v-model="scriptValue" />
-    <button class="btn btn-primary" @click="incremenet">
-      Increment
-    </button>
+    <RouterView>
+      <Options />
+    </RouterView>
   </div>
 </template>
 

@@ -1,11 +1,14 @@
 <script lang="ts" setup>
+import About from "@/entrypoints/options/pages/about.vue";
 </script>
 
 <template>
   <header>
-    Options!!!
+    Options
   </header>
-  <RouterView />
+  <RouterView>
+    <About />
+  </RouterView>
 </template>
 
 <style scoped>

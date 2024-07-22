@@ -10,9 +10,10 @@ export default defineContentScript({
     const ui = await createShadowRootUi(ctx, {
       name: 'example-ui',
       position: 'inline',
-      onMount: (container) => {
+      onMount: (container,  shadowRoot, shadowHost) => {
         // Define how your UI will be mounted inside the container
-        const app = createApp(App);
+        console.log(container);
+        const app = setupApp(App);
         app.mount(container);
         return app;
       },
@@ -24,5 +25,13 @@ export default defineContentScript({
 
     // 4. Mount the UI
     ui.mount();
+
+    ctx.onInvalidated(() => {
+      console.log('The UI was invalidated');
+    });
+
+    ctx.addEventListener(window, 'keydown', (event) => {
+      console.log('[keydown] background main', event);
+    });
   },
 });

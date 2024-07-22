@@ -17,8 +17,10 @@ export default defineConfig({
   },
   modules: ['@wxt-dev/module-vue'],
   vite: (vite) => {
-    console.log(vite);
     return {
+      esbuild: {
+        sourcemap: 'inline'
+      },
       plugins: [
         // https://github.com/antfu/unplugin-vue-components
         Components({

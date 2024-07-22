@@ -28,10 +28,12 @@ const sendUnknown = async () => {
 const longLivedMessageList = ref<HTMLUListElement>();
 const port = browser.runtime.connect();
 port.onMessage.addListener((message) => {
+  console.log({ message });
   const li = document.createElement("li");
   li.textContent = JSON.stringify(message);
   longLivedMessageList.value?.append(li);
 });
+port.postMessage('Hello from the popup!');
 </script>
 
 <template>

@@ -11,19 +11,12 @@
   },
   "scripts": {
     "dev": "wxt",
-    "dev:firefox": "wxt --browser firefox",
     "build": "wxt build",
-    "build:firefox": "wxt build --browser firefox",
     "zip": "wxt zip",
-    "zip:firefox": "wxt zip --browser firefox",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@unhead/vue": "^1.9.16",
     "marked": "^12.0.2",
-    "pinia": "^2.1.7",
-    "vue": "^3.4.33",
-    "vue-router": "^4.4.0",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
@@ -60,6 +53,10 @@
     "vue-tsc": "^2.0.26",
     "web-ext": "^8.2.0",
     "webext-bridge": "^6.0.1",
-    "wxt": "^0.18.15"
+    "wxt": "^0.18.15",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.33",
+    "vue-router": "^4.4.0",
+    "@unhead/vue": "^1.9.16"
   }
 }

@@ -1,22 +1,14 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { StorageLikeAsync } from '@vueuse/core'
+import type { StorageLikeAsync } from '@vueuse/core';
+import { useStorageAsync } from '@vueuse/core';
 
-const storage: StorageLikeAsync = {
-  async getItem(key: string) {
-    const value = await chrome.storage.local.get(key);
-    return value[key];
-  },
-  async setItem(key: string, value: string) {
-    await chrome.storage.local.set({ [key]: value });
-  },
-  async removeItem(key: string) {
-    await chrome.storage.local.remove(key);
-  },
-}
+const storageLike = storage as StorageLikeAsync;
 
 export const useAppStore = defineStore('app', () => {
-  const count = useStorageAsync('count', 0, storage);
-  const name = useStorageAsync('name', 'John Doe', storage);
+  const count = useStorageAsync('local:count', 0, storageLike);
+  const name = useStorageAsync('local:name', 'John Doe', storageLike);
+  const script = useStorageAsync('local:script', '', storageLike);
+  const enabled = useStorageAsync('local:enabled', true, storageLike);
 
   // You should probably use chrome.storage API instead of localStorage since localStorage
   // history can be cleared by the user.
@@ -28,16 +20,23 @@ export const useAppStore = defineStore('app', () => {
   }
 
   const increment = () => {
-    count.value++
+    count.value++;
   }
 
   const decrement = () => {
-    count.value--
+    count.value--;
+  }
+
+  const toggle = () => {
+    enabled.value = !enabled.value
   }
 
   return {
     count,
     name,
+    script,
+    enabled,
+    toggle,
     reset,
     increment,
     decrement,
