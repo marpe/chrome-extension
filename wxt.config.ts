@@ -9,6 +9,9 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 // https://wxt.dev/guide/key-concepts/manifest.html
 
 export default defineConfig({
+  manifest: {
+    permissions: ['storage'],
+  },
   modules: ['@wxt-dev/module-vue'],
   vite: (vite) => {
     console.log(vite);

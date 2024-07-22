@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+const scriptValue = ref((await storedScript.getValue()))
+
+const saveScript = () => {
+  storedScript.setValue(scriptValue.value)
+  alert('Script saved!')
+}
 </script>
 
 <template>
@@ -12,6 +18,11 @@
   </div>
   <HelloWorld msg="WXT + Vue" />
   <MessageButtons />
+
+  <textarea v-model="scriptValue" />
+  <button class="btn btn-primary" @click="saveScript">
+    Save
+  </button>
 </template>
 
 <style scoped>
