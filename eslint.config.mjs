@@ -1,6 +1,6 @@
 import antfu from '@antfu/eslint-config'
 import globals from 'globals'
-import { autoImportGlobals } from './json-loader.mjs'
+import autoImports from './.wxt/eslint-auto-imports.mjs';
 
 export default antfu(
   {
@@ -29,7 +29,7 @@ export default antfu(
         ...globals.browser,
         ...globals.worker,
         ...globals.webextensions,
-        ...autoImportGlobals.globals,
+        ...autoImports.globals,
       },
     },
   },

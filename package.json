@@ -10,14 +10,13 @@
     "url": "https://github.com/marpe/chrome-extension"
   },
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
-    "format": "prettier --write .",
-    "lint": "eslint . --fix",
-    "lint:manifest": "web-ext lint --pretty",
-    "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit",
-    "devtools": "./node_modules/.bin/vue-devtools"
+    "dev": "wxt",
+    "dev:firefox": "wxt --browser firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build --browser firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip --browser firefox",
+    "postinstall": "wxt prepare"
   },
   "dependencies": {
     "@unhead/vue": "^1.9.16",
@@ -28,8 +27,7 @@
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.23.0",
-    "@crxjs/vite-plugin": "2.0.0-beta.25",
+    "@antfu/eslint-config": "^2.23.1",
     "@iconify-json/mdi": "^1.1.67",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.13",
@@ -41,6 +39,7 @@
     "@vue/compiler-sfc": "^3.4.33",
     "@vue/devtools": "^7.3.6",
     "@vueuse/core": "^10.11.0",
+    "@wxt-dev/module-vue": "^1.0.0",
     "autoprefixer": "^10.4.19",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
@@ -48,8 +47,6 @@
     "eslint": "^9.7.0",
     "globals": "^15.8.0",
     "postcss": "^8.4.39",
-    "prettier": "^3.3.3",
-    "prettier-plugin-tailwindcss": "^0.6.5",
     "sass": "^1.77.8",
     "tailwindcss": "^3.4.6",
     "terser": "^5.31.3",
@@ -62,6 +59,7 @@
     "vite-plugin-vue-devtools": "^7.3.6",
     "vue-tsc": "^2.0.26",
     "web-ext": "^8.2.0",
-    "webext-bridge": "^6.0.1"
+    "webext-bridge": "^6.0.1",
+    "wxt": "^0.18.15"
   }
 }
