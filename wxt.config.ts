@@ -9,7 +9,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig({
   manifest: {
-    permissions: ['storage'],
+    permissions: ['storage', 'activeTab'],
     content_security_policy: {
       extension_pages: "script-src 'self' http://localhost:3000; object-src 'self'",
     },
@@ -18,7 +18,7 @@ export default defineConfig({
   vite: (configEnv) => {
     return {
       build: {
-        sourcemap: 'inline',
+        sourcemap: false,
       },
       plugins: [
         // https://github.com/antfu/unplugin-vue-components
@@ -66,6 +66,9 @@ export default defineConfig({
       '@vueuse/core',
       'pinia',
     ],
+    addons: {
+      vueTemplate: true
+    },
     eslintrc: {
       enabled: 9,
     },

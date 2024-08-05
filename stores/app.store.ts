@@ -1,6 +1,8 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { StorageLikeAsync } from '@vueuse/core';
 import { useStorageAsync } from '@vueuse/core';
+import type { Scripting } from 'wxt/browser';
+type CSSInjection = Scripting.CSSInjection;
 
 const storageLike = storage as StorageLikeAsync;
 
@@ -8,7 +10,9 @@ export const useAppStore = defineStore('app', () => {
   const count = useStorageAsync('local:count', 0, storageLike);
   const name = useStorageAsync('local:name', 'John Doe', storageLike);
   const script = useStorageAsync('local:script', '', storageLike);
+  const style = useStorageAsync('local:style', '', storageLike);
   const enabled = useStorageAsync('local:enabled', true, storageLike);
+  const injectedCss = useStorageAsync<CSSInjection[]>('local:injectedCss', [], storageLike);
 
   // You should probably use chrome.storage API instead of localStorage since localStorage
   // history can be cleared by the user.
@@ -36,11 +40,13 @@ export const useAppStore = defineStore('app', () => {
     name,
     script,
     enabled,
+    style,
     toggle,
     reset,
     increment,
     decrement,
-  }
+    injectedCss,
+  } as const;
 })
 
 if (import.meta.hot) {

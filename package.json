@@ -21,6 +21,7 @@
     "@antfu/eslint-config": "^2.23.2",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.13",
+    "@types/chrome": "^0.0.269",
     "@types/eslint": "^9.6.0",
     "@types/node": "^20.14.11",
     "@unhead/vue": "^1.9.16",

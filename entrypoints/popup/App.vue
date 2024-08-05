@@ -1,33 +1,20 @@
 <script lang="ts" setup>
-import  Options  from "@/entrypoints/options/pages/options.vue";
+import Options from "@/entrypoints/options/pages/options.vue";
 </script>
 
 <template>
-  <div>
-    <div class="bg-blue-500 color-blue-500">
+  <div class="navbar bg-neutral text-neutral-content">
+    <div class="px-4">
       Popup
     </div>
-    <RouterView>
-      <Options />
-    </RouterView>
   </div>
+  <RouterView>
+    <Options />
+  </RouterView>
 </template>
 
-<style scoped>
+<style>
 body {
-  height: 400px;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #54bc4ae0);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+  overflow-x: clip;
 }
 </style>
