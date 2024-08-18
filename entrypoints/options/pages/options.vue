@@ -1,6 +1,9 @@
-<script lang="ts" setup>
+<script lang="ts"
+        setup
+>
 import type { Scripting, Tabs } from "wxt/browser";
 import { useAppStore } from "@/stores/app.store";
+
 type CSSInjection = Scripting.CSSInjection;
 
 const store = useAppStore();
@@ -24,26 +27,26 @@ const queryTabs = async () => {
     const allTabs = await browser.tabs.query({});
     console.log("All tabs", allTabs);
     currentTabs.value = allTabs;
-  }
-  catch (e) {
+  } catch (e) {
     console.error(e);
   }
 }
 
 const executeScript = async () => {
   await queryTabs();
- 
+
   const tabs = currentTabs.value ?? [];
-  
+
   await Promise.all(tabs.map(tab => {
     if (!tab.id) {
       return Promise.resolve();
-    };
+    }
+    ;
     return browser.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
         console.log("Hello from the page");
-      }
+      },
     });
   }));
 
@@ -54,8 +57,7 @@ const tryRemoveCss = async (injection: CSSInjection) => {
   try {
     await browser.scripting.removeCSS(injection)
     return true;
-  }
-  catch (e) {
+  } catch (e) {
     console.error(e);
     return false;
   }
@@ -66,8 +68,7 @@ const removeInjectedCss = async () => {
     const cssInjections = store.injectedCss;
     await Promise.all(cssInjections.map(tryRemoveCss));
     clearInjections();
-  }
-  catch (e) {
+  } catch (e) {
     console.error(e);
   }
 }
@@ -77,8 +78,7 @@ const tryInjectCss = async (injection: CSSInjection) => {
   try {
     await browser.scripting.insertCSS(injection);
     return true;
-  }
-  catch (e) {
+  } catch (e) {
     console.error(e);
     return false;
   }
@@ -93,7 +93,7 @@ const injectCss = async () => {
       return {
         css: store.script,
         target: {
-          tabId: id
+          tabId: id,
         },
       } as CSSInjection;
     });
@@ -113,8 +113,7 @@ const injectCss = async () => {
     console.log("Injections", { successfulInjections, failedInjections });
 
     store.injectedCss.push(...successfulInjections);
-  }
-  catch (e) {
+  } catch (e) {
     console.error(e);
   }
 }
@@ -127,33 +126,41 @@ const toggleShowDebug = () => {
 </script>
 
 <template>
-  <div class="grid grid-rows-[1fr_auto] grid-flow-row gap-4 p-6">
+  <section>
+    <ThemeSwitch />
+  </section>
+  <article>
     <div>
-      <textarea v-model="store.script" class="textarea textarea-bordered textarea-lg text-xs w-full" rows="10" />
+      <textarea v-model="store.script"
+                rows="10" />
     </div>
-    <div class="flex flex-col gap-4">
+    <section>
       <!-- <button class="btn btn-primary" @click="store.toggle">
         {{ store.enabled ? "Disable" : "Enable" }}
       </button> -->
       <div>InjectedCSS Entries: {{ store.injectedCss.length }}</div>
-      <div class="grid grid-cols-2 gap-4">
-        <button class="btn btn-primary" @click="injectCss">
+      <section>
+        <button @click="injectCss">
           Inject Style
         </button>
-        <button class="btn btn-primary" :disabled="store.injectedCss.length === 0" @click="removeInjectedCss">
+        <button :disabled="store.injectedCss.length === 0"
+                @click="removeInjectedCss">
           Remove CSS
         </button>
-        <button class="btn btn-primary col-span-2" @click="executeScript">
+        <button @click="executeScript">
           Execute Script
         </button>
-      </div>
-    </div>
-    <div class="overflow-x-auto border border-blue-500 data-[open=false]:max-h-8 cursor-pointer" :data-open="showDebug" @click="toggleShowDebug">
+      </section>
+    </section>
+    <div class="overflow-x-auto border border-blue-500 data-[open=false]:max-h-8 cursor-pointer"
+         :data-open="showDebug"
+         @click="toggleShowDebug">
       <Debug>
         {{ JSON.stringify(currentTabs, null, 2) }}
       </Debug>
     </div>
-  </div>
+  </article>
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>

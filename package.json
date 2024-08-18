@@ -6,8 +6,7 @@
   "private": true,
   "description": "An amazing extension",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/marpe/chrome-extension"
+    "type": "git"
   },
   "scripts": {
     "dev": "wxt",
@@ -18,31 +17,35 @@
     "lint": "eslint --fix"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.23.2",
+    "@antfu/eslint-config": "^2.26.0",
     "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.13",
+    "@tailwindcss/typography": "^0.5.14",
     "@types/chrome": "^0.0.269",
     "@types/eslint": "^9.6.0",
-    "@types/node": "^20.14.11",
+    "@types/node": "^20.16.0",
     "@unhead/vue": "^1.9.16",
-    "@vue/compiler-sfc": "^3.4.33",
-    "@vueuse/core": "^10.11.0",
-    "@wxt-dev/module-vue": "^1.0.0",
-    "autoprefixer": "^10.4.19",
+    "@vue/compiler-sfc": "^3.4.38",
+    "@vueuse/core": "^11.0.0",
+    "@wxt-dev/module-vue": "^1.0.1",
+    "autoprefixer": "^10.4.20",
     "daisyui": "^4.12.10",
-    "eslint": "^9.7.0",
-    "globals": "^15.8.0",
-    "pinia": "^2.1.7",
+    "eslint": "^9.9.0",
+    "globals": "^15.9.0",
+    "pinia": "^2.2.2",
     "postcss-import": "^16.1.0",
-    "tailwindcss": "^3.4.6",
-    "typescript": "^5.5.3",
-    "unplugin-vue-components": "^0.27.3",
-    "unplugin-vue-router": "^0.10.1",
-    "vite": "^5.3.4",
-    "vite-plugin-vue-devtools": "^7.3.6",
-    "vue": "^3.4.33",
-    "vue-router": "^4.4.0",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "unplugin-vue-components": "^0.27.4",
+    "unplugin-vue-router": "^0.10.7",
+    "vite": "^5.4.1",
+    "vite-plugin-vue-devtools": "^7.3.8",
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.3",
     "webext-bridge": "^6.0.1",
-    "wxt": "^0.18.15"
+    "wxt": "^0.19.6"
+  },
+  "dependencies": {
+    "open-props": "^1.7.5",
+    "postcss-jit-props": "^1.0.14"
   }
 }

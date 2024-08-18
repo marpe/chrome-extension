@@ -3,6 +3,8 @@
 
 
 <template>
-  About Lal!
+  <section>
+    <p>About Lal!</p>
+  </section>
 </template>
 

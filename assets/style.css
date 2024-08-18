@@ -1,0 +1,203 @@
+@import "open-props/normalize.min.css";
+@import "open-props/buttons.min.css";
+@import "open-props/colors-oklch.min.css";
+@import "open-props/animations.min.css";
+@import "open-props/gradients.min.css";
+@import "open-props/sizes.min.css";
+@import "open-props/borders.min.css";
+@import "open-props/aspects.min.css";
+@import "open-props/masks.edges.min.css";
+@import "open-props/masks.corner-cuts.min.css";
+@import "open-props/supports.min.css";
+@import "open-props/theme.light.switch.min.css";
+@import "open-props/theme.dark.switch.min.css";
+
+html {
+    /*background-image: var(--gradient-18);*/
+    block-size: 100%;
+    background-color: var(--surface-1);
+    color: var(--text-1);
+    accent-color: var(--link);
+
+    --brand-dark: var(--orange-3);
+
+    --text-1-dark: var(--gray-3);
+    --text-2-dark: var(--gray-5);
+
+    --surface-1-dark: var(--gray-12);
+    --surface-2-dark: var(--gray-11);
+    --surface-3-dark: var(--gray-10);
+    --surface-4-dark: var(--gray-9);
+
+    --brand-light: var(--orange-6);
+
+    --text-1-light: var(--gray-8);
+    --text-2-light: var(--gray-7);
+
+    --surface-1-light: var(--gray-0);
+    --surface-2-light: var(--gray-1);
+    --surface-3-light: var(--gray-2);
+    --surface-4-light: var(--gray-3);
+}
+
+:root {
+    color-scheme: dark; /* light */
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+
+    --brand: var(--brand-dark);
+
+    --text-1: var(--text-1-dark);
+    --text-2: var(--text-2-dark);
+
+    --surface-1: var(--surface-1-dark);
+    --surface-2: var(--surface-2-dark);
+    --surface-3: var(--surface-3-dark);
+    --surface-4: var(--surface-4-dark);
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-5);
+    padding: var(--size-fluid-3);
+}
+
+#app {
+    display: contents;
+}
+
+pre {
+    overflow: auto;
+}
+
+button:hover {
+    border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+}
+
+a {
+    font-weight: 500;
+    color: #646cff;
+    text-decoration: inherit;
+}
+
+a:hover {
+    color: #535bf2;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --brand: var(--brand-light);
+
+        --text-1: var(--text-1-light);
+        --text-2: var(--text-2-light);
+
+        --surface-1: var(--surface-1-light);
+        --surface-2: var(--surface-2-light);
+        --surface-3: var(--surface-3-light);
+        --surface-4: var(--surface-4-light);
+    }
+}
+
+hr {
+    margin-block: var(--size-fluid-5);
+}
+
+p {
+    max-inline-size: var(--size-content-3);
+}
+
+aside {
+    max-inline-size: var(--size-content-2);
+}
+
+h1,h2,h3,h4,p,dt {
+    color: var(--text-1);
+}
+
+h1 {
+    max-inline-size: var(--size-header-2);
+}
+
+small {
+    max-inline-size: var(--size-header-1);
+}
+
+h5,h6,small,dd {
+    color: var(--text-2);
+}
+
+.surface-1 {
+    background-color: var(--surface-1);
+    color: var(--text-2);
+}
+
+.surface-2 {
+    background-color: var(--surface-2);
+    color: var(--text-2);
+}
+
+.surface-3 {
+    background-color: var(--surface-3);
+    color: var(--text-1);
+}
+
+.surface-4 {
+    background-color: var(--surface-4);
+    color: var(--text-1);
+}
+
+form {
+    background: var(--surface-2);
+    border: var(--border-size-1) solid var(--surface-3);
+    border-radius: var(--radius-2);
+    box-shadow: var(--shadow-2);
+
+    display: flex;
+    gap: var(--size-3);
+    padding: var(--size-5);
+
+    > label {
+        display: flex;
+        place-items: center;
+        gap: var(--size-1);
+    }
+}
+
+section {
+    display: grid;
+    gap: var(--size-2);
+    text-align: center;
+}
+
+section > p {
+    font-size: var(--font-size-1);
+}
+
+textarea {
+    min-width: 400px;
+}
+
+
+.backdrop {
+    background-color: oklch(var(--gray-9-hsl) / 30%);
+}
+
+.fluid-flex {
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    align-items: flex-start;
+    padding: var(--size-5);
+    gap: var(--size-5);
+}
