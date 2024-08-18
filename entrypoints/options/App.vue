@@ -1,20 +1,23 @@
 <script lang="ts" setup>
-import About from "@/entrypoints/options/pages/about.vue";
 </script>
 
 <template>
   <h1>
     Options
   </h1>
-  <strong>Current route path:</strong> {{ $route.fullPath }}
-  <NavLink to="/options">
-    Options
-  </NavLink>
-  <NavLink to="/about">
-    About
-  </NavLink>
+  <div>
+    <strong>Current route path:</strong> {{ $route.fullPath }}
+  </div>
+  <nav>
+    <NavLink to="/options">
+      Options
+    </NavLink>
+    <NavLink to="/about">
+      About
+    </NavLink>
+  </nav>
   <router-view v-slot="{ Component }">
-    <transition>
+    <transition name="slide-up" mode="out-in">
       <keep-alive>
         <component :is="Component" />
       </keep-alive>
@@ -23,4 +26,28 @@ import About from "@/entrypoints/options/pages/about.vue";
 </template>
 
 <style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.25s ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
 </style>

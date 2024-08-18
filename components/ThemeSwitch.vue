@@ -1,35 +1,54 @@
 <script setup
-        lang="ts">
+        lang="ts"
+>
 
-const themeInputs = document.getElementsByName("theme");
+import { useAppStore } from "@/stores/app.store";
 
-themeInputs.forEach(i => {
-  i.oninput = e => {
-    console.log(e.target);
-    // if you want this to not reset on page load
-    // you'll want to set a cookie or local storage value
-    // which restores the attribute on html
 
-    // eg: html[data-theme="dark"]
-    document.firstElementChild!.setAttribute('data-theme', e.target!.value)
-  }
-});
+const store = useAppStore();
 
+const setTheme = (e: Event) => {
+  console.log(e.target);
+  // if you want this to not reset on page load
+  // you'll want to set a cookie or local storage value
+  // which restores the attribute on html
+
+  const target = e.target as HTMLInputElement;
+  document.firstElementChild!.setAttribute('color-scheme', target.value)
+}
 </script>
 
 <template>
   <form id="theme">
     <label>
       Auto
-      <input type="radio" name="theme" value="auto" checked>
+      <input
+        v-model="store.theme"
+        type="radio"
+        name="theme"
+        value="auto"
+        @input="setTheme"
+      >
     </label>
     <label>
       Light
-      <input type="radio" name="theme" value="light">
+      <input
+        v-model="store.theme"
+        type="radio"
+        name="theme"
+        value="light"
+        @input="setTheme"
+      >
     </label>
     <label>
       Dark
-      <input type="radio" name="theme" value="dark">
+      <input
+        v-model="store.theme"
+        type="radio"
+        name="theme"
+        value="dark"
+        @input="setTheme"
+      >
     </label>
   </form>
 </template>

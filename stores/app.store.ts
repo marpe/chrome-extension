@@ -7,6 +7,7 @@ type CSSInjection = Scripting.CSSInjection;
 const storageLike = storage as StorageLikeAsync;
 
 export const useAppStore = defineStore('app', () => {
+  const theme = useStorageAsync('local:theme', 'dark', storageLike);
   const count = useStorageAsync('local:count', 0, storageLike);
   const name = useStorageAsync('local:name', 'John Doe', storageLike);
   const script = useStorageAsync('local:script', '', storageLike);
@@ -36,6 +37,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   return {
+    theme,
     count,
     name,
     script,

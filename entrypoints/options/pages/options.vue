@@ -126,41 +126,40 @@ const toggleShowDebug = () => {
 </script>
 
 <template>
-  <section>
-    <ThemeSwitch />
-  </section>
-  <article>
-    <div>
-      <textarea v-model="store.script"
-                rows="10" />
-    </div>
+  <div>
     <section>
-      <!-- <button class="btn btn-primary" @click="store.toggle">
-        {{ store.enabled ? "Disable" : "Enable" }}
-      </button> -->
-      <div>InjectedCSS Entries: {{ store.injectedCss.length }}</div>
-      <section>
-        <button @click="injectCss">
-          Inject Style
-        </button>
-        <button :disabled="store.injectedCss.length === 0"
-                @click="removeInjectedCss">
-          Remove CSS
-        </button>
-        <button @click="executeScript">
-          Execute Script
-        </button>
-      </section>
+      <ThemeSwitch />
     </section>
-    <div class="overflow-x-auto border border-blue-500 data-[open=false]:max-h-8 cursor-pointer"
-         :data-open="showDebug"
-         @click="toggleShowDebug">
-      <Debug>
-        {{ JSON.stringify(currentTabs, null, 2) }}
-      </Debug>
-    </div>
-  </article>
+    <article>
+      <div>
+        <textarea v-model="store.script"
+                  rows="10" />
+      </div>
+      <section>
+        <!-- <button class="btn btn-primary" @click="store.toggle">
+          {{ store.enabled ? "Disable" : "Enable" }}
+        </button> -->
+        <div>InjectedCSS Entries: {{ store.injectedCss.length }}</div>
+        <section>
+          <button @click="injectCss">
+            Inject Style
+          </button>
+          <button :disabled="store.injectedCss.length === 0"
+                  @click="removeInjectedCss">
+            Remove CSS
+          </button>
+          <button @click="executeScript">
+            Execute Script
+          </button>
+        </section>
+      </section>
+      <div class="overflow-x-auto border border-blue-500 data-[open=false]:max-h-8 cursor-pointer"
+           :data-open="showDebug"
+           @click="toggleShowDebug">
+        <Debug>
+          {{ JSON.stringify(currentTabs, null, 2) }}
+        </Debug>
+      </div>
+    </article>
+  </div>
 </template>
-
-<style scoped>
-</style>
