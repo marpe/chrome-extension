@@ -1,11 +1,10 @@
-<script lang="ts"
-        setup>
+<script lang="ts" setup>
 import Options from "@/entrypoints/options/pages/options.vue";
 </script>
 
 <template>
   <strong>
-    Popup - <a @click="() => browser.runtime.openOptionsPage()">Open Options</a>
+    Popup - <a style="cursor: pointer" @click="() => browser.runtime.openOptionsPage()">Open Options</a>
   </strong>
   <Options />
 </template>

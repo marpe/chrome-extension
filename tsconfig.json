@@ -1,3 +1,38 @@
 {
-  "extends": "./.wxt/tsconfig.json",
+  "extends": "./.wxt/tsconfig",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@": [
+        "."
+      ],
+      "@/*": [
+        "./*"
+      ],
+      "~": [
+        "."
+      ],
+      "~/*": [
+        "./*"
+      ],
+      "@@": [
+        "."
+      ],
+      "@@/*": [
+        "./*"
+      ],
+      "~~": [
+        "."
+      ],
+      "~~/*": [
+        "./*"
+      ]
+    },
+    "types": [
+      "vite/client",
+      "unplugin-icons/types/vue",
+      "unplugin-vue-router/client",
+      "unplugin-turbo-console/client"
+    ]
+  },
 }

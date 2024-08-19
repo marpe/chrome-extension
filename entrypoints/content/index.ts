@@ -1,3 +1,4 @@
+import '@/assets/style.css';
 import App from "./App.vue";
 
 export default defineContentScript({
@@ -10,7 +11,7 @@ export default defineContentScript({
     const ui = await createShadowRootUi(ctx, {
       name: 'example-ui',
       position: 'inline',
-      onMount: (container,  shadowRoot, shadowHost) => {
+      onMount: (container) => {
         // Define how your UI will be mounted inside the container
         console.log(container);
         const app = setupApp(App);

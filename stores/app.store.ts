@@ -1,6 +1,4 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { StorageLikeAsync } from '@vueuse/core';
-import { useStorageAsync } from '@vueuse/core';
 import type { Scripting } from 'wxt/browser';
 type CSSInjection = Scripting.CSSInjection;
 

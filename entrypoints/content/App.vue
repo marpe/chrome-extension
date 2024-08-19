@@ -1,7 +1,5 @@
-<script lang="ts"
-        setup
->
-import vueLogo from "@/public/vue.svg";
+<script lang="ts" setup>
+// import vueLogo from "@/public/vue.svg";
 import { useAppStore } from "@/stores/app.store";
 
 console.log('mounted app');
@@ -27,7 +25,7 @@ onKeyStroke([' '], (e) => {
 
 <template>
   <div class="container">
-    <img :src="vueLogo">
+    <!-- <img :src="vueLogo"> -->
   </div>
 </template>
 

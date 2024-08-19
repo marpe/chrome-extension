@@ -76,7 +76,6 @@ html {
 body {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: var(--size-5);
     padding: var(--size-fluid-3);
 
@@ -230,7 +229,6 @@ form {
 section {
     display: grid;
     gap: var(--size-2);
-    text-align: center;
 }
 
 section > p {

@@ -1,14 +1,35 @@
+import Components from 'unplugin-vue-components/vite';
+import VueRouter from 'unplugin-vue-router/vite';
 import { defineConfig } from 'wxt';
-import VueRouter from 'unplugin-vue-router/vite'
-import Components from 'unplugin-vue-components/vite'
-// import Icons from 'unplugin-icons/vite'
-// import IconsResolver from 'unplugin-icons/resolver'
-import vueDevTools from 'vite-plugin-vue-devtools'
-import path from "node:path";
 // See https://wxt.dev/api/config.html
 // https://wxt.dev/guide/key-concepts/manifest.html
+import IconsResolver from 'unplugin-icons/resolver';
+import Icons from 'unplugin-icons/vite';
+import TurboConsole from 'unplugin-turbo-console/vite';
+import {
+  VueUseComponentsResolver,
+  VueUseDirectiveResolver,
+} from 'unplugin-vue-components/resolvers';
+import path from "node:path";
 
 export default defineConfig({
+  entrypointLoader: 'vite-node',
+  hooks: {
+    'vite:devServer:extendConfig': (config) => {
+
+      console.log(config);
+      /* console.log('extending vite dev server config', config.server?.watch.ignored);
+      config.plugins!.push(vueDevTools({
+        launchEditor: 'webstorm',
+        appendTo: 'entrypoints/options/main.ts',
+      })); */
+
+      config.server?.watch?.ignored?.push(path.join(__dirname, 'typed-router.d.ts'));
+    },
+  },
+  runner: {
+    disabled: true,
+  },
   manifest: {
     permissions: ['storage', 'activeTab'],
     content_security_policy: {
@@ -32,11 +53,18 @@ export default defineConfig({
       }
     }
   },
-  modules: ['@wxt-dev/module-vue'],
-  vite: (configEnv) => {
+  modules: ['@wxt-dev/module-vue', '@wxt-dev/auto-icons'],
+  vue: {
+    vite: {
+      script: {
+        propsDestructure: true,
+      },
+    },
+  },
+  vite: (_configEnv) => {
     return {
       ssr: {
-        noExternal: import.meta.env.DEV ? ['vue-router', 'webext-bridge'] : ['webext-bridge'],
+        noExternal: ['vue-router', 'webext-bridge', "@wxt-dev/module-vue", '@webext-core/messaging', '@webext-core/proxy-service'],
       },
       build: {
         sourcemap: false,
@@ -46,27 +74,9 @@ export default defineConfig({
         Components({
           dirs: ['components'],
           // generate `components.d.ts` for ts support with Volar
-          dts: 'components.d.ts',
+          dts: true,
+          resolvers: [IconsResolver(), VueUseDirectiveResolver(), VueUseComponentsResolver()]
         }),
-        /*AutoImport({
-          imports: [
-            'vue',
-            // 'vue-router', // replacing with VueRouterAutoImports (https://uvr.esm.is/introduction.html#auto-imports)
-            // 'vue/macros',
-            '@vueuse/core',
-            unheadVueComposablesImports,
-            VueRouterAutoImports,
-            {
-              'vue-router/auto': ['useLink'],
-            },
-          ],
-          dts: './auto-imports.d.ts',
-          dirs: ['./components'],
-          eslintrc: {
-            enabled: false,
-          },
-          vueTemplate: true,
-        }),*/
         VueRouter({
           dts: 'typed-router.d.ts',
           routesFolder: ['entrypoints/options/pages'],
@@ -78,16 +88,27 @@ export default defineConfig({
         }),
         // must be placed after vue router
         // vue(),
-        vueDevTools({
+        /* vueDevTools({
           launchEditor: 'webstorm',
           appendTo: 'entrypoints/options/main.ts',
+        }), */
+        Icons({
+          compiler: 'vue3',
+          autoInstall: true
         }),
+        // checker({
+        // vueTsc: true
+        // }),
+        TurboConsole({
+          /* options here */
+        }),
+        // vue()
       ],
     };
   },
   imports: {
     presets: [
-      'vue',
+      'vue-router',
       '@vueuse/core',
       'pinia',
     ],
