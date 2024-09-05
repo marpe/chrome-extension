@@ -19,29 +19,23 @@
     "check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-vue": "^5.1.2",
+    "@types/webextension-polyfill": "^0.12.1",
     "@wxt-dev/auto-icons": "^1.0.2",
-    "open-props": "^1.7.5",
-    "postcss-jit-props": "^1.0.14"
+    "open-props": "^1.7.6",
+    "postcss-jit-props": "^1.0.14",
+    "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.26.0",
-    "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.14",
-    "@types/chrome": "^0.0.269",
-    "@types/eslint": "^9.6.0",
-    "@types/node": "^20.16.0",
-    "@unhead/vue": "^1.9.16",
-    "@vue/compiler-sfc": "^3.4.38",
-    "@vueuse/core": "^11.0.0",
+    "@iconify-json/carbon": "^1.2.1",
+    "@tailwindcss/forms": "^0.5.8",
+    "@tailwindcss/typography": "^0.5.15",
+    "@unhead/vue": "^1.10.4",
+    "@vueuse/core": "^11.0.3",
     "@wxt-dev/module-vue": "^1.0.1",
     "autoprefixer": "^10.4.20",
-    "daisyui": "^4.12.10",
-    "eslint": "^9.9.0",
-    "globals": "^15.9.0",
-    "monaco-editor": "^0.50.0",
+    "monaco-editor": "^0.51.0",
     "pinia": "^2.2.2",
-    "postcss": "^8.4.41",
+    "postcss": "^8.4.45",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^13.0.0",
     "tailwindcss": "^3.4.10",
@@ -50,13 +44,13 @@
     "unplugin-turbo-console": "^1.10.1",
     "unplugin-vue-components": "^0.27.4",
     "unplugin-vue-router": "^0.10.7",
-    "vite": "^5.4.1",
     "vite-plugin-checker": "^0.7.2",
-    "vite-plugin-vue-devtools": "^7.3.8",
-    "vue": "^3.4.38",
+    "vite-plugin-vue-devtools": "^7.4.4",
+    "vue": "^3.5.1",
     "vue-router": "^4.4.3",
     "vue-tsc": "^2.0.29",
     "webext-bridge": "^6.0.1",
-    "wxt": "^0.19.6"
-  }
+    "wxt": "^0.19.8"
+  },
+  "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1"
 }

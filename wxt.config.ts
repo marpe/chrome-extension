@@ -11,24 +11,30 @@ import {
   VueUseDirectiveResolver,
 } from 'unplugin-vue-components/resolvers';
 import path from "node:path";
+import checker from "vite-plugin-checker";
 
 export default defineConfig({
-  entrypointLoader: 'vite-node',
   hooks: {
     'vite:devServer:extendConfig': (config) => {
 
-      console.log(config);
       /* console.log('extending vite dev server config', config.server?.watch.ignored);
       config.plugins!.push(vueDevTools({
         launchEditor: 'webstorm',
         appendTo: 'entrypoints/options/main.ts',
       })); */
 
-      config.server?.watch?.ignored?.push(path.join(__dirname, 'typed-router.d.ts'));
+      const ignored = config.server?.watch?.ignored as string[];
+      ignored.push(path.join(__dirname, '.wxt/**'));
+      ignored.push(path.join(__dirname, '.output/**'));
+      ignored.push(path.join(__dirname, '.vscode/**'));
+      ignored.push(path.join(__dirname, '.idea/**'));
+      ignored.push(path.join(__dirname, '.git/**'));
+      ignored.push(path.join(__dirname, 'components.d.ts'));
+      ignored.push(path.join(__dirname, 'typed-router.d.ts'));
+      ignored.push(path.join(__dirname, 'node_modules/**'));
+      ignored.push('C:\\DumpStack.log.tmp');
+      console.log(ignored);
     },
-  },
-  runner: {
-    disabled: true,
   },
   manifest: {
     permissions: ['storage', 'activeTab'],
@@ -39,33 +45,23 @@ export default defineConfig({
       "run-foo": {
         "suggested_key": {
           "default": "Ctrl+Shift+Y",
-          "mac": "Command+Shift+Y"
+          "mac": "Command+Shift+Y",
         },
-        "description": "Run \"foo\" on the current page."
+        "description": "Run \"foo\" on the current page.",
       },
       "_execute_action": {
         "suggested_key": {
           "windows": "Ctrl+Shift+Y",
           "mac": "Command+Shift+Y",
           "chromeos": "Ctrl+Shift+U",
-          "linux": "Ctrl+Shift+J"
-        }
-      }
-    }
-  },
-  modules: ['@wxt-dev/module-vue', '@wxt-dev/auto-icons'],
-  vue: {
-    vite: {
-      script: {
-        propsDestructure: true,
+          "linux": "Ctrl+Shift+J",
+        },
       },
     },
   },
+  modules: ['@wxt-dev/module-vue'], // , '@wxt-dev/auto-icons'
   vite: (_configEnv) => {
     return {
-      ssr: {
-        noExternal: ['vue-router', 'webext-bridge', "@wxt-dev/module-vue", '@webext-core/messaging', '@webext-core/proxy-service'],
-      },
       build: {
         sourcemap: false,
       },
@@ -75,7 +71,7 @@ export default defineConfig({
           dirs: ['components'],
           // generate `components.d.ts` for ts support with Volar
           dts: true,
-          resolvers: [IconsResolver(), VueUseDirectiveResolver(), VueUseComponentsResolver()]
+          resolvers: [IconsResolver(), VueUseDirectiveResolver(), VueUseComponentsResolver()],
         }),
         VueRouter({
           dts: 'typed-router.d.ts',
@@ -94,11 +90,11 @@ export default defineConfig({
         }), */
         Icons({
           compiler: 'vue3',
-          autoInstall: true
+          autoInstall: true,
         }),
-        // checker({
-        // vueTsc: true
-        // }),
+        /*checker({
+          vueTsc: true,
+        }),*/
         TurboConsole({
           /* options here */
         }),
@@ -113,7 +109,7 @@ export default defineConfig({
       'pinia',
     ],
     addons: {
-      vueTemplate: true
+      vueTemplate: true,
     },
     eslintrc: {
       enabled: 9,

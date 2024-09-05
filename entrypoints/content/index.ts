@@ -10,11 +10,13 @@ export default defineContentScript({
     // 3. Define your UI
     const ui = await createShadowRootUi(ctx, {
       name: 'example-ui',
-      position: 'inline',
+      alignment: 'top-right',
+      position: 'overlay',
       onMount: (container) => {
         // Define how your UI will be mounted inside the container
-        console.log(container);
-        const app = setupApp(App);
+        const app = createApp(App);
+        const pinia = createPinia();
+        app.use(pinia);
         app.mount(container);
         return app;
       },
@@ -33,6 +35,11 @@ export default defineContentScript({
 
     ctx.addEventListener(window, 'keydown', (event) => {
       console.log('[keydown] background main', event);
+    });
+
+    // Re-mount when page changes
+    ctx.addEventListener(window, "wxt:locationchange", (event) => {
+      // ui.mount();
     });
   },
 });

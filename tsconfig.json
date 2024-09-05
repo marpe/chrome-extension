@@ -28,11 +28,5 @@
         "./*"
       ]
     },
-    "types": [
-      "vite/client",
-      "unplugin-icons/types/vue",
-      "unplugin-vue-router/client",
-      "unplugin-turbo-console/client"
-    ]
   },
 }

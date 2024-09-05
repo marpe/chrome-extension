@@ -1,19 +1,9 @@
-@import "open-props/normalize.min.css";
-@import "open-props/normalize.dark.min.css";
-@import "open-props/normalize.light.min.css";
-@import "open-props/buttons.min.css";
-@import "open-props/colors-oklch.min.css";
-@import "open-props/animations.min.css";
-@import "open-props/gradients.min.css";
-@import "open-props/sizes.min.css";
-@import "open-props/borders.min.css";
-@import "open-props/aspects.min.css";
-@import "open-props/masks.edges.min.css";
-@import "open-props/masks.corner-cuts.min.css";
-@import "open-props/supports.min.css";
-@import "open-props/theme.light.switch.min.css";
-@import "open-props/theme.dark.switch.min.css";
-@import "open-props/shadows.min.css";
+@import "open-props/src/extra/normalize.css";
+@import "open-props/src/extra/buttons.dark.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 html {
     /*background-image: var(--gradient-18);*/
@@ -44,43 +34,30 @@ html {
     --surface-shadow-light: var(--gray-8-hsl);
     --shadow-strength-light: 2%;
 
-    block-size: 100%;
-    background-color: var(--surface-1);
-    color: var(--text-1);
-    accent-color: var(--brand);
-}
 
-:root {
-    color-scheme: light; /* light */
+    --brand: light-dark(var(--brand-light), var(--brand-dark));
+    --text-1: light-dark(var(--text-1-light), var(--text-1-dark));
+    --text-2: light-dark(var(--text-2-light), var(--text-2-dark));
 
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-text-size-adjust: 100%;
+    --surface-1: light-dark(var(--surface-1-light), var(--surface-1-dark));
+    --surface-2: light-dark(var(--surface-2-light), var(--surface-2-dark));
+    --surface-3: light-dark(var(--surface-3-light), var(--surface-3-dark));
+    --surface-4: light-dark(var(--surface-4-light), var(--surface-4-dark));
 
-    --brand: var(--brand-dark);
-
-    --text-1: var(--text-1-dark);
-    --text-2: var(--text-2-dark);
-
-    --surface-1: var(--surface-1-dark);
-    --surface-2: var(--surface-2-dark);
-    --surface-3: var(--surface-3-dark);
-    --surface-4: var(--surface-4-dark);
-
-    --surface-shadow: var(--surface-shadow-dark);
-    --shadow-strength: var(--shadow-strength-dark);
+    --surface-shadow: light-dark(var(--surface-shadow-light), var(--surface-shadow-dark));
+    --shadow-strength: light-dark(var(--shadow-strength-light), var(--shadow-strength-dark));
 }
 
 body {
+    color-scheme: dark;
     display: flex;
     flex-direction: column;
     gap: var(--size-5);
     padding: var(--size-fluid-3);
 
-    min-block-size: 100%;
-    font-family: system-ui, sans-serif;
+    background-color: var(--surface-1);
+    color: var(--text-1);
+    accent-color: var(--brand);
 }
 
 #app {
@@ -91,187 +68,9 @@ pre {
     overflow: auto;
 }
 
-button:hover {
-    border-color: #646cff;
-}
-
-button:focus,
-button:focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
-}
-
-a {
-    font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
-}
-
-a:hover {
-    color: #535bf2;
-}
-
-@media (prefers-color-scheme: light) {
-    :root {
-        --brand: var(--brand-light);
-
-        --text-1: var(--text-1-light);
-        --text-2: var(--text-2-light);
-
-        --surface-1: var(--surface-1-light);
-        --surface-2: var(--surface-2-light);
-        --surface-3: var(--surface-3-light);
-        --surface-4: var(--surface-4-light);
-
-        --surface-shadow: var(--surface-shadow-light);
-        --shadow-strength: var(--shadow-strength-light);
-    }
-}
-
-[color-scheme="light"] {
-    color-scheme: light;
-
-    --brand: var(--brand-light);
-    --text-1: var(--text-1-light);
-    --text-2: var(--text-2-light);
-    --surface-1: var(--surface-1-light);
-    --surface-2: var(--surface-2-light);
-    --surface-3: var(--surface-3-light);
-    --surface-4: var(--surface-4-light);
-    --surface-shadow: var(--surface-shadow-light);
-    --shadow-strength: var(--shadow-strength-light);
-}
-
-[color-scheme="dark"] {
-    color-scheme: dark;
-
-    --brand: var(--brand-dark);
-    --text-1: var(--text-1-dark);
-    --text-2: var(--text-2-dark);
-    --surface-1: var(--surface-1-dark);
-    --surface-2: var(--surface-2-dark);
-    --surface-3: var(--surface-3-dark);
-    --surface-4: var(--surface-4-dark);
-    --surface-shadow: var(--surface-shadow-dark);
-    --shadow-strength: var(--shadow-strength-dark);
-}
-
-
-hr {
-    margin-block: var(--size-fluid-5);
-}
-
-p {
-    max-inline-size: var(--size-content-3);
-}
-
-aside {
-    max-inline-size: var(--size-content-2);
-}
-
-h1, h2, h3, h4, p, dt {
-    color: var(--text-1);
-}
-
-h1 {
-    max-inline-size: var(--size-header-2);
-}
-
-small {
-    max-inline-size: var(--size-header-1);
-}
-
-header {
-    display: inline-grid;
-    gap: var(--size-3);
-}
-
-h5, h6, small, dd {
-    color: var(--text-2);
-}
-
-.surface-1 {
-    background-color: var(--surface-1);
-    color: var(--text-2);
-}
-
-.surface-2 {
-    background-color: var(--surface-2);
-    color: var(--text-2);
-}
-
-.surface-3 {
-    background-color: var(--surface-3);
-    color: var(--text-1);
-}
-
-.surface-4 {
-    background-color: var(--surface-4);
-    color: var(--text-1);
-}
-
-form {
-    background: var(--surface-2);
-    border: var(--border-size-1) solid var(--surface-3);
-    border-radius: var(--radius-2);
-    box-shadow: var(--shadow-2);
-
-    display: flex;
-    gap: var(--size-3);
-    padding: var(--size-5);
-
-    > label {
-        display: flex;
-        place-items: center;
-        gap: var(--size-1);
-    }
-}
-
-section {
-    display: grid;
-    gap: var(--size-2);
-}
-
-section > p {
-    font-size: var(--font-size-1);
-}
-
-textarea {
-    min-width: 400px;
-    field-sizing: content;
-    border-width: var(--border-size-1);
-    border-color: var(--gray-10);
-
-    [color-scheme="light"] & {
-        border-color: var(--gray-4);
-    }
-}
-
-.brand {
-    color: var(--brand);
-    background-color: var(--brand);
-}
-
-.backdrop {
-    background-color: oklch(var(--gray-9-hsl) / 30%);
-}
-
-.fluid-flex {
-    display: flex;
-    flex-wrap: wrap;
-    place-content: center;
-    align-items: flex-start;
-    padding: var(--size-5);
-    gap: var(--size-5);
-}
-
-.text-1 {
-    color: var(--text-1);
-
-    p& {
-        font-weight: var(--font-weight-2);
-    }
-}
-
-.text-2 {
-    color: var(--text-2);
+button {
+    --_bg: linear-gradient(var(--indigo-5), var(--indigo-7));
+    --_border: var(--indigo-6);
+    --_text: var(--indigo-0);
+    --_ink-shadow: 0 1px 0 var(--indigo-9);
 }

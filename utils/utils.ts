@@ -7,7 +7,6 @@ export const setupApp = (App: Component) => {
   const app = createApp(App);
 
   const router = createRouter({
-
     history: createWebHashHistory(import.meta.env.BASE_URL),
     // routes: setupLayouts(routes),
     routes,
@@ -16,12 +15,14 @@ export const setupApp = (App: Component) => {
   if (import.meta.hot) {
     handleHotUpdate(router)
   }
+  
+  const pinia = createPinia();
 
   const head = createHead();
-  const pinia = createPinia();
 
   app.use(router)
       .use(head)
       .use(pinia)
+
   return app;
 }

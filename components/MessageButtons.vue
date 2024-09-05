@@ -59,7 +59,7 @@ port.postMessage('Hello from the popup!');
     </div>
     <div>
       <h2>Long-lived Messages</h2>
-      <ul :ref="longLivedMessageList" />
+      <ul ref="longLivedMessageList" />
     </div>
   </div>
 </template>

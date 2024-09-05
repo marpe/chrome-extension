@@ -1,4 +1,6 @@
-import type { Runtime } from "webextension-polyfill";
+import { Runtime } from "webextension-polyfill";
+import Port = Runtime.Port;
+
 
 export default defineBackground({
   type: 'module',
@@ -16,7 +18,7 @@ export default defineBackground({
     });
 
     // Setup broadcast channel to send messages to all connected ports
-    const ports: Runtime.Port[] = [];
+    const ports: Port[] = [];
     setInterval(() => {
       const message = { date: Date.now(), value: Math.random() };
       ports.forEach((port) => port.postMessage(message));

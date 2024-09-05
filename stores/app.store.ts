@@ -1,54 +1,79 @@
 import type { StorageLikeAsync } from '@vueuse/core';
 import type { Scripting } from 'wxt/browser';
+import { Store } from "pinia";
+
 type CSSInjection = Scripting.CSSInjection;
 
 const storageLike = storage as StorageLikeAsync;
 
+type Entry = {
+  description: string,
+  style: string,
+  script: string,
+  timestamp: number
+};
+
+interface State {
+  theme: string;
+  installed: number;
+  modified: number;
+  entries: Entry[];
+  injectedCSS: CSSInjection[],
+}
+
 export const useAppStore = defineStore('app', () => {
-  const theme = useStorageAsync('local:theme', 'dark', storageLike);
-  const count = useStorageAsync('local:count', 0, storageLike);
-  const name = useStorageAsync('local:name', 'John Doe', storageLike);
-  const script = useStorageAsync('local:script', '', storageLike);
-  const style = useStorageAsync('local:style', '', storageLike);
-  const enabled = useStorageAsync('local:enabled', true, storageLike);
-  const injectedCss = useStorageAsync<CSSInjection[]>('local:injectedCss', [], storageLike);
+  const loaded = ref(false);
+  const injectedCSS = ref([] as CSSInjection[]);
+  const entries = ref([] as Entry[]);
+  const installed = ref(Date.now());
+  const modified = ref(Date.now());
+  const theme = ref('dark');
 
-  // You should probably use chrome.storage API instead of localStorage since localStorage
-  // history can be cleared by the user.
-  // See https://developer.chrome.com/docs/extensions/reference/api/storage
+  const stored = useStorageAsync<State>('local:app', {
+    theme: 'dark',
+    installed: Date.now(),
+    modified: Date.now(),
+    entries: [] as Entry[],
+    injectedCSS: [] as CSSInjection[],
+  }, storageLike);
 
-  const reset = () => {
-    count.value = 0
-    name.value = 'John Doe'
-  }
-
-  const increment = () => {
-    count.value++;
-  }
-
-  const decrement = () => {
-    count.value--;
-  }
-
-  const toggle = () => {
-    enabled.value = !enabled.value
+  async function loadFromStorage() {
+    const data = await storageLike.getItem('local:app');
+    if (data) {
+      try {
+        const appState = JSON.parse(data) as State;
+        theme.value = appState.theme ?? 'dark';
+        installed.value = appState.installed ?? Date.now();
+        modified.value = appState.modified ?? Date.now();
+        entries.value = appState.entries ?? [];
+        injectedCSS.value = appState.injectedCSS ?? [];
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    loaded.value = true;
   }
 
   return {
     theme,
-    count,
-    name,
-    script,
-    enabled,
-    style,
-    toggle,
-    reset,
-    increment,
-    decrement,
-    injectedCss,
-  } as const;
-})
+    installed,
+    modified,
+    entries,
+    injectedCSS,
+    loaded,
+    loadFromStorage,
+    stored,
+  }
+});
+
+/*watch(
+    pinia.state,
+    (state) => {
+      storageLike.setItem('local:app', JSON.stringify(state));
+    },
+    { deep: true },
+);*/
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useAppStore as any, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useAppStore, import.meta.hot))
 }

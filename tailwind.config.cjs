@@ -46,12 +46,18 @@ const actualColors = [
   "rgb(255, 127, 80)",
 ];
 
+/**
+ * @type {import('tailwindcss').Config}
+ */
 module.exports = {
   content: [
     './entrypoints/**/*.{html,vue,js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {},
+  },
+  corePlugins: {
+    preflight: false
   },
   plugins: [
     'prettier-plugin-tailwindcss',

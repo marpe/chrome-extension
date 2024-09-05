@@ -1,31 +1,34 @@
 <script lang="ts" setup>
-// import vueLogo from "@/public/vue.svg";
+import vueLogo from "@/public/vue.svg";
 import { useAppStore } from "@/stores/app.store";
 
-console.log('mounted app');
+console.log("mounted app");
 
 const store = useAppStore();
 
-onKeyStroke([' '], (e) => {
-  if (!store.enabled) {
-    return;
-  }
-  console.log('[keydown] space pressed', e);
-  const ignoredTags = ['INPUT', 'SELECT', 'TEXTAREA'];
-  const element = (e.target || e.srcElement) as HTMLElement;
-  const tagName = element?.tagName;
-  if (tagName && !ignoredTags.includes(tagName)) {
-    e.preventDefault();
-    // e.stopPropagation();
-    console.log('preventDefault');
-
-  }
-}, { eventName: 'keydown' });
+onKeyStroke(
+  [" "],
+  (e) => {
+    if (!store.enabled) {
+      return;
+    }
+    console.log("[keydown] space pressed", e);
+    const ignoredTags = ["INPUT", "SELECT", "TEXTAREA"];
+    const element = (e.target || e.srcElement) as HTMLElement;
+    const tagName = element?.tagName;
+    if (tagName && !ignoredTags.includes(tagName)) {
+      e.preventDefault();
+      // e.stopPropagation();
+      console.log("preventDefault");
+    }
+  },
+  { eventName: "keydown" }
+);
 </script>
 
 <template>
   <div class="container">
-    <!-- <img :src="vueLogo"> -->
+    <img :src="vueLogo" alt="">
   </div>
 </template>
 
@@ -36,7 +39,7 @@ onKeyStroke([' '], (e) => {
   top: 16px;
   width: 24px;
   height: 24px;
-  pointer-events: auto;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
