@@ -35,7 +35,7 @@ const model = defineModel({ type: String });
 const monacoEl = useTemplateRef("monacoEl");
 
 self.MonacoEnvironment = {
-  getWorker(_: any, label: string) {
+  getWorker(_: string, label: string) {
     if (label === "json") {
       return new JsonWorker();
     }

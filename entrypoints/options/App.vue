@@ -7,6 +7,9 @@
     <NavLink to="/options">
       Options
     </NavLink>
+    <NavLink to="/logs">
+      Logs
+    </NavLink>
     <NavLink to="/about">
       About
     </NavLink>

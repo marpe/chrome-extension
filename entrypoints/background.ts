@@ -13,6 +13,10 @@ export default defineBackground({
 				console.log("Installed");
 			}
 			browser.runtime.openOptionsPage();
+
+			browser.action.setBadgeText({
+				text: "OFF",
+			});
 		});
 
 		// Setup listener for one-time messages

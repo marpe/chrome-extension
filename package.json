@@ -19,6 +19,7 @@
     "check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@types/chrome": "^0.0.270",
     "@types/webextension-polyfill": "^0.12.1",
     "@wxt-dev/auto-icons": "^1.0.2",
     "nanoid": "^5.0.7",

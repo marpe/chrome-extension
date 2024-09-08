@@ -1,7 +1,8 @@
 <script lang="ts"
         setup>
 import { useAppStore } from "@/stores/app.store";
-import type { Entry } from "@/types/entry";
+import { createEntry } from "@/utils/createEntry";
+import type { Entry } from "@/utils/state";
 import { timestamp } from "@vueuse/core";
 import { nanoid } from "nanoid";
 import { onMounted } from "vue";
@@ -11,63 +12,55 @@ type CSSInjection = Scripting.CSSInjection;
 
 const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 const store = useAppStore();
-const currentTabs = ref<Tabs.Tab[]>();
 
-/* const injectStyle = async () => {
-  const style = document.createElement("style");
-  style.innerHTML = store.script;
-  document.head.appendChild(style);
-  alert(`Style injected: ${JSON.stringify(store.script)}`);
-}; */
+const { logs, logInfo, logError } = useLogging();
 
 const clearInjections = () => {
-	while (store.stored.injectedCSS.length) {
-		store.stored.injectedCSS.pop();
+	while (store.injectedCSS.ref.length) {
+		store.injectedCSS.ref.pop();
 	}
 };
 
 const queryTabs = async () => {
 	try {
 		const allTabs = await browser.tabs.query({});
-		console.log("All tabs", allTabs);
-		currentTabs.value = allTabs;
+		// logInfo("All tabs", allTabs);
+		return allTabs;
 	} catch (e) {
-		console.error(e);
+		logError("Error querying tabs", e);
 	}
 };
 
 const executeScript = async () => {
-	await queryTabs();
+	const scriptIds = store.entries.ref.map((entry) => entry.id);
 
-	const tabs = currentTabs.value ?? [];
+	const scriptEntries = store.entries.ref.map((entry) => ({
+		id: entry.id,
+		js: [{ code: entry.script }],
+		matches: [`*://${entry.site}/*`],
+	}));
 
-	const script = store.stored.entries.map((entry) => entry.script).join("\n");
+	const existingScripts = await chrome.userScripts.getScripts({
+		ids: scriptIds,
+	});
 
-	await Promise.all(
-		tabs.map((tab) => {
-			if (!tab.id) {
-				return Promise.resolve();
-			}
-			return browser.scripting.executeScript({
-				target: { tabId: tab.id },
-				args: [script],
-				func: (script) => {
-					try {
-						const scriptTag = window.document.createElement("script");
-						scriptTag.textContent = script;
-						window.document.body.appendChild(scriptTag);
-					} catch (error) {
-						console.error(`Error executing script: ${error}`, {
-							error,
-							script,
-						});
-					}
-				},
-			});
-		}),
+	for (const entry of scriptEntries) {
+		const existing = existingScripts.find((script) => script.id === entry.id);
+		if (existing) {
+			await chrome.userScripts.update([entry]);
+			logInfo(`Updated script: ${entry.id}`);
+		} else {
+			await chrome.userScripts.register([entry]);
+			logInfo(`Registered script: ${entry.id}`);
+		}
+	}
+	const removedScripts = existingScripts.filter(
+		(script) => !scriptIds.includes(script.id),
 	);
-
-	console.log("Script executed");
+	logInfo("Removing scripts", removedScripts);
+	await chrome.userScripts.unregister({
+		ids: removedScripts.map((entry) => entry.id),
+	});
 };
 
 const tryRemoveCSS = async (injection: CSSInjection) => {
@@ -75,18 +68,18 @@ const tryRemoveCSS = async (injection: CSSInjection) => {
 		await browser.scripting.removeCSS(injection);
 		return true;
 	} catch (e) {
-		console.error(e);
+		logError(`Error removing CSS: ${e}`, { e, injection });
 		return false;
 	}
 };
 
 const removeInjectedCSS = async () => {
 	try {
-		const cssInjections = store.stored.injectedCSS;
-		await Promise.all(cssInjections.map(tryRemoveCSS));
+		const cssInjections = store.injectedCSS;
+		await Promise.all(cssInjections.ref.map(tryRemoveCSS));
 		clearInjections();
 	} catch (e) {
-		console.error(e);
+		logError("Error removing CSS", e);
 	}
 };
 
@@ -95,7 +88,7 @@ const tryInjectCSS = async (injection: CSSInjection) => {
 		await browser.scripting.insertCSS(injection);
 		return true;
 	} catch (e) {
-		console.error(`Error injecting CSS: ${e}`, { e, injection });
+		logError(`Error injecting CSS: ${e}`, { e, injection });
 		return false;
 	}
 };
@@ -103,18 +96,19 @@ const tryInjectCSS = async (injection: CSSInjection) => {
 const injectCSS = async () => {
 	try {
 		await removeInjectedCSS();
-		await queryTabs();
-		const tabs = currentTabs.value ?? [];
+		const tabs = (await queryTabs()) ?? [];
+
 		const cssInjections = tabs
 			.filter((tab) => tab.id !== undefined)
 			.map(({ id }) => {
 				return {
-					css: store.stored.entries.map((entry) => entry.style).join("\n"),
+					css: store.entries.ref.map((entry) => entry.style).join("\n"),
 					target: {
 						tabId: id,
 					},
 				} as CSSInjection;
 			});
+
 		const injectionResults = await Promise.all(cssInjections.map(tryInjectCSS));
 
 		const successfulInjections: CSSInjection[] = [];
@@ -128,17 +122,12 @@ const injectCSS = async () => {
 			}
 		}
 
-		console.log("Injections", { successfulInjections, failedInjections });
+		logInfo("CSS injected", { successfulInjections, failedInjections });
 
-		store.stored.injectedCSS.push(...successfulInjections);
+		store.injectedCSS.ref.push(...successfulInjections);
 	} catch (e) {
-		console.error(e);
+		logError("Error injecting CSS", e);
 	}
-};
-
-const showDebug = ref(false);
-const toggleShowDebug = () => {
-	showDebug.value = !showDebug.value;
 };
 
 const initialStyle = `body {
@@ -158,31 +147,16 @@ const scriptValue = ref({ value: "" });
 // const scriptChangedAgo = useTimeAgo(scriptChanged);
 
 const addEntry = () => {
-	const id = nanoid();
-	store.stored.entries.push({
-		id: id,
-		description: "New entry",
-		site: "*",
-		created: Date.now(),
-		modified: Date.now(),
-		style: initialStyle,
-		script: initialScript,
-		revision: 1,
-	});
-	console.log(`Added entry, number of entries: ${store.stored.entries.length}`);
-	selectEntry(store.stored.entries.length - 1);
+	const entry = createEntry();
+	store.entries.ref.push(entry);
+	logInfo(`Added entry, number of entries: ${store.entries.ref.length}`);
+	selectEntry(store.entries.ref.length - 1);
 };
 
-const save = () => {
-	dirty.value = false;
-	store.stored.saved = Date.now();
-};
-
-const dirty = ref(false);
 const disabled = ref(true);
 
 const selectEntry = (index: number) => {
-	store.stored.selectedIndex = index;
+	store.selectedIndex.ref.value = index;
 	if (index === -1) {
 		selectedEntry.value = {
 			id: "",
@@ -199,42 +173,31 @@ const selectEntry = (index: number) => {
 		disabled.value = true;
 		return;
 	}
-	const entry = store.stored.entries[index];
+	const entry = store.entries.ref[index];
 	selectedEntry.value = entry;
 	styleValue.value = { value: entry.style };
 	scriptValue.value = { value: entry.script };
 	disabled.value = false;
 };
 
-const selectedEntry = ref<Entry>({
-	id: "",
-	description: "",
-	site: "*",
-	created: Date.now(),
-	modified: Date.now(),
-	style: "",
-	script: "",
-	revision: 1,
-});
+const selectedEntry = ref<Entry>(createEntry());
 
 const clamp = (value: number, min: number, max: number) => {
 	return Math.min(Math.max(value, min), max);
 };
 
 const removeEntry = (index: number) => {
-	store.stored.entries.splice(index, 1);
+	store.entries.ref.splice(index, 1);
 
-	const clamped = clamp(index, 0, store.stored.entries.length - 1);
+	const clamped = clamp(index, 0, store.entries.ref.length - 1);
 	if (clamped !== index) {
 		selectEntry(clamped);
 	}
-	console.log(
-		`Removed entry, number of entries: ${store.stored.entries.length}`,
-	);
+	logInfo(`Removed entry, number of entries: ${store.entries.ref.length}`);
 };
 
 const removeSelected = () => {
-	const index = store.stored.selectedIndex;
+	const index = store.selectedIndex.ref.value;
 	if (index === -1) {
 		return;
 	}
@@ -245,26 +208,49 @@ watch(
 	() => store.loaded,
 	(newVal) => {
 		if (newVal) {
-			selectEntry(store.stored.selectedIndex);
-			console.log("Loaded");
+			logInfo("Loaded finished", toRaw(store.selectedIndex.ref));
+			selectEntry(store.selectedIndex.ref.value);
+		} else {
+			logInfo("Loaded received false");
 		}
 	},
 );
+
+watch(
+	() => store.selectedIndex.ref,
+	(newVal) => {
+		logInfo("Selected index changed", newVal);
+	},
+);
+
+const save = async () => {
+	await store.save();
+	logInfo("Saved");
+	await injectCSS();
+	await executeScript();
+};
 </script>
 
 <template>
   <main>
     <template v-if="store.loaded">
 
+      <div>
+        {{store.selectedIndex.ref}}
+        <button @click="store.test()">
+          Test
+        </button>
+      </div>
+      
       <div class="grid grid-cols-[200px_1fr] gap-4 flex-1 overflow-hidden">
         <div class="flex flex-col gap-4 overflow-hidden">
           <div class="grid grid-cols-2 gap-4">
-            <button @click="addEntry"
+            <button @click="() => { addEntry(); save(); }"
                     title="Add new entry"
                     class="btn-primary">
               <i-lucide-circle-plus />
             </button>
-            <button @click="removeSelected"
+            <button @click="() => { removeSelected(); save(); }"
                     :disabled="disabled"
                     title="Remove selected entry"
                     class="btn-primary">
@@ -273,10 +259,10 @@ watch(
           </div>
           <div class="entry-list overflow-y-auto">
             <TransitionGroup>
-              <div v-for="(entry, index) in store.stored.entries"
+              <div v-for="(entry, index) in store.entries.ref"
                    :key="index"
-                   @click="selectEntry(index)"
-                   :class="{ checked: store.stored.selectedIndex === index }"
+                   @click="() => { selectEntry(index); save(); }"
+                   :class="{ checked: store.selectedIndex.ref.value === index }"
                    class="flex flex-col gap-2 entry-button">
                 <div class="flex flex-row justify-between items-center">
                   <div>{{ entry.description }}</div>
@@ -302,14 +288,18 @@ watch(
           <div>
             <input v-model="selectedEntry.description"
                    style="width: 100%"
-                   @input="dirty = true"
+                   :disabled="disabled" />
+          </div>
+
+          <div>
+            <input v-model="selectedEntry.site"
+                   style="width: 100%"
                    :disabled="disabled" />
           </div>
 
           <div :style="{ opacity: disabled ? 0.5 : 1, flex: 1 }">
             <MonacoEditor language="css"
                           :disabled="disabled"
-                          @input="dirty = true"
                           :value="styleValue"
                           v-model="selectedEntry.style" />
           </div>
@@ -317,7 +307,6 @@ watch(
           <div :style="{ opacity: disabled ? 0.5 : 1, flex: 1 }">
             <MonacoEditor language="javascript"
                           :disabled="disabled"
-                          @input="dirty = true"
                           :value="scriptValue"
                           v-model="selectedEntry.script" />
           </div>
@@ -326,35 +315,10 @@ watch(
 
       <div class="flex flex-row gap-4 flex-wrap">
         <button @click="save"
-                :disabled="!dirty"
                 class="btn-outlined">
           Save
         </button>
-        <button @click="injectCSS"
-                class="btn-outlined">
-          Inject CSS
-        </button>
-        <button :disabled="store.stored.injectedCSS.length === 0"
-                @click="removeInjectedCSS"
-                class="btn-outlined">
-          Remove CSS
-        </button>
-        <button @click="executeScript"
-                class="btn-outlined">
-          Execute Script
-        </button>
       </div>
-
-      <div
-          class="data-[open=false]:overflow-auto border border-[var(--brand-6)] min-h-4 data-[open=false]:max-h-8 cursor-pointer"
-          :data-open="showDebug"
-          @click="toggleShowDebug"
-      >
-        <Debug>
-          {{ JSON.stringify(store.stored.injectedCSS, null, 2) }}
-        </Debug>
-      </div>
-
     </template>
 
     <Teleport to="body">
