@@ -16,24 +16,11 @@ import checker from "vite-plugin-checker";
 export default defineConfig({
   hooks: {
     'vite:devServer:extendConfig': (config) => {
-
       /* console.log('extending vite dev server config', config.server?.watch.ignored);
       config.plugins!.push(vueDevTools({
         launchEditor: 'webstorm',
         appendTo: 'entrypoints/options/main.ts',
       })); */
-
-      const ignored = config.server?.watch?.ignored as string[];
-      ignored.push(path.join(__dirname, '.wxt/**'));
-      ignored.push(path.join(__dirname, '.output/**'));
-      ignored.push(path.join(__dirname, '.vscode/**'));
-      ignored.push(path.join(__dirname, '.idea/**'));
-      ignored.push(path.join(__dirname, '.git/**'));
-      ignored.push(path.join(__dirname, 'components.d.ts'));
-      ignored.push(path.join(__dirname, 'typed-router.d.ts'));
-      ignored.push(path.join(__dirname, 'node_modules/**'));
-      ignored.push('C:\\DumpStack.log.tmp');
-      console.log(ignored);
     },
   },
   manifest: {

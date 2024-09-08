@@ -1,14 +1,9 @@
-<script lang="ts" setup>
+<script lang="ts"
+        setup>
 </script>
 
 <template>
-  <h1>
-    Options
-  </h1>
-  <div>
-    <strong>Current route path:</strong> {{ $route.fullPath }}
-  </div>
-  <nav>
+  <nav class="flex flex-row gap-8 bg-[var(--surface-2)] px-6 py-4 border-b border-[var(--surface-4)]">
     <NavLink to="/options">
       Options
     </NavLink>
@@ -16,16 +11,28 @@
       About
     </NavLink>
   </nav>
-  <router-view v-slot="{ Component }">
-    <transition name="slide-up" mode="out-in">
-      <keep-alive>
-        <component :is="Component" />
-      </keep-alive>
-    </transition>
-  </router-view>
+  <RouterView v-slot="{ Component }">
+    <Transition name="slide-up"
+                mode="out-in">
+      <KeepAlive>
+        <Component :is="Component" />
+      </KeepAlive>
+    </Transition>
+  </RouterView>
 </template>
 
-<style scoped>
+<style>
+
+body {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 60px 1fr;
+}
+
+main {
+  padding: 1rem;
+}
+
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition: all 0.25s ease-out;
@@ -39,15 +46,5 @@
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(-30px);
-}
-
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0;
 }
 </style>

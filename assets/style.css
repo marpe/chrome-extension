@@ -1,5 +1,4 @@
 @import "open-props/src/extra/normalize.css";
-@import "open-props/src/extra/buttons.dark.css";
 
 @tailwind base;
 @tailwind components;
@@ -8,69 +7,244 @@
 html {
     /*background-image: var(--gradient-18);*/
 
-    /* dark */
-    --brand-dark: var(--orange-3);
+    --brand: var(--purple-7);
 
-    --text-1-dark: var(--gray-3);
-    --text-2-dark: var(--gray-5);
+    --brand-0: color-mix(in srgb, oklch(from var(--brand) calc(1 / 12 * 12) c h), 75% white);
+    --brand-1: oklch(from var(--brand) calc(1 / 12 * 12) c h);
+    --brand-2: oklch(from var(--brand) calc(1 / 12 * 11) c h);
+    --brand-3: oklch(from var(--brand) calc(1 / 12 * 10) c h);
+    --brand-4: oklch(from var(--brand) calc(1 / 12 * 9) c h);
+    --brand-5: oklch(from var(--brand) calc(1 / 12 * 8) c h);
+    --brand-6: oklch(from var(--brand) calc(1 / 12 * 7) c h);
+    --brand-7: oklch(from var(--brand) calc(1 / 12 * 6) c h);
+    --brand-8: oklch(from var(--brand) calc(1 / 12 * 5) c h);
+    --brand-9: oklch(from var(--brand) calc(1 / 12 * 4) c h);
+    --brand-10: oklch(from var(--brand) calc(1 / 12 * 3) c h);
+    --brand-11: oklch(from var(--brand) calc(1 / 12 * 2) c h);
+    --brand-12: oklch(from var(--brand) calc(1 / 12 * 1) c h);
 
-    --surface-1-dark: var(--gray-12);
-    --surface-2-dark: var(--gray-11);
-    --surface-3-dark: var(--gray-10);
-    --surface-4-dark: var(--gray-9);
-    --surface-shadow-dark: var(--gray-12-hsl);
-    --shadow-strength-dark: 80%;
+    --text-1: light-dark(var(--gray-9), var(--gray-0));
+    --text-2: light-dark(var(--gray-8), var(--gray-3));
+    --text-3: light-dark(var(--gray-7), var(--gray-5));
+    --text-muted: light-dark(var(--gray-8), var(--gray-6));
 
-    /* light */
-    --brand-light: var(--orange-6);
+    --surface-1: light-dark(var(--gray-0), var(--gray-12));
+    --surface-2: light-dark(var(--gray-1), var(--gray-11));
 
-    --text-1-light: var(--gray-8);
-    --text-2-light: var(--gray-7);
+    --gray-11-10: color-mix(in oklch, var(--gray-11), var(--gray-10));
 
-    --surface-1-light: var(--gray-0);
-    --surface-2-light: var(--gray-1);
-    --surface-3-light: var(--gray-2);
-    --surface-4-light: var(--gray-3);
-    --surface-shadow-light: var(--gray-8-hsl);
-    --shadow-strength-light: 2%;
+    --surface-3: light-dark(var(--gray-1), var(--gray-11-10));
+    --surface-4: light-dark(var(--gray-2), var(--gray-10));
+    --surface-5: light-dark(var(--gray-3), var(--gray-9));
+    --surface-6: light-dark(var(--gray-4), var(--gray-8));
 
+    --surface-shadow: light-dark(var(--gray-8), var(--gray-12));
+    --shadow-strength: light-dark(2%, 80%);
 
-    --brand: light-dark(var(--brand-light), var(--brand-dark));
-    --text-1: light-dark(var(--text-1-light), var(--text-1-dark));
-    --text-2: light-dark(var(--text-2-light), var(--text-2-dark));
+    --input-border: light-dark(var(--gray-2), var(--gray-7));
 
-    --surface-1: light-dark(var(--surface-1-light), var(--surface-1-dark));
-    --surface-2: light-dark(var(--surface-2-light), var(--surface-2-dark));
-    --surface-3: light-dark(var(--surface-3-light), var(--surface-3-dark));
-    --surface-4: light-dark(var(--surface-4-light), var(--surface-4-dark));
+    color-scheme: dark;
 
-    --surface-shadow: light-dark(var(--surface-shadow-light), var(--surface-shadow-dark));
-    --shadow-strength: light-dark(var(--shadow-strength-light), var(--shadow-strength-dark));
+    background-color: var(--surface-1);
+    color: var(--text-2);
+    accent-color: var(--brand);
+}
+
+* {
+    scrollbar-width: thin;
+}
+
+html, body, main {
+    overflow: hidden;
 }
 
 body {
-    color-scheme: dark;
     display: flex;
     flex-direction: column;
-    gap: var(--size-5);
-    padding: var(--size-fluid-3);
+    gap: 0;
+    padding: 0;
+    font-size: 100%;
+    min-height: 100dvh;
+    min-width: 320px;
+}
 
-    background-color: var(--surface-1);
-    color: var(--text-1);
-    accent-color: var(--brand);
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 #app {
     display: contents;
 }
 
-pre {
-    overflow: auto;
+label {
+    cursor: pointer;
+}
+
+a[href] {
+    transition: all 0.2s ease;
+
+    color: var(--brand-2);
+    text-underline-offset: 4px;
+    text-decoration-color: oklch(from var(--brand) l c h);
+
+    &:visited {
+        color: var(--brand-3);
+    }
+
+    &:hover {
+        color: var(--brand-0)
+    }
 }
 
 button {
-    --_bg: linear-gradient(var(--indigo-5), var(--indigo-7));
-    --_border: var(--indigo-6);
-    --_text: var(--indigo-0);
-    --_ink-shadow: 0 1px 0 var(--indigo-9);
+    font-size: 0.8rem;
+    padding-block: 0.75ch;
+    padding-inline: var(--size-relative-6);
+    border-radius: var(--radius-2);
+    font-weight: var(--font-weight-6);
+    user-select: none;
+    text-align: center;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    gap: .5em;
+    transition: all 0.2s ease;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline-offset: 2px;
+    }
+
+    & > svg {
+        flex-shrink: 0;
+        inline-size: 16px;
+        block-size: 16px;
+    }
+}
+
+.btn-primary {
+    background: linear-gradient(var(--brand-7), var(--brand-8));
+    border: 1px solid var(--brand-6);
+    color: var(--brand-0);
+    text-shadow: 0 1px 0 var(--brand-9);
+
+    &:not(:disabled) {
+        &:hover {
+            background: linear-gradient(var(--brand-6), var(--brand-7));
+        }
+
+        &:active {
+            background: linear-gradient(var(--brand-7), var(--brand-6));
+        }
+    }
+}
+
+.btn-outlined {
+    border: 1px solid var(--brand-6);
+    background: transparent;
+
+    &:not(:disabled) {
+        &:hover {
+            background: oklch(from var(--brand) l c h / 0.2);
+        }
+
+        &:active {
+            background: oklch(from var(--brand) l c h / 0.3);
+        }
+    }
+}
+
+.btn-unstyled {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+    cursor: pointer;
+
+    &:not(:disabled) {
+        &:hover {
+            background: none;
+        }
+    }
+}
+
+input, textarea {
+    background: var(--surface-3);
+    border: 1px solid var(--input-border);
+    font-size: 0.8rem;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+:focus-visible {
+    outline: var(--brand-6) solid 1px;
+    outline-offset: 2px;
+}
+
+.spin {
+    animation: var(--animation-spin);
+}
+
+h1 {
+    font-size: var(--font-size-4);
+}
+
+h2 {
+    font-size: var(--font-size-3);
+}
+
+h3 {
+    font-size: var(--font-size-2);
+}
+
+h4, h5, h6 {
+    font-size: var(--font-size-1);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-6);
+}
+
+.modal-layout {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-enter-active,
+.modal-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+    opacity: 0;
+}
+
+.v-enter-active,
+.v-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
 }

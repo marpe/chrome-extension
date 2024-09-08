@@ -7,10 +7,11 @@ import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+import { useTemplateRef } from "vue";
 
-type MonacoEditorProps = {
+interface MonacoEditorProps {
   value: string;
-  setValue: (value: string) => void;
 }
 
 const props = defineProps({
@@ -18,25 +19,20 @@ const props = defineProps({
     required: true,
     type: String,
   },
-  settings: {
-    required: false,
+  value: {
     type: Object as PropType<MonacoEditorProps>,
-    default: {
-      value: "",
-      setValue: (value: string) => {},
-    },
+    required: true,
+  },
+  disabled: {
+    required: false,
+    type: Boolean,
+    default: false,
   },
 });
 
-/*props.settings.setValue = (value: string) => {
-  editor.value!.setValue(value);
-};*/
+const model = defineModel({ type: String });
 
-const model = defineModel({ required: true, type: String });
-
-const editor = ref<monaco.editor.IStandaloneCodeEditor | null>(null);
-
-const monacoEl = ref<HTMLDivElement | null>(null);
+const monacoEl = useTemplateRef("monacoEl");
 
 self.MonacoEnvironment = {
   getWorker(_: any, label: string) {
@@ -56,37 +52,75 @@ self.MonacoEnvironment = {
   },
 };
 
+/*useEventListener(window, "resize", () => {
+  if (editor) {
+    const { width, height } = monacoEl.value!.getBoundingClientRect();
+    editor.layout({ width, height });
+  }
+});*/
+
 // monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
 
+let editor: monaco.editor.IStandaloneCodeEditor | null = null;
+
+/*useResizeObserver(monacoEl, (entries) => {
+  const entry = entries[0];
+  const { width, height } = entry.contentRect;
+  if (editor) {
+    console.log("Resizing Monaco editor", width, height);
+    editor.layout({ width, height });
+  }
+});*/
+
 onMounted(() => {
-  editor.value = monaco.editor.create(monacoEl.value!, {
-    value: props.settings.value,
+  const settings: IStandaloneEditorConstructionOptions = {
+    value: props.value.value,
     language: props.language,
     automaticLayout: true,
     scrollBeyondLastLine: false,
     lineNumbers: "off",
+    minimap: { enabled: false },
     theme: "vs-dark",
     fontSize: 12,
+    scrollbar: {
+      alwaysConsumeMouseWheel: false,
+    },
     folding: false,
+    readOnly: props.disabled,
     padding: {
       top: 0,
       bottom: 0,
     },
-  });
+  };
 
-  editor.value.onDidChangeModelContent(() => {
-    const value = editor.value!.getValue();
-    if (model.value !== value) {
+  if (!monacoEl.value) {
+    throw new Error("Monaco editor element not found");
+  }
+
+  editor = monaco.editor.create(monacoEl.value, settings);
+
+  editor.onDidChangeModelContent(() => {
+    const value = editor!.getValue();
+    if (model.value !== undefined) {
       model.value = value;
     }
   });
+});
+
+watch(() => props.value, (newValue) => {
+  editor!.setValue(newValue.value);
+});
+
+watch(() => props.disabled, (newValue) => {
+  editor!.updateOptions({ readOnly: newValue });
 });
 </script>
 
 <template>
   <div class="monaco-container"
-       style="min-height: 10rem; resize: vertical; overflow: hidden">
+       style="min-height: 10rem; height: 100%; resize: vertical; overflow: hidden">
     <div ref="monacoEl"
+         class="monaco-element"
          style="height: 100%; min-height: 0px" />
   </div>
 </template>
@@ -96,5 +130,9 @@ onMounted(() => {
   display: grid;
   border: 1px solid #4e4e4e;
   border-radius: 4px;
+}
+
+.monaco-element {
+  overflow: clip;
 }
 </style>

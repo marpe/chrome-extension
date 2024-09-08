@@ -52,6 +52,7 @@ const actualColors = [
 module.exports = {
   content: [
     './entrypoints/**/*.{html,vue,js,ts,jsx,tsx}',
+    './components/**/*.{html,vue,js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {},
