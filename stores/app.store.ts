@@ -34,7 +34,7 @@ export const useAppStore = defineStore("app", () => {
 	const store = {
 		loaded: ref(false),
 		injectedCSS: {
-			ref: injectedCSSRef, // ref<CSSInjection[]>([] as CSSInjection[])
+			ref: injectedCSSRef, // ref<CSSInjection[]>([])
 			storageItem: storage.defineItem<CSSInjection[]>(
 				`${StorageKey.injectedCSS}-si`,
 				{
@@ -52,13 +52,13 @@ export const useAppStore = defineStore("app", () => {
 			),
 		},
 		entries: {
-			ref: entriesRef, // ref<Entry[]>([] as Entry[]),
+			ref: entriesRef, // ref<Entry[]>([]),
 			storageItem: storage.defineItem<Entry[]>(`${StorageKey.entries}-si`, {
 				init: () => [createEntry()],
 			}),
 		},
 		logs: {
-			ref: logsRef, // ref<LogEntry[]>([] as LogEntry[]),
+			ref: logsRef, // ref<LogEntry[]>([]),
 			storageItem: storage.defineItem<LogEntry[]>(`${StorageKey.logs}-si`, {
 				init: () => [],
 			}),
@@ -74,8 +74,6 @@ export const useAppStore = defineStore("app", () => {
 
 	const load = async () => {
 		console.log("Loading app store");
-
-		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		store.entries.ref.value = await store.entries.storageItem.getValue();
 		store.injectedCSS.ref.value =
@@ -141,11 +139,6 @@ export const useAppStore = defineStore("app", () => {
 		...store,
 		load,
 		save,
-		async test() {
-			await storage.setItem(StorageKey.selectedIndex, {
-				value: Math.floor(Math.random() * 1000),
-			});
-		},
 	};
 });
 

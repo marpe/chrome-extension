@@ -191,6 +191,13 @@ input, textarea {
         opacity: 0.5;
         cursor: not-allowed;
     }
+    
+    &:not(:disabled) {
+        cursor: text;
+        &:not(:focus-within) {
+            cursor: pointer;
+        }
+    }
 }
 
 :focus-visible {

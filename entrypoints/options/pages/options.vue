@@ -305,7 +305,7 @@ const keys = useMagicKeys({
   <main>
     <template v-if="store.loaded">
 
-      <div class="grid grid-cols-[200px_1fr] flex-1 overflow-hidden">
+      <div class="grid grid-cols-[260px_1fr] flex-1 overflow-hidden">
         <div class="flex flex-col gap-4 overflow-hidden">
           <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
             <button @click="() => { addEntry(); save(); }"
