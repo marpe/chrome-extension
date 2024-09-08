@@ -1,7 +1,6 @@
 import { Runtime } from "webextension-polyfill";
 import Port = Runtime.Port;
 
-
 export default defineBackground({
   type: 'module',
   main: () => {

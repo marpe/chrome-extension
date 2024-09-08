@@ -259,19 +259,21 @@ watch(() => store.loaded, (newVal) => {
     <template v-if="store.loaded">
 
       <div class="grid grid-cols-[200px_1fr] gap-4 flex-1 overflow-hidden">
-        <div class="flex flex-col gap-4 overflow-y-auto">
+        <div class="flex flex-col gap-4 overflow-hidden">
           <div class="grid grid-cols-2 gap-4">
             <button @click="addEntry"
+                    title="Add new entry"
                     class="btn-primary">
               <i-lucide-circle-plus />
             </button>
             <button @click="removeSelected"
                     :disabled="disabled"
+                    title="Remove selected entry"
                     class="btn-primary">
               <i-lucide-circle-minus />
             </button>
           </div>
-          <div class="entry-list">
+          <div class="entry-list overflow-y-auto">
             <TransitionGroup>
               <div v-for="(entry, index) in store.stored.entries"
                    :key="index"
