@@ -7,7 +7,7 @@
 html {
     /*background-image: var(--gradient-18);*/
 
-    --brand: var(--purple-7);
+    --brand: var(--cyan-4);
 
     --brand-0: color-mix(in srgb, oklch(from var(--brand) calc(1 / 12 * 12) c h), 75% white);
     --brand-1: oklch(from var(--brand) calc(1 / 12 * 12) c h);
@@ -127,6 +127,12 @@ button {
         inline-size: 16px;
         block-size: 16px;
     }
+}
+
+.btn-icon {
+    aspect-ratio: 1;
+    padding: 0.5em;
+    border: 1px solid var(--surface-6);
 }
 
 .btn-primary {

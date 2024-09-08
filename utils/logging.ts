@@ -33,6 +33,9 @@ export const useLogging = () => {
 				message,
 				data,
 			});
+			while (store.logs.ref.length > 100) {
+				store.logs.ref.shift();
+			}
 		}
 		if (severity === "error") {
 			console.error(message, data);

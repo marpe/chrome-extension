@@ -24,25 +24,27 @@ export default defineConfig({
 		},
 	},
 	manifest: {
-		permissions: ["storage", "activeTab", "userScripts"],
+		permissions: ["contextMenus", "storage", "activeTab", "userScripts"],
 		content_security_policy: {
 			extension_pages:
 				"script-src 'self' http://localhost:3000; object-src 'self'",
 		},
 		commands: {
+			popout: {
+				suggested_key: {
+					default: "Ctrl+Shift+K",
+				},
+				description: "Open the popup.",
+			},
 			"run-foo": {
 				suggested_key: {
 					default: "Ctrl+Shift+Y",
-					mac: "Command+Shift+Y",
 				},
 				description: 'Run "foo" on the current page.',
 			},
 			_execute_action: {
 				suggested_key: {
 					windows: "Ctrl+Shift+Y",
-					mac: "Command+Shift+Y",
-					chromeos: "Ctrl+Shift+U",
-					linux: "Ctrl+Shift+J",
 				},
 			},
 		},

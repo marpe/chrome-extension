@@ -229,28 +229,38 @@ const save = async () => {
 	await injectCSS();
 	await executeScript();
 };
+
+const keys = useMagicKeys({
+	passive: false,
+	onEventFired: (event) => {
+		if (event.key === "s" && event.ctrlKey) {
+			save();
+			event.preventDefault();
+		}
+	},
+});
 </script>
 
 <template>
   <main>
     <template v-if="store.loaded">
 
-      <div class="grid grid-cols-[200px_1fr] gap-4 flex-1 overflow-hidden">
+      <div class="grid grid-cols-[200px_1fr] flex-1 overflow-hidden">
         <div class="flex flex-col gap-4 overflow-hidden">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
             <button @click="() => { addEntry(); save(); }"
                     title="Add new entry"
-                    class="btn-primary">
+                    class="btn-icon">
               <i-lucide-circle-plus />
             </button>
             <button @click="() => { removeSelected(); save(); }"
                     :disabled="disabled"
                     title="Remove selected entry"
-                    class="btn-primary">
+                    class="btn-icon">
               <i-lucide-circle-minus />
             </button>
           </div>
-          <div class="entry-list overflow-y-auto">
+          <div class="entry-list overflow-y-auto px-4">
             <TransitionGroup>
               <div v-for="(entry, index) in store.entries.ref"
                    :key="index"
@@ -265,7 +275,7 @@ const save = async () => {
                   </button>
                 </div>
                 <div class="flex flex-row gap-4 justify-between small">
-                  <div class="truncate">{{ entry.id }}</div>
+                  <div class="truncate">{{ entry.site }}</div>
                   <div class="whitespace-nowrap">{{ useDateFormat(entry.created, "YYYY-MM-DD HH:mm") }}</div>
                 </div>
                 <!--                <input type="radio"
@@ -277,7 +287,7 @@ const save = async () => {
           </div>
         </div>
 
-        <div class="overflow-y-auto flex flex-col gap-4">
+        <div class="overflow-y-auto flex flex-col gap-4 px-4 pt-4">
           <div>
             <input v-model="selectedEntry.description"
                    style="width: 100%"
@@ -290,14 +300,14 @@ const save = async () => {
                    :disabled="disabled" />
           </div>
 
-          <div :style="{ opacity: disabled ? 0.5 : 1, flex: 1 }">
+          <div :style="{ opacity: disabled ? 0.5 : 1, flex: '0 1 0' }">
             <MonacoEditor language="css"
                           :disabled="disabled"
                           :value="styleValue"
                           v-model="selectedEntry.style" />
           </div>
 
-          <div :style="{ opacity: disabled ? 0.5 : 1, flex: 1 }">
+          <div :style="{ opacity: disabled ? 0.5 : 1, flex: '0 1 0' }">
             <MonacoEditor language="javascript"
                           :disabled="disabled"
                           :value="scriptValue"
@@ -306,7 +316,7 @@ const save = async () => {
         </div>
       </div>
 
-      <div class="flex flex-row gap-4 flex-wrap">
+      <div class="flex flex-row gap-4 flex-wrap px-4 pb-4">
         <button @click="save"
                 class="btn-outlined">
           Save
@@ -379,6 +389,7 @@ const save = async () => {
     /*border: 1px solid var(--_border-color);
     border-top: none;*/
     border-left: 3px solid transparent;
+    border-bottom: 1px solid oklch(from var(--brand) l c h / 0.4);
     padding: 0.75rem 0.75rem;
     color: oklch(from var(--gray-1) l c h / 0.75);
     font-weight: var(--font-weight-6);
@@ -398,7 +409,7 @@ const save = async () => {
 
     &:hover {
       /*color: var(--indigo-0);*/
-      border-color: var(--brand);
+      border-left-color: var(--brand);
       color: oklch(from var(--gray-1) l c h / 1);
 
       .remove {
@@ -411,7 +422,7 @@ const save = async () => {
     }
 
     &.checked {
-      border-color: var(--brand);
+      border-left-color: var(--brand);
       --_bg-from: oklch(from var(--brand) l c h / 0.33);
       color: oklch(from var(--gray-1) l c h / 1);
       /*--_border-color: var(--indigo-5);

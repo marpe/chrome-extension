@@ -33,7 +33,7 @@ const sortedLogs = useSorted<LogEntry>(
 </script>
 
 <template>
- <main>
+ <main class="p-4">
    <template v-if="store.loaded">
      <div class="flex flex-row items-center justify-between">
         <div>

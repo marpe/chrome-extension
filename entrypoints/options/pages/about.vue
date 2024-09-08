@@ -4,7 +4,7 @@
 
 
 <template>
-  <main>
+  <main class="p-4">
     <h1>About</h1>
     <p>
       This is a browser extension that allows you to inject custom CSS and JavaScript into any website.

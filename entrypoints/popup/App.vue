@@ -1,15 +1,30 @@
 <script lang="ts"
         setup>
 import Options from "@/entrypoints/options/pages/options.vue";
+import { onMessage, sendMessage } from "webext-bridge/popup";
+
+const send = async () => {
+	const response = await sendMessage(
+		"ACTION",
+		{ message: "Hello from Popup" },
+		"background",
+	);
+
+	console.log(response);
+};
 </script>
 
 <template>
+  <div>
+    <button class="btn-primary" @click="send">
+      Send Message
+    </button>
+  </div>
   <Options />
 </template>
 
 <style>
 body {
-  padding: 1rem;
   width: 800px;
   height: 600px;
 }
