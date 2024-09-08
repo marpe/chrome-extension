@@ -5,7 +5,7 @@ import { createEntry } from "@/utils/createEntry";
 import type { Entry } from "@/utils/state";
 import { timestamp } from "@vueuse/core";
 import { nanoid } from "nanoid";
-import { onMounted } from "vue";
+import { onMounted, useTemplateRef } from "vue";
 import type { Scripting, Tabs } from "wxt/browser";
 
 type CSSInjection = Scripting.CSSInjection;
@@ -14,6 +14,19 @@ const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 const store = useAppStore();
 
 const { logs, logInfo, logError } = useLogging();
+
+const presets = {
+	keyListener: `console.log("Hello World")
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") {
+        console.log('pressed', e);
+        e.preventDefault();
+    } else {
+        console.log("pressed", e);
+    }
+});`,
+};
 
 const clearInjections = () => {
 	while (store.injectedCSS.ref.length) {
@@ -155,9 +168,13 @@ const addEntry = () => {
 
 const disabled = ref(true);
 
+const saveButton = useTemplateRef("saveButton");
+
 const selectEntry = (index: number) => {
-	store.selectedIndex.ref.value = index;
+	console.log("selectEntry", index);
+
 	if (index === -1) {
+		store.selectedIndex.ref.value = -1;
 		selectedEntry.value = {
 			id: "",
 			description: "",
@@ -173,12 +190,21 @@ const selectEntry = (index: number) => {
 		disabled.value = true;
 		return;
 	}
-	const entry = store.entries.ref[index];
+
+	const clampedIndex = clamp(index, 0, store.entries.ref.length - 1);
+	store.selectedIndex.ref.value = clampedIndex;
+	const entry = store.entries.ref[clampedIndex];
 	selectedEntry.value = entry;
 	styleValue.value = { value: entry.style };
 	scriptValue.value = { value: entry.script };
 	disabled.value = false;
 };
+
+const lastLog = computed(() => {
+	return logs.ref[logs.ref.length - 1];
+});
+
+const logOpen = ref(false);
 
 const selectedEntry = ref<Entry>(createEntry());
 
@@ -217,13 +243,24 @@ watch(
 );
 
 watch(
-	() => store.selectedIndex.ref,
+	() => store.selectedIndex.ref.value,
 	(newVal) => {
 		logInfo("Selected index changed", newVal);
 	},
 );
 
 const save = async () => {
+	saveButton.value?.animate(
+		[
+			{ transform: "scale(1)" },
+			{ transform: "scale(1.1)" },
+			{ transform: "scale(1)" },
+		],
+		{
+			duration: 200,
+			easing: "ease-in-out",
+		},
+	);
 	await store.save();
 	logInfo("Saved");
 	await injectCSS();
@@ -315,13 +352,15 @@ const keys = useMagicKeys({
           </div>
         </div>
       </div>
-
-      <div class="flex flex-row gap-4 flex-wrap px-4 pb-4">
+      
+      <div class="flex flex-row gap-4 flex-wrap px-4 pb-4 items-start">
         <button @click="save"
+                ref="saveButton"
                 class="btn-outlined">
           Save
         </button>
       </div>
+      
     </template>
 
     <Teleport to="body">

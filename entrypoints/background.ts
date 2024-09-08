@@ -5,15 +5,28 @@ export default defineBackground({
 	main: () => {
 		console.log(`Hello from ${browser.runtime.id}!`);
 
-		const onContextMenuClicked = (info: chrome.contextMenus.OnClickData) => {
-			console.log("Context menu clicked:", info);
-
+		const openPopup = () => {
 			browser.windows.create({
-				url: "options.html",
+				url: "popup.html",
 				type: "popup",
 				width: 1024,
 				height: 768,
 			});
+		};
+
+		browser.commands.onCommand.addListener((command, tab) => {
+			console.log("Command:", { command, tab });
+
+			if (command === "popout") {
+				openPopup();
+			} else {
+				console.log("Unknown command:", command);
+			}
+		});
+
+		const onContextMenuClicked = (info: chrome.contextMenus.OnClickData) => {
+			console.log("Context menu clicked:", info);
+			openPopup();
 		};
 
 		chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
@@ -45,9 +58,7 @@ export default defineBackground({
 	},
 });
 
-/*browser.commands.onCommand.addListener((command, tab) => {
-	console.log("Command:", { command, tab });
-});
+/*
 
 // Setup listener for one-time messages
 browser.runtime.onMessage.addListener((message) => {
