@@ -16,32 +16,17 @@ export const useLogging = () => {
 	const logDebug = (message: string, data?: LogEntry["data"]) => {
 		log("debug", message, data);
 	};
+
 	const clearLogs = () => {
-		while (store.logs.ref.length > 0) {
-			store.logs.ref.pop();
-		}
+		store.clearLogs();
 	};
+
 	const log = (
 		severity: LogEntry["severity"],
 		message: string,
 		data?: LogEntry["data"],
 	) => {
-		if (store.logs.ref.push) {
-			store.logs.ref.push({
-				severity,
-				timestamp: Date.now(),
-				message,
-				data,
-			});
-			while (store.logs.ref.length > 100) {
-				store.logs.ref.shift();
-			}
-		}
-		if (severity === "error") {
-			console.error(message, data);
-		} else {
-			console.log(message, data);
-		}
+		store.log({ severity, message, data, timestamp: Date.now() });
 	};
 
 	return {

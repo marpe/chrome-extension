@@ -1,7 +1,10 @@
 import { createEntry } from "@/utils/createEntry";
 import type { CSSInjection, Entry, LogEntry } from "@/utils/state";
-import type { StorageLikeAsync } from "@vueuse/core";
-import type { Unwatch } from "wxt/storage";
+import type { Unwatch, WxtStorageItem } from "wxt/storage";
+
+const clamp = (value: number, min: number, max: number) => {
+	return Math.min(Math.max(value, min), max);
+};
 
 enum StorageKey {
 	selectedIndex = "local:selectedIndex",
@@ -10,136 +13,178 @@ enum StorageKey {
 	logs = "local:logs",
 }
 
-export const useAppStore = defineStore("app", () => {
-	const injectedCSSRef = useStorageAsync<CSSInjection[]>(
-		StorageKey.injectedCSS,
-		[],
-		storage as StorageLikeAsync,
-	);
-	const selectedIndexRef = useStorageAsync<{ value: number }>(
-		StorageKey.selectedIndex,
-		{ value: 0 },
-		storage as StorageLikeAsync,
-	);
-	const entriesRef = useStorageAsync<Entry[]>(
-		StorageKey.entries,
-		[createEntry()],
-		storage as StorageLikeAsync,
-	);
-	const logsRef = useStorageAsync<LogEntry[]>(
-		StorageKey.logs,
-		[],
-		storage as StorageLikeAsync,
-	);
-	const store = {
+// biome-ignore lint/complexity/noBannedTypes: <explanation>
+function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
+	storageItem: WxtStorageItem<T, M>,
+) {
+	const innerValue: {
+		value: T;
+		loaded: Ref<boolean>;
+		watcher: Unwatch | null;
+	} = {
+		value: storageItem.fallback,
 		loaded: ref(false),
-		injectedCSS: {
-			ref: injectedCSSRef, // ref<CSSInjection[]>([])
-			storageItem: storage.defineItem<CSSInjection[]>(
-				`${StorageKey.injectedCSS}-si`,
-				{
-					init: () => [],
-				},
-			),
-		},
-		selectedIndex: {
-			ref: selectedIndexRef, // ref(0),
-			storageItem: storage.defineItem<{ value: number }>(
-				`${StorageKey.selectedIndex}-si`,
-				{
-					init: () => ({ value: 0 }),
-				},
-			),
-		},
-		entries: {
-			ref: entriesRef, // ref<Entry[]>([]),
-			storageItem: storage.defineItem<Entry[]>(`${StorageKey.entries}-si`, {
-				init: () => [createEntry()],
-			}),
-		},
-		logs: {
-			ref: logsRef, // ref<LogEntry[]>([]),
-			storageItem: storage.defineItem<LogEntry[]>(`${StorageKey.logs}-si`, {
-				init: () => [],
-			}),
-		},
+		watcher: null,
 	};
 
-	const watchers: Record<StorageKey, Unwatch | null> = {
-		[StorageKey.selectedIndex]: null,
-		[StorageKey.entries]: null,
-		[StorageKey.injectedCSS]: null,
-		[StorageKey.logs]: null,
-	};
+	const valueRef = customRef((track, trigger) => {
+		const addWatcher = () => {
+			innerValue.watcher = storageItem.watch((v) => {
+				innerValue.value = v;
+				trigger();
+			});
+		};
 
-	const load = async () => {
-		console.log("Loading app store");
+		const removeWatcher = () => {
+			console.log("removing watcher");
+			innerValue.watcher?.();
+			innerValue.watcher = null;
+		};
 
-		store.entries.ref.value = await store.entries.storageItem.getValue();
-		store.injectedCSS.ref.value =
-			await store.injectedCSS.storageItem.getValue();
-		store.logs.ref.value = await store.logs.storageItem.getValue();
-		store.selectedIndex.ref.value =
-			await store.selectedIndex.storageItem.getValue();
-
-		addWatchers();
-
-		store.loaded.value = true;
-	};
-
-	const addWatchers = () => {
-		watchers[StorageKey.selectedIndex] = store.selectedIndex.storageItem.watch(
-			(value) => {
-				store.selectedIndex.ref.value = value;
-			},
-		);
-
-		watchers[StorageKey.entries] = store.entries.storageItem.watch((value) => {
-			store.entries.ref.value = value;
+		storageItem.getValue().then((v) => {
+			console.log("loaded initial value", v);
+			innerValue.value = v;
+			innerValue.loaded.value = true;
+			trigger();
+			addWatcher();
 		});
 
-		watchers[StorageKey.injectedCSS] = store.injectedCSS.storageItem.watch(
-			(value) => {
-				store.injectedCSS.ref.value = value;
+		return {
+			get() {
+				track();
+				return innerValue.value;
 			},
-		);
+			set(newValue: T) {
+				console.log("setting", newValue);
+				removeWatcher();
+				innerValue.value = newValue;
+				storageItem.setValue(newValue).then(() => {
+					trigger();
+					addWatcher();
+				});
+			},
+		};
+	});
 
-		watchers[StorageKey.logs] = store.logs.storageItem.watch((value) => {
-			store.logs.ref.value = value;
-		});
+	return { storageItem, ref: valueRef, innerValue };
+}
+
+const defaults: {
+	injectedCSS: CSSInjection[];
+	selectedIndex: { value: number };
+	entries: Entry[];
+	logs: LogEntry[];
+} = {
+	injectedCSS: [],
+	selectedIndex: { value: 0 },
+	entries: [createEntry()],
+	logs: [],
+} as const;
+
+export const useAppStore = defineStore("app", () => {
+	const items = {
+		injectedCSS: createItemBackedRef(
+			storage.defineItem<CSSInjection[]>(`${StorageKey.injectedCSS}-si`, {
+				fallback: defaults.injectedCSS,
+				init: () => defaults.injectedCSS,
+			}),
+		),
+		selectedIndex: createItemBackedRef(
+			storage.defineItem<{ value: number }>(`${StorageKey.selectedIndex}-si`, {
+				fallback: defaults.selectedIndex,
+				init: () => defaults.selectedIndex,
+			}),
+		),
+		entries: createItemBackedRef(
+			storage.defineItem<Entry[]>(`${StorageKey.entries}-si`, {
+				fallback: defaults.entries,
+				init: () => defaults.entries,
+			}),
+		),
+		logs: createItemBackedRef(
+			storage.defineItem<LogEntry[]>(`${StorageKey.logs}-si`, {
+				fallback: defaults.logs,
+				init: () => defaults.logs,
+			}),
+		),
+	} as const;
+
+	const clearInjections = () => {
+		while (items.injectedCSS.ref.value.length > 0) {
+			items.injectedCSS.ref.value.pop();
+		}
 	};
 
-	const removeWatchers = () => {
-		watchers[StorageKey.selectedIndex]?.();
-		watchers[StorageKey.entries]?.();
-		watchers[StorageKey.injectedCSS]?.();
-		watchers[StorageKey.logs]?.();
-		watchers[StorageKey.selectedIndex] = null;
-		watchers[StorageKey.entries] = null;
-		watchers[StorageKey.injectedCSS] = null;
-		watchers[StorageKey.logs] = null;
-	};
+	const loaded = computed(() => {
+		return Object.values(items).every((s) => s.innerValue.loaded.value);
+	});
+
+	const selectedEntry = computed(
+		() => items.entries.ref.value[items.selectedIndex.ref.value.value],
+	);
 
 	const save = async () => {
-		removeWatchers();
-		await store.entries.storageItem.setValue(toRaw(store.entries.ref.value));
-		await store.injectedCSS.storageItem.setValue(
-			toRaw(store.injectedCSS.ref.value),
-		);
-		await store.logs.storageItem.setValue(toRaw(store.logs.ref.value));
-		await store.selectedIndex.storageItem.setValue(
-			toRaw(store.selectedIndex.ref.value),
-		);
-		addWatchers();
+		// set the ref value to trigger save to storage :///
+		items.entries.ref.value = [...items.entries.ref.value];
 	};
 
-	void load();
+	const addEntry = () => {
+		const entry = createEntry();
+		items.entries.ref.value = [...items.entries.ref.value, entry];
+		selectEntry(items.entries.ref.value.length - 1);
+	};
+
+	const selectEntry = (index: number) => {
+		const clampedIndex = clamp(index, 0, items.entries.ref.value.length - 1);
+		items.selectedIndex.ref.value = { value: clampedIndex };
+	};
+
+	const removeEntry = (index: number) => {
+		items.entries.ref.value = items.entries.ref.value.filter(
+			(e) => e !== items.entries.ref.value[index],
+		);
+		const clamped = clamp(index, 0, items.entries.ref.value.length - 1);
+		if (clamped !== index) {
+			selectEntry(clamped);
+		}
+		console.log(
+			`Removed entry, number of entries: ${items.entries.ref.value.length}`,
+		);
+	};
+
+	const setCSSInjections = (injections: CSSInjection[]) => {
+		items.injectedCSS.ref.value = injections;
+	};
+
+	const clearLogs = () => {
+		items.logs.ref.value = [];
+	};
+
+	const log = (l: LogEntry) => {
+		items.logs.ref.value = [...items.logs.ref.value, l];
+		while (items.logs.ref.value.length > 100) {
+			items.logs.ref.value = items.logs.ref.value.slice(1);
+		}
+		if (l.severity === "error") {
+			console.error(l.message, l.data);
+		} else {
+			console.log(l.message, l.data);
+		}
+	};
 
 	return {
-		...store,
-		load,
+		loaded,
+		...items,
 		save,
-	};
+		clearInjections,
+		removeEntry,
+		selectEntry,
+		addEntry,
+		setCSSInjections,
+		log,
+		clearLogs,
+		selectedEntry,
+	} as const;
 });
 
 if (import.meta.hot) {

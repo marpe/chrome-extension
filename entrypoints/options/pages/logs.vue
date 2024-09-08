@@ -15,13 +15,6 @@ const toggleShowDebug = (index: number) => {
 
 const open = ref<Record<number, boolean>>({});
 
-watch(
-	() => store.loaded,
-	(newValue) => {
-		console.log("store.loaded", toRaw(logging.logs.ref));
-	},
-);
-
 const clearLogs = () => {
 	logging.clearLogs();
 };

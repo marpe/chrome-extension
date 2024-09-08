@@ -1,12 +1,8 @@
 <script lang="ts"
         setup>
 import { useAppStore } from "@/stores/app.store";
-import { createEntry } from "@/utils/createEntry";
-import type { Entry } from "@/utils/state";
-import { timestamp } from "@vueuse/core";
-import { nanoid } from "nanoid";
-import { onMounted, useTemplateRef } from "vue";
-import type { Scripting, Tabs } from "wxt/browser";
+import { useTemplateRef } from "vue";
+import type { Scripting } from "wxt/browser";
 
 type CSSInjection = Scripting.CSSInjection;
 
@@ -26,12 +22,6 @@ document.addEventListener("keydown", (e) => {
         console.log("pressed", e);
     }
 });`,
-};
-
-const clearInjections = () => {
-	while (store.injectedCSS.ref.length) {
-		store.injectedCSS.ref.pop();
-	}
 };
 
 const queryTabs = async () => {
@@ -90,7 +80,7 @@ const removeInjectedCSS = async () => {
 	try {
 		const cssInjections = store.injectedCSS;
 		await Promise.all(cssInjections.ref.map(tryRemoveCSS));
-		clearInjections();
+		store.clearInjections();
 	} catch (e) {
 		logError("Error removing CSS", e);
 	}
@@ -137,7 +127,7 @@ const injectCSS = async () => {
 
 		logInfo("CSS injected", { successfulInjections, failedInjections });
 
-		store.injectedCSS.ref.push(...successfulInjections);
+		store.setCSSInjections(successfulInjections);
 	} catch (e) {
 		logError("Error injecting CSS", e);
 	}
@@ -153,52 +143,16 @@ printHello();`;
 const styleValue = ref({ value: "" });
 const scriptValue = ref({ value: "" });
 
-// const styleChanged = useLastChanged(style, { initialValue: timestamp() });
-// const scriptChanged = useLastChanged(script, { initialValue: timestamp() });
-
-// const styleChangedAgo = useTimeAgo(styleChanged);
-// const scriptChangedAgo = useTimeAgo(scriptChanged);
-
-const addEntry = () => {
-	const entry = createEntry();
-	store.entries.ref.push(entry);
-	logInfo(`Added entry, number of entries: ${store.entries.ref.length}`);
-	selectEntry(store.entries.ref.length - 1);
-};
-
-const disabled = ref(true);
+watch(
+	() => store.selectedEntry,
+	(entry) => {
+		// setting these triggers the MonacoEditor components to update
+		styleValue.value = { value: entry?.style ?? initialStyle };
+		scriptValue.value = { value: entry?.script ?? initialScript };
+	},
+);
 
 const saveButton = useTemplateRef("saveButton");
-
-const selectEntry = (index: number) => {
-	console.log("selectEntry", index);
-
-	if (index === -1) {
-		store.selectedIndex.ref.value = -1;
-		selectedEntry.value = {
-			id: "",
-			description: "",
-			site: "*",
-			created: Date.now(),
-			modified: Date.now(),
-			style: "",
-			script: "",
-			revision: 1,
-		};
-		styleValue.value = { value: "" };
-		scriptValue.value = { value: "" };
-		disabled.value = true;
-		return;
-	}
-
-	const clampedIndex = clamp(index, 0, store.entries.ref.length - 1);
-	store.selectedIndex.ref.value = clampedIndex;
-	const entry = store.entries.ref[clampedIndex];
-	selectedEntry.value = entry;
-	styleValue.value = { value: entry.style };
-	scriptValue.value = { value: entry.script };
-	disabled.value = false;
-};
 
 const lastLog = computed(() => {
 	return logs.ref[logs.ref.length - 1];
@@ -206,48 +160,13 @@ const lastLog = computed(() => {
 
 const logOpen = ref(false);
 
-const selectedEntry = ref<Entry>(createEntry());
-
-const clamp = (value: number, min: number, max: number) => {
-	return Math.min(Math.max(value, min), max);
-};
-
-const removeEntry = (index: number) => {
-	store.entries.ref.splice(index, 1);
-
-	const clamped = clamp(index, 0, store.entries.ref.length - 1);
-	if (clamped !== index) {
-		selectEntry(clamped);
-	}
-	logInfo(`Removed entry, number of entries: ${store.entries.ref.length}`);
-};
-
 const removeSelected = () => {
 	const index = store.selectedIndex.ref.value;
 	if (index === -1) {
 		return;
 	}
-	removeEntry(index);
+	store.removeEntry(index);
 };
-
-watch(
-	() => store.loaded,
-	(newVal) => {
-		if (newVal) {
-			logInfo("Loaded finished", toRaw(store.selectedIndex.ref));
-			selectEntry(store.selectedIndex.ref.value);
-		} else {
-			logInfo("Loaded received false");
-		}
-	},
-);
-
-watch(
-	() => store.selectedIndex.ref.value,
-	(newVal) => {
-		logInfo("Selected index changed", newVal);
-	},
-);
 
 const exportData = async () => {
 	try {
@@ -286,8 +205,8 @@ const save = async () => {
 	);
 	await store.save();
 	logInfo("Saved");
-	await injectCSS();
-	await executeScript();
+	/*await injectCSS();
+	await executeScript();*/
 };
 
 const keys = useMagicKeys({
@@ -308,13 +227,12 @@ const keys = useMagicKeys({
       <div class="grid grid-cols-[260px_1fr] flex-1 overflow-hidden">
         <div class="flex flex-col gap-4 overflow-hidden">
           <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
-            <button @click="() => { addEntry(); save(); }"
+            <button @click="() => { store.addEntry(); save(); }"
                     title="Add new entry"
                     class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
               <i-lucide-circle-plus />
             </button>
             <button @click="() => { removeSelected(); save(); }"
-                    :disabled="disabled"
                     title="Remove selected entry"
                     class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
               <i-lucide-circle-minus />
@@ -324,13 +242,13 @@ const keys = useMagicKeys({
             <TransitionGroup>
               <div v-for="(entry, index) in store.entries.ref"
                    :key="index"
-                   @click="() => { selectEntry(index); save(); }"
+                   @click="() => { store.selectEntry(index); save(); }"
                    :class="{ checked: store.selectedIndex.ref.value === index }"
                    class="flex flex-col gap-2 entry-button">
                 <div class="flex flex-row justify-between items-center">
                   <div>{{ entry.description }}</div>
                   <button class="remove btn-unstyled"
-                          @click.stop="removeEntry(index)">
+                          @click.stop="store.removeEntry(index)">
                     <i-lucide-x class="size-4" />
                   </button>
                 </div>
@@ -348,34 +266,32 @@ const keys = useMagicKeys({
         </div>
 
         <div class="overflow-y-auto flex flex-col gap-4 px-4 pt-4">
-          <div>
-            <input v-model="selectedEntry.description"
-                   style="width: 100%"
-                   :disabled="disabled" />
-          </div>
+          <template v-if="!!store.selectedEntry">
+            <div>
+              <input v-model="store.selectedEntry.description"
+                     style="width: 100%" />
+            </div>
 
-          <div>
-            <input v-model="selectedEntry.site"
-                   style="width: 100%"
-                   :disabled="disabled" />
-          </div>
+            <div>
+              <input v-model="store.selectedEntry.site"
+                     style="width: 100%" />
+            </div>
 
-          <div :style="{ opacity: disabled ? 0.5 : 1, flex: '0 1 0' }">
-            <MonacoEditor language="css"
-                          :disabled="disabled"
-                          :value="styleValue"
-                          v-model="selectedEntry.style" />
-          </div>
+            <div :style="{ flex: '0 1 0' }">
+              <MonacoEditor language="css"
+                            :value="styleValue"
+                            v-model="store.selectedEntry.style" />
+            </div>
 
-          <div :style="{ opacity: disabled ? 0.5 : 1, flex: '0 1 0' }">
-            <MonacoEditor language="javascript"
-                          :disabled="disabled"
-                          :value="scriptValue"
-                          v-model="selectedEntry.script" />
-          </div>
+            <div :style="{ flex: '0 1 0' }">
+              <MonacoEditor language="javascript"
+                            :value="scriptValue"
+                            v-model="store.selectedEntry.script" />
+            </div>
+          </template>
         </div>
       </div>
-      
+
       <div class="flex flex-row gap-4 flex-wrap px-4 pb-4 items-start">
         <button @click="save"
                 ref="saveButton"
@@ -390,7 +306,7 @@ const keys = useMagicKeys({
           Import
         </button>
       </div>
-      
+
     </template>
 
     <Teleport to="body">

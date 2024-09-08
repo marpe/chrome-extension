@@ -7,22 +7,19 @@ console.log("mounted app");
 const store = useAppStore();
 
 onKeyStroke(
-  [" "],
-  (e) => {
-    if (!store.enabled) {
-      return;
-    }
-    console.log("[keydown] space pressed", e);
-    const ignoredTags = ["INPUT", "SELECT", "TEXTAREA"];
-    const element = (e.target || e.srcElement) as HTMLElement;
-    const tagName = element?.tagName;
-    if (tagName && !ignoredTags.includes(tagName)) {
-      e.preventDefault();
-      // e.stopPropagation();
-      console.log("preventDefault");
-    }
-  },
-  { eventName: "keydown" }
+	[" "],
+	(e) => {
+		console.log("[keydown] space pressed", e);
+		const ignoredTags = ["INPUT", "SELECT", "TEXTAREA"];
+		const element = (e.target || e.srcElement) as HTMLElement;
+		const tagName = element?.tagName;
+		if (tagName && !ignoredTags.includes(tagName)) {
+			e.preventDefault();
+			// e.stopPropagation();
+			console.log("preventDefault");
+		}
+	},
+	{ eventName: "keydown" },
 );
 </script>
 
