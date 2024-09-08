@@ -235,13 +235,6 @@ const save = async () => {
   <main>
     <template v-if="store.loaded">
 
-      <div>
-        {{store.selectedIndex.ref}}
-        <button @click="store.test()">
-          Test
-        </button>
-      </div>
-      
       <div class="grid grid-cols-[200px_1fr] gap-4 flex-1 overflow-hidden">
         <div class="flex flex-col gap-4 overflow-hidden">
           <div class="grid grid-cols-2 gap-4">
