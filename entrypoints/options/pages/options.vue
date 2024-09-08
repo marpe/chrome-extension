@@ -249,6 +249,29 @@ watch(
 	},
 );
 
+const exportData = async () => {
+	try {
+		const data = {
+			entries: toRaw(store.entries.ref),
+		};
+		const json = JSON.stringify(data, null, 2);
+		await navigator.clipboard.writeText(json);
+		console.log("Copied to clipboard");
+	} catch (e) {
+		logError("Error exporting data", e);
+	}
+};
+
+const importData = async () => {
+	try {
+		const json = await navigator.clipboard.readText();
+		const data = JSON.parse(json);
+		store.entries.ref = data.entries;
+	} catch (e) {
+		logError("Error importing data", e);
+	}
+};
+
 const save = async () => {
 	saveButton.value?.animate(
 		[
@@ -358,6 +381,13 @@ const keys = useMagicKeys({
                 ref="saveButton"
                 class="btn-outlined">
           Save
+        </button>
+        <button @click="exportData" class="btn-outlined">
+          Export
+        </button>
+
+        <button @click="importData" class="btn-outlined">
+          Import
         </button>
       </div>
       

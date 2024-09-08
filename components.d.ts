@@ -12,7 +12,6 @@ declare module 'vue' {
     Debug: typeof import('./components/Debug.vue')['default']
     ILucideCircleMinus: typeof import('~icons/lucide/circle-minus')['default']
     ILucideCirclePlus: typeof import('~icons/lucide/circle-plus')['default']
-    ILucideGithub: typeof import('~icons/lucide/github')['default']
     ILucideInfo: typeof import('~icons/lucide/info')['default']
     ILucideLetterText: typeof import('~icons/lucide/letter-text')['default']
     ILucideLoaderCircle: typeof import('~icons/lucide/loader-circle')['default']
