@@ -7,7 +7,7 @@
 html {
     /*background-image: var(--gradient-18);*/
 
-    --brand: var(--cyan-4);
+    --brand: #3984dd;
 
     --brand-0: color-mix(in srgb, oklch(from var(--brand) calc(1 / 12 * 12) c h), 75% white);
     --brand-1: oklch(from var(--brand) calc(1 / 12 * 12) c h);
@@ -260,4 +260,10 @@ h1, h2, h3, h4, h5, h6 {
 .v-enter-from,
 .v-leave-to {
     opacity: 0;
+}
+
+::selection {
+    background: oklch(from var(--brand-6) l c h / 0.8);
+    text-shadow: 1px 1px 2px var(--brand-12);
+    color: oklch(from var(--brand-0) l c h / 0.8);
 }

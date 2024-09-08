@@ -5,7 +5,7 @@ export const githubDark: monaco.editor.IStandaloneThemeData = {
 	inherit: true,
 	rules: [
 		{
-			background: "24292e",
+			background: "111417",
 			token: "",
 		},
 		{
@@ -337,10 +337,10 @@ export const githubDark: monaco.editor.IStandaloneThemeData = {
 	],
 	colors: {
 		"editor.foreground": "#f6f8fa",
-		"editor.background": "#24292e",
+		"editor.background": "#111417",
 		"editor.selectionBackground": "#4c2889",
 		"editor.inactiveSelectionBackground": "#444d56",
-		"editor.lineHighlightBackground": "#444d56",
+		"editor.lineHighlightBackground": "#444D5680",
 		"editorCursor.foreground": "#ffffff",
 		"editorWhitespace.foreground": "#6a737d",
 		"editorIndentGuide.background": "#6a737d",

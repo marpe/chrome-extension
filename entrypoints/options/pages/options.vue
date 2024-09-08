@@ -310,13 +310,13 @@ const keys = useMagicKeys({
           <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
             <button @click="() => { addEntry(); save(); }"
                     title="Add new entry"
-                    class="btn-icon">
+                    class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
               <i-lucide-circle-plus />
             </button>
             <button @click="() => { removeSelected(); save(); }"
                     :disabled="disabled"
                     title="Remove selected entry"
-                    class="btn-icon">
+                    class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
               <i-lucide-circle-minus />
             </button>
           </div>

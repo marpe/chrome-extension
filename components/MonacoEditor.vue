@@ -71,6 +71,7 @@ onMounted(() => {
 		overviewRulerLanes: 0,
 		fontSize: 12,
 		trimAutoWhitespace: true,
+		fixedOverflowWidgets: true,
 		scrollbar: {
 			alwaysConsumeMouseWheel: false,
 		},
@@ -139,7 +140,7 @@ const formatDocument = () => {
          class="monaco-element"
          style="height: 100%; min-height: 0px" />
     <div>
-      <button class="btn-icon" @click="formatDocument">
+      <button class="btn-icon" title="Format document" @click="formatDocument">
         <i-lucide-letter-text />
       </button>
     </div>
