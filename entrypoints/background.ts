@@ -1,9 +1,13 @@
-import { onMessage, sendMessage } from "webext-bridge/background";
+import { executeScript, injectCSS } from "@/utils/userScript";
+import { onMessage } from "webext-bridge/background";
 
 export default defineBackground({
 	type: "module",
 	main: () => {
 		console.log(`Hello from ${browser.runtime.id}!`);
+
+		const storedEntries = storageItems.entries;
+		const storedCSSInjections = storageItems.injectedCSS;
 
 		const openPopup = () => {
 			browser.windows.create({
@@ -30,6 +34,23 @@ export default defineBackground({
 		};
 
 		chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
+
+		chrome.webNavigation.onCompleted.addListener(async (details) => {
+			const entries = await storedEntries.getValue();
+			const cssInjections = await storedCSSInjections.getValue();
+
+			await removeInjectedCSS(cssInjections);
+			const { successfulInjections, failedInjections } =
+				await injectCSS(entries);
+			await executeScript(entries);
+			storedCSSInjections.setValue(successfulInjections);
+			console.log("Web navigation completed:", {
+				details,
+				successfulInjections,
+				failedInjections,
+				entries,
+			});
+		});
 
 		browser.runtime.onInstalled.addListener((details) => {
 			if (details.reason === "update") {

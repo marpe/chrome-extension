@@ -24,7 +24,14 @@ export default defineConfig({
 		},
 	},
 	manifest: {
-		permissions: ["contextMenus", "storage", "activeTab", "userScripts"],
+		permissions: [
+			"contextMenus",
+			"storage",
+			"activeTab",
+			"userScripts",
+			"webNavigation",
+		],
+		host_permissions: ["*://*/*"],
 		content_security_policy: {
 			extension_pages:
 				"script-src 'self' http://localhost:3000; object-src 'self'",

@@ -1,17 +1,16 @@
 import { createEntry } from "@/utils/createEntry";
-import type { CSSInjection, Entry, LogEntry } from "@/utils/state";
+import {
+	type CSSInjection,
+	type Entry,
+	type LogEntry,
+	StorageKey,
+	storageItems,
+} from "@/utils/state";
 import type { Unwatch, WxtStorageItem } from "wxt/storage";
 
 const clamp = (value: number, min: number, max: number) => {
 	return Math.min(Math.max(value, min), max);
 };
-
-enum StorageKey {
-	selectedIndex = "local:selectedIndex",
-	entries = "sync:entries",
-	injectedCSS = "local:cssInjections",
-	logs = "local:logs",
-}
 
 // biome-ignore lint/complexity/noBannedTypes: <explanation>
 function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
@@ -69,44 +68,12 @@ function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
 	return { storageItem, ref: valueRef, innerValue };
 }
 
-const defaults: {
-	injectedCSS: CSSInjection[];
-	selectedIndex: { value: number };
-	entries: Entry[];
-	logs: LogEntry[];
-} = {
-	injectedCSS: [],
-	selectedIndex: { value: 0 },
-	entries: [createEntry()],
-	logs: [],
-} as const;
-
 export const useAppStore = defineStore("app", () => {
 	const items = {
-		injectedCSS: createItemBackedRef(
-			storage.defineItem<CSSInjection[]>(`${StorageKey.injectedCSS}-si`, {
-				fallback: defaults.injectedCSS,
-				init: () => defaults.injectedCSS,
-			}),
-		),
-		selectedIndex: createItemBackedRef(
-			storage.defineItem<{ value: number }>(`${StorageKey.selectedIndex}-si`, {
-				fallback: defaults.selectedIndex,
-				init: () => defaults.selectedIndex,
-			}),
-		),
-		entries: createItemBackedRef(
-			storage.defineItem<Entry[]>(`${StorageKey.entries}-si`, {
-				fallback: defaults.entries,
-				init: () => defaults.entries,
-			}),
-		),
-		logs: createItemBackedRef(
-			storage.defineItem<LogEntry[]>(`${StorageKey.logs}-si`, {
-				fallback: defaults.logs,
-				init: () => defaults.logs,
-			}),
-		),
+		injectedCSS: createItemBackedRef(storageItems.injectedCSS),
+		selectedIndex: createItemBackedRef(storageItems.selectedIndex),
+		entries: createItemBackedRef(storageItems.entries),
+		logs: createItemBackedRef(storageItems.logs),
 	} as const;
 
 	const clearInjections = () => {
@@ -152,6 +119,10 @@ export const useAppStore = defineStore("app", () => {
 		);
 	};
 
+	const removeSelectedEntry = () => {
+		removeEntry(items.selectedIndex.ref.value.value);
+	};
+
 	const setCSSInjections = (injections: CSSInjection[]) => {
 		items.injectedCSS.ref.value = injections;
 	};
@@ -179,6 +150,7 @@ export const useAppStore = defineStore("app", () => {
 		clearInjections,
 		removeEntry,
 		selectEntry,
+		removeSelectedEntry,
 		addEntry,
 		setCSSInjections,
 		log,

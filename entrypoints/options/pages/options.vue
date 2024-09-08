@@ -2,14 +2,13 @@
         setup>
 import { useAppStore } from "@/stores/app.store";
 import { useTemplateRef } from "vue";
-import type { Scripting } from "wxt/browser";
-
-type CSSInjection = Scripting.CSSInjection;
 
 const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 const store = useAppStore();
 
 const { logs, logInfo, logError } = useLogging();
+
+const { injectCSS, removeInjectedCSS, executeScript } = useScripting();
 
 const presets = {
 	keyListener: `console.log("Hello World")
@@ -22,115 +21,6 @@ document.addEventListener("keydown", (e) => {
         console.log("pressed", e);
     }
 });`,
-};
-
-const queryTabs = async () => {
-	try {
-		const allTabs = await browser.tabs.query({});
-		// logInfo("All tabs", allTabs);
-		return allTabs;
-	} catch (e) {
-		logError("Error querying tabs", e);
-	}
-};
-
-const executeScript = async () => {
-	const scriptIds = store.entries.ref.map((entry) => entry.id);
-
-	const scriptEntries = store.entries.ref.map((entry) => ({
-		id: entry.id,
-		js: [{ code: entry.script }],
-		matches: [`*://${entry.site}/*`],
-	}));
-
-	const existingScripts = await chrome.userScripts.getScripts({
-		ids: scriptIds,
-	});
-
-	for (const entry of scriptEntries) {
-		const existing = existingScripts.find((script) => script.id === entry.id);
-		if (existing) {
-			await chrome.userScripts.update([entry]);
-			logInfo(`Updated script: ${entry.id}`);
-		} else {
-			await chrome.userScripts.register([entry]);
-			logInfo(`Registered script: ${entry.id}`);
-		}
-	}
-	const removedScripts = existingScripts.filter(
-		(script) => !scriptIds.includes(script.id),
-	);
-	logInfo("Removing scripts", removedScripts);
-	await chrome.userScripts.unregister({
-		ids: removedScripts.map((entry) => entry.id),
-	});
-};
-
-const tryRemoveCSS = async (injection: CSSInjection) => {
-	try {
-		await browser.scripting.removeCSS(injection);
-		return true;
-	} catch (e) {
-		logError(`Error removing CSS: ${e}`, { e, injection });
-		return false;
-	}
-};
-
-const removeInjectedCSS = async () => {
-	try {
-		const cssInjections = store.injectedCSS;
-		await Promise.all(cssInjections.ref.map(tryRemoveCSS));
-		store.clearInjections();
-	} catch (e) {
-		logError("Error removing CSS", e);
-	}
-};
-
-const tryInjectCSS = async (injection: CSSInjection) => {
-	try {
-		await browser.scripting.insertCSS(injection);
-		return true;
-	} catch (e) {
-		logError(`Error injecting CSS: ${e}`, { e, injection });
-		return false;
-	}
-};
-
-const injectCSS = async () => {
-	try {
-		await removeInjectedCSS();
-		const tabs = (await queryTabs()) ?? [];
-
-		const cssInjections = tabs
-			.filter((tab) => tab.id !== undefined)
-			.map(({ id }) => {
-				return {
-					css: store.entries.ref.map((entry) => entry.style).join("\n"),
-					target: {
-						tabId: id,
-					},
-				} as CSSInjection;
-			});
-
-		const injectionResults = await Promise.all(cssInjections.map(tryInjectCSS));
-
-		const successfulInjections: CSSInjection[] = [];
-		const failedInjections: CSSInjection[] = [];
-
-		for (let i = 0; i < injectionResults.length; i++) {
-			if (!injectionResults[i]) {
-				failedInjections.push(cssInjections[i]);
-			} else {
-				successfulInjections.push(cssInjections[i]);
-			}
-		}
-
-		logInfo("CSS injected", { successfulInjections, failedInjections });
-
-		store.setCSSInjections(successfulInjections);
-	} catch (e) {
-		logError("Error injecting CSS", e);
-	}
 };
 
 const initialStyle = `body {
@@ -159,14 +49,6 @@ const lastLog = computed(() => {
 });
 
 const logOpen = ref(false);
-
-const removeSelected = () => {
-	const index = store.selectedIndex.ref.value;
-	if (index === -1) {
-		return;
-	}
-	store.removeEntry(index);
-};
 
 const exportData = async () => {
 	try {
@@ -204,9 +86,15 @@ const save = async () => {
 		},
 	);
 	await store.save();
-	logInfo("Saved");
-	/*await injectCSS();
-	await executeScript();*/
+
+	await removeInjectedCSS(store.injectedCSS.ref);
+	const { successfulInjections, failedInjections } = await injectCSS(
+		store.entries.ref,
+	);
+	await executeScript(store.entries.ref);
+	store.setCSSInjections(successfulInjections);
+
+	console.log("Saved and injected");
 };
 
 const keys = useMagicKeys({
@@ -232,7 +120,7 @@ const keys = useMagicKeys({
                     class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
               <i-lucide-circle-plus />
             </button>
-            <button @click="() => { removeSelected(); save(); }"
+            <button @click="() => { store.removeSelectedEntry(); save(); }"
                     title="Remove selected entry"
                     class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
               <i-lucide-circle-minus />
@@ -248,7 +136,7 @@ const keys = useMagicKeys({
                 <div class="flex flex-row justify-between items-center">
                   <div>{{ entry.description }}</div>
                   <button class="remove btn-unstyled"
-                          @click.stop="store.removeEntry(index)">
+                          @click.stop="() => { store.removeEntry(index); save(); }">
                     <i-lucide-x class="size-4" />
                   </button>
                 </div>
