@@ -1,20 +1,15 @@
 <script lang="ts"
         setup>
 import { useAppStore } from "@/stores/app.store";
-import { Scripting, Tabs } from "wxt/browser";
-import { timestamp } from "@vueuse/core";
 import type { Entry } from "@/types/entry";
+import { timestamp } from "@vueuse/core";
 import { nanoid } from "nanoid";
 import { onMounted } from "vue";
+import type { Scripting, Tabs } from "wxt/browser";
 
 type CSSInjection = Scripting.CSSInjection;
 
-const {
-  isRevealed,
-  reveal,
-  confirm,
-  cancel,
-} = useConfirmDialog()
+const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 const store = useAppStore();
 const currentTabs = ref<Tabs.Tab[]>();
 
@@ -26,118 +21,124 @@ const currentTabs = ref<Tabs.Tab[]>();
 }; */
 
 const clearInjections = () => {
-  while (store.stored.injectedCSS.length) {
-    store.stored.injectedCSS.pop();
-  }
+	while (store.stored.injectedCSS.length) {
+		store.stored.injectedCSS.pop();
+	}
 };
 
 const queryTabs = async () => {
-  try {
-    const allTabs = await browser.tabs.query({});
-    console.log("All tabs", allTabs);
-    currentTabs.value = allTabs;
-  } catch (e) {
-    console.error(e);
-  }
+	try {
+		const allTabs = await browser.tabs.query({});
+		console.log("All tabs", allTabs);
+		currentTabs.value = allTabs;
+	} catch (e) {
+		console.error(e);
+	}
 };
 
 const executeScript = async () => {
-  await queryTabs();
+	await queryTabs();
 
-  const tabs = currentTabs.value ?? [];
+	const tabs = currentTabs.value ?? [];
 
-  await Promise.all(
-      tabs.map((tab) => {
-        if (!tab.id) {
-          return Promise.resolve();
-        }
-        return browser.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            store.stored.entries.map((entry) => {
-              try {
-                eval(entry.script);
-              } catch (error) {
-                console.error(`Error executing script: ${error}`, { error, tab, entry });
-              }
-            });
-          },
-        });
-      }),
-  );
+	const script = store.stored.entries.map((entry) => entry.script).join("\n");
 
-  console.log("Script executed");
+	await Promise.all(
+		tabs.map((tab) => {
+			if (!tab.id) {
+				return Promise.resolve();
+			}
+			return browser.scripting.executeScript({
+				target: { tabId: tab.id },
+				args: [script],
+				func: (script) => {
+					try {
+						const scriptTag = window.document.createElement("script");
+						scriptTag.textContent = script;
+						window.document.body.appendChild(scriptTag);
+					} catch (error) {
+						console.error(`Error executing script: ${error}`, {
+							error,
+							script,
+						});
+					}
+				},
+			});
+		}),
+	);
+
+	console.log("Script executed");
 };
 
 const tryRemoveCSS = async (injection: CSSInjection) => {
-  try {
-    await browser.scripting.removeCSS(injection);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
+	try {
+		await browser.scripting.removeCSS(injection);
+		return true;
+	} catch (e) {
+		console.error(e);
+		return false;
+	}
 };
 
 const removeInjectedCSS = async () => {
-  try {
-    const cssInjections = store.stored.injectedCSS;
-    await Promise.all(cssInjections.map(tryRemoveCSS));
-    clearInjections();
-  } catch (e) {
-    console.error(e);
-  }
+	try {
+		const cssInjections = store.stored.injectedCSS;
+		await Promise.all(cssInjections.map(tryRemoveCSS));
+		clearInjections();
+	} catch (e) {
+		console.error(e);
+	}
 };
 
 const tryInjectCSS = async (injection: CSSInjection) => {
-  try {
-    await browser.scripting.insertCSS(injection);
-    return true;
-  } catch (e) {
-    console.error(`Error injecting CSS: ${e}`, { e, injection });
-    return false;
-  }
+	try {
+		await browser.scripting.insertCSS(injection);
+		return true;
+	} catch (e) {
+		console.error(`Error injecting CSS: ${e}`, { e, injection });
+		return false;
+	}
 };
 
 const injectCSS = async () => {
-  try {
-    await removeInjectedCSS();
-    await queryTabs();
-    const tabs = currentTabs.value ?? [];
-    const cssInjections = tabs
-        .filter((tab) => tab.id !== undefined)
-        .map(({ id }) => {
-          return {
-            css: store.stored.entries.map((entry) => entry.style).join("\n"),
-            target: {
-              tabId: id,
-            },
-          } as CSSInjection;
-        });
-    const injectionResults = await Promise.all(cssInjections.map(tryInjectCSS));
+	try {
+		await removeInjectedCSS();
+		await queryTabs();
+		const tabs = currentTabs.value ?? [];
+		const cssInjections = tabs
+			.filter((tab) => tab.id !== undefined)
+			.map(({ id }) => {
+				return {
+					css: store.stored.entries.map((entry) => entry.style).join("\n"),
+					target: {
+						tabId: id,
+					},
+				} as CSSInjection;
+			});
+		const injectionResults = await Promise.all(cssInjections.map(tryInjectCSS));
 
-    const successfulInjections: CSSInjection[] = [];
-    const failedInjections: CSSInjection[] = [];
+		const successfulInjections: CSSInjection[] = [];
+		const failedInjections: CSSInjection[] = [];
 
-    for (let i = 0; i < injectionResults.length; i++) {
-      if (!injectionResults[i]) {
-        failedInjections.push(cssInjections[i]);
-      } else {
-        successfulInjections.push(cssInjections[i]);
-      }
-    }
+		for (let i = 0; i < injectionResults.length; i++) {
+			if (!injectionResults[i]) {
+				failedInjections.push(cssInjections[i]);
+			} else {
+				successfulInjections.push(cssInjections[i]);
+			}
+		}
 
-    console.log("Injections", { successfulInjections, failedInjections });
+		console.log("Injections", { successfulInjections, failedInjections });
 
-    store.stored.injectedCSS.push(...successfulInjections);
-  } catch (e) {
-    console.error(e);
-  }
+		store.stored.injectedCSS.push(...successfulInjections);
+	} catch (e) {
+		console.error(e);
+	}
 };
 
 const showDebug = ref(false);
 const toggleShowDebug = () => {
-  showDebug.value = !showDebug.value;
+	showDebug.value = !showDebug.value;
 };
 
 const initialStyle = `body {
@@ -150,7 +151,6 @@ printHello();`;
 const styleValue = ref({ value: "" });
 const scriptValue = ref({ value: "" });
 
-
 // const styleChanged = useLastChanged(style, { initialValue: timestamp() });
 // const scriptChanged = useLastChanged(script, { initialValue: timestamp() });
 
@@ -158,100 +158,98 @@ const scriptValue = ref({ value: "" });
 // const scriptChangedAgo = useTimeAgo(scriptChanged);
 
 const addEntry = () => {
-  const id = nanoid();
-  store.stored.entries.push({
-    id: id,
-    description: `New entry`,
-    created: Date.now(),
-    modified: Date.now(),
-    style: initialStyle,
-    script: initialScript,
-    revision: 1,
-  });
-  console.log(`Added entry, number of entries: ${store.stored.entries.length}`);
-  store.stored.selectedIndex = store.stored.entries.length - 1;
+	const id = nanoid();
+	store.stored.entries.push({
+		id: id,
+		description: "New entry",
+		site: "*",
+		created: Date.now(),
+		modified: Date.now(),
+		style: initialStyle,
+		script: initialScript,
+		revision: 1,
+	});
+	console.log(`Added entry, number of entries: ${store.stored.entries.length}`);
+	selectEntry(store.stored.entries.length - 1);
 };
 
 const save = () => {
-  dirty.value = false;
-  store.stored.saved = Date.now();
-}
+	dirty.value = false;
+	store.stored.saved = Date.now();
+};
 
 const dirty = ref(false);
 const disabled = ref(true);
 
 const selectEntry = (index: number) => {
-  if (index === -1) {
-    selectedEntry.value = {
-      id: '',
-      description: '',
-      created: Date.now(),
-      modified: Date.now(),
-      style: '',
-      script: '',
-      revision: 1,
-    }
-    styleValue.value = { value: "" }
-    scriptValue.value = { value: "" }
-    disabled.value = true;
-    return;
-  }
-  const entry = store.stored.entries[index];
-  selectedEntry.value = entry;
-  styleValue.value = { value: entry.style };
-  scriptValue.value = { value: entry.script };
-  disabled.value = false;
-}
-
-watch(() => store.stored.selectedIndex, (newVal, oldVal) => {
-  /*if (dirty.value) {
-    const { data, isCanceled } = await reveal()
-    if (!isCanceled) {
-      console.log(data)
-    }
-  }*/
-  selectEntry(newVal);
-});
+	store.stored.selectedIndex = index;
+	if (index === -1) {
+		selectedEntry.value = {
+			id: "",
+			description: "",
+			site: "*",
+			created: Date.now(),
+			modified: Date.now(),
+			style: "",
+			script: "",
+			revision: 1,
+		};
+		styleValue.value = { value: "" };
+		scriptValue.value = { value: "" };
+		disabled.value = true;
+		return;
+	}
+	const entry = store.stored.entries[index];
+	selectedEntry.value = entry;
+	styleValue.value = { value: entry.style };
+	scriptValue.value = { value: entry.script };
+	disabled.value = false;
+};
 
 const selectedEntry = ref<Entry>({
-  id: '',
-  description: '',
-  created: Date.now(),
-  modified: Date.now(),
-  style: '',
-  script: '',
-  revision: 1,
+	id: "",
+	description: "",
+	site: "*",
+	created: Date.now(),
+	modified: Date.now(),
+	style: "",
+	script: "",
+	revision: 1,
 });
 
 const clamp = (value: number, min: number, max: number) => {
-  return Math.min(Math.max(value, min), max);
+	return Math.min(Math.max(value, min), max);
 };
 
 const removeEntry = (index: number) => {
-  store.stored.entries.splice(index, 1);
+	store.stored.entries.splice(index, 1);
 
-  const clamped = clamp(store.stored.selectedIndex, 0, store.stored.entries.length - 1);
-  if (clamped !== store.stored.selectedIndex) {
-    store.stored.selectedIndex = clamped;
-  }
-  console.log(`Removed entry, number of entries: ${store.stored.entries.length}`);
-}
-
-const removeSelected = () => {
-  const index = store.stored.selectedIndex;
-  if (index === -1) {
-    return;
-  }
-  removeEntry(index);
+	const clamped = clamp(index, 0, store.stored.entries.length - 1);
+	if (clamped !== index) {
+		selectEntry(clamped);
+	}
+	console.log(
+		`Removed entry, number of entries: ${store.stored.entries.length}`,
+	);
 };
 
-watch(() => store.loaded, (newVal) => {
-  if (newVal) {
-    selectEntry(store.stored.selectedIndex);
-    console.log("Loaded");
-  }
-});
+const removeSelected = () => {
+	const index = store.stored.selectedIndex;
+	if (index === -1) {
+		return;
+	}
+	removeEntry(index);
+};
 
+watch(
+	() => store.loaded,
+	(newVal) => {
+		if (newVal) {
+			selectEntry(store.stored.selectedIndex);
+			console.log("Loaded");
+		}
+	},
+);
 </script>
 
 <template>
@@ -277,7 +275,7 @@ watch(() => store.loaded, (newVal) => {
             <TransitionGroup>
               <div v-for="(entry, index) in store.stored.entries"
                    :key="index"
-                   @click="store.stored.selectedIndex = index"
+                   @click="selectEntry(index)"
                    :class="{ checked: store.stored.selectedIndex === index }"
                    class="flex flex-col gap-2 entry-button">
                 <div class="flex flex-row justify-between items-center">
@@ -291,10 +289,10 @@ watch(() => store.loaded, (newVal) => {
                   <div class="truncate">{{ entry.id }}</div>
                   <div class="whitespace-nowrap">{{ useDateFormat(entry.created, "YYYY-MM-DD HH:mm") }}</div>
                 </div>
-                <input type="radio"
-                       :id="'entry-' + index"
-                       :value="index"
-                       v-model="store.stored.selectedIndex">
+                <!--                <input type="radio"
+                                       :id="'entry-' + index"
+                                       :value="index"
+                                       v-model="store.stored.selectedIndex">-->
               </div>
             </TransitionGroup>
           </div>
@@ -410,9 +408,9 @@ watch(() => store.loaded, (newVal) => {
   display: flex;
   flex-direction: column;
 
-  input {
+  /*input {
     display: none;
-  }
+  }*/
 
   .entry-button {
     user-select: none;
@@ -455,7 +453,7 @@ watch(() => store.loaded, (newVal) => {
       }
     }
 
-    &:has(input:checked) {
+    &.checked {
       border-color: var(--brand);
       --_bg-from: oklch(from var(--brand) l c h / 0.33);
       color: oklch(from var(--gray-1) l c h / 1);

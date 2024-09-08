@@ -2,34 +2,45 @@ import { Runtime } from "webextension-polyfill";
 import Port = Runtime.Port;
 
 export default defineBackground({
-  type: 'module',
-  main: () => {
-    console.log(`Hello from ${browser.runtime.id}!`);
+	type: "module",
+	main: () => {
+		console.log(`Hello from ${browser.runtime.id}!`);
 
-    // Setup listener for one-time messages
-    browser.runtime.onMessage.addListener((message) => {
-      // Only respond to hello messages
-      if (message.type === "hello")
-          // Returning a promise will send a response back to the sender
-        return Promise.resolve(`Hello ${message.name}, this is the background!`);
+		browser.runtime.onInstalled.addListener((details) => {
+			if (details.reason === "update") {
+				console.log("Updated from version", details.previousVersion);
+			} else {
+				console.log("Installed");
+			}
+			browser.runtime.openOptionsPage();
+		});
 
-      throw new Error("Unknown message");
-    });
+		// Setup listener for one-time messages
+		browser.runtime.onMessage.addListener((message) => {
+			// Only respond to hello messages
+			if (message.type === "hello")
+				// Returning a promise will send a response back to the sender
+				return Promise.resolve(
+					`Hello ${message.name}, this is the background!`,
+				);
 
-    // Setup broadcast channel to send messages to all connected ports
-    const ports: Port[] = [];
-    setInterval(() => {
-      const message = { date: Date.now(), value: Math.random() };
-      ports.forEach((port) => port.postMessage(message));
-    }, 3000);
+			throw new Error("Unknown message");
+		});
 
-    browser.runtime.onConnect.addListener((port) => {
-      console.log("Connected", port);
-      ports.push(port);
-      port.onDisconnect.addListener(() => {
-        console.log("Disconnected", port);
-        ports.splice(ports.indexOf(port), 1);
-      });
-    });
-  },
+		// Setup broadcast channel to send messages to all connected ports
+		const ports: Port[] = [];
+		setInterval(() => {
+			const message = { date: Date.now(), value: Math.random() };
+			ports.forEach((port) => port.postMessage(message));
+		}, 3000);
+
+		browser.runtime.onConnect.addListener((port) => {
+			console.log("Connected", port);
+			ports.push(port);
+			port.onDisconnect.addListener(() => {
+				console.log("Disconnected", port);
+				ports.splice(ports.indexOf(port), 1);
+			});
+		});
+	},
 });

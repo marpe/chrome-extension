@@ -13,4 +13,8 @@ body {
   width: 800px;
   height: 600px;
 }
+
+main {
+  flex: 1 1 0;
+}
 </style>

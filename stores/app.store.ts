@@ -17,6 +17,7 @@ export const useAppStore = defineStore('app', () => {
       {
         id: nanoid(),
         description: 'Hello World',
+        site: '*',
         style: 'body { background-color: #f00; }',
         script: 'console.log("Hello World")',
         created: Date.now(),
