@@ -9,6 +9,9 @@ lerna-debug.log*
 
 .installed
 .output
+.dist
+
+stats.html
 
 node_modules
 dist

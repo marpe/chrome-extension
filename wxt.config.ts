@@ -14,6 +14,7 @@ import checker from "vite-plugin-checker";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
+	outDir: import.meta.env.NODE_ENV === "production" ? ".dist" : ".output",
 	hooks: {
 		"vite:devServer:extendConfig": (config) => {
 			/* console.log('extending vite dev server config', config.server?.watch.ignored);

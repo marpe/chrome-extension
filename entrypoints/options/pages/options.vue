@@ -10,18 +10,7 @@ const { logs, logInfo, logError } = useLogging();
 
 const { injectCSS, removeInjectedCSS, executeScript } = useScripting();
 
-const presets = {
-	keyListener: `console.log("Hello World")
-
-document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp") {
-        console.log('pressed', e);
-        e.preventDefault();
-    } else {
-        console.log("pressed", e);
-    }
-});`,
-};
+import presets from "@/assets/presets.json";
 
 const initialStyle = `body {
   background-color: red;
@@ -50,6 +39,20 @@ const lastLog = computed(() => {
 
 const logOpen = ref(false);
 
+const downloadData = async () => {
+	const data = {
+		entries: toRaw(store.entries.ref),
+	};
+	const json = JSON.stringify(data, null, 2);
+	const blob = new Blob([json], { type: "application/json" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = "data.json";
+	a.click();
+	URL.revokeObjectURL(url);
+};
+
 const exportData = async () => {
 	try {
 		const data = {
@@ -71,6 +74,14 @@ const importData = async () => {
 	} catch (e) {
 		logError("Error importing data", e);
 	}
+};
+
+const importPresets = () => {
+	store.entries.ref = presets.entries;
+};
+
+const removeAll = () => {
+	store.entries.ref = [];
 };
 
 const save = async () => {
@@ -180,19 +191,41 @@ const keys = useMagicKeys({
         </div>
       </div>
 
-      <div class="flex flex-row gap-4 flex-wrap px-4 pb-4 items-start">
+      <div class="px-4 pb-4">
+        <div class="inline-flex flex-row border border-[var(--brand-6)] rounded-md">
         <button @click="save"
                 ref="saveButton"
-                class="btn-outlined">
-          Save
+                class="border-r rounded-r-none border-r-[var(--brand-6)] px-6">
+          <i-lucide-save /> Save
         </button>
-        <button @click="exportData" class="btn-outlined">
-          Export
+        <button class="aspect-square save-popover-btn" popovertarget="save-menu">
+            <i-lucide-chevron-up />
+        </button>
+        </div>
+        </div>
+
+        <div class="save-popover bg-[var(--surface-3)] rounded-md" popover id="save-menu">
+        <div class="flex flex-col">
+        <button @click="exportData">
+          <i-lucide-clipboard /> Copy to Clipboard
         </button>
 
-        <button @click="importData" class="btn-outlined">
-          Import
+        <button @click="downloadData">
+            <i-lucide-download /> Download
         </button>
+
+        <button @click="importData">
+          <i-lucide-clipboard-paste /> Import from Clipboard
+        </button>
+
+        <button @click="importPresets">
+             <i-lucide-import /> Import Presets
+        </button>
+
+        <button @click="removeAll">
+          <i-lucide-trash-2 /> Remove All
+          </button>
+          </div>
       </div>
 
     </template>
@@ -237,6 +270,63 @@ const keys = useMagicKeys({
 </template>
 
 <style>
+.save-popover-btn {
+    anchor-name: --save-popover-btn;
+}
+
+.save-popover {
+    position-anchor: --save-popover-btn;
+    inset: auto;
+    position-area: block-start span-inline-end;
+    position-try-fallbacks: flip-block;
+    margin-block: var(--size-2);
+    position-try-order: most-height;
+    position-visibility: anchors-visible;
+
+    button {
+        justify-content: start;
+        padding: 0.7rem 1rem;
+        gap: 1rem;
+
+        &:hover {
+            background-color: var(--surface-6);
+        }
+    }
+
+   &, &::backdrop {
+    transition:
+      display .5s allow-discrete,
+      overlay .5s allow-discrete,
+      transform 1s var(--ease-spring-3),
+      opacity .5s;
+    opacity: 0;
+  }
+
+    &::backdrop {
+        background: black;
+    }
+
+
+    &:popover-open {
+        opacity: 1;
+
+        &::backdrop {
+        opacity: 0.5;
+        }
+    }
+
+    @starting-style {
+        &:popover-open {
+        transform: scale(.9);
+        }
+
+        &:popover-open,
+        &:popover-open::backdrop {
+        opacity: 0;
+        }
+    }
+}
+
 .modal-card {
   background-color: var(--surface-2);
   border: 1px solid var(--surface-5);

@@ -11,5 +11,16 @@
 				"noNonNullAssertion": "off"
 			}
 		}
+	},
+	"files": {
+		"ignore": [
+			"node_modules",
+			".dist",
+			".git",
+			".vscode",
+			".output",
+			".wxt",
+			".idea"
+		]
 	}
 }

@@ -12,12 +12,15 @@
 	"scripts": {
 		"dev": "wxt",
 		"build": "wxt build",
+		"build:dev": "wxt build -m development",
 		"zip": "wxt zip",
 		"postinstall": "wxt prepare",
 		"outdated": "npx taze",
 		"lint": "eslint --fix",
 		"check": "vue-tsc --noEmit",
-		"version": "wxt --version"
+		"wxt:version": "wxt --version",
+		"build:analyze": "wxt build --analyze --analyze-open",
+		"format": "biome format"
 	},
 	"dependencies": {
 		"@types/chrome": "^0.0.271",
