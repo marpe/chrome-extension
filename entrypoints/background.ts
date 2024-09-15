@@ -53,17 +53,18 @@ export default defineBackground({
 		});
 
 		browser.runtime.onInstalled.addListener((details) => {
+			const optionsUrl = browser.runtime.getURL("/options.html");
 			if (details.reason === "update") {
-				console.log("Updated from version", details.previousVersion);
+				console.log("Extension updated", details);
+				browser.tabs.create({ url: `${optionsUrl}?updated` });
 			} else {
-				console.log("Installed");
+				console.log("Extension installed", details);
+				browser.tabs.create({ url: `${optionsUrl}?installed` });
 			}
 
-			browser.runtime.openOptionsPage();
-
-			browser.action.setBadgeText({
+			/*browser.action.setBadgeText({
 				text: "OFF",
-			});
+			});*/
 
 			browser.contextMenus.create({
 				id: "menu",

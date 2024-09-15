@@ -5,7 +5,7 @@ export const createEntry = (): Entry => ({
 	id: `script-${nanoid()}`,
 	description: "Hello World",
 	site: "*",
-	style: "body { background-color: #f00; }",
+	style: "body {}",
 	script: 'console.log("Hello World")',
 	created: Date.now(),
 	modified: Date.now(),
