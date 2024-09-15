@@ -31,6 +31,7 @@ export default defineConfig({
 			"activeTab",
 			"userScripts",
 			"webNavigation",
+			"scripting",
 		],
 		host_permissions: ["*://*/*"],
 		content_security_policy: {
@@ -52,7 +53,7 @@ export default defineConfig({
 			},
 			_execute_action: {
 				suggested_key: {
-					windows: "Ctrl+Shift+Y",
+					windows: "Ctrl+Shift+O",
 				},
 			},
 		},
