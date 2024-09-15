@@ -1,8 +1,8 @@
 <script setup
         lang="ts">
-import { definePage } from 'unplugin-vue-router/runtime'
+import { definePage } from "unplugin-vue-router/runtime";
 
 definePage({
-  redirect: '/options',
-})
+	redirect: "/options",
+});
 </script>

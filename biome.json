@@ -20,7 +20,9 @@
 			".vscode",
 			".output",
 			".wxt",
-			".idea"
+			".idea",
+			"typed-router.d.ts",
+			"components.d.ts"
 		]
 	}
 }

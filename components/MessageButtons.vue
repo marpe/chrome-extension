@@ -1,39 +1,39 @@
 <script lang="ts"
         setup
 >
-const helloResponse = ref('');
+const helloResponse = ref("");
 const sendHello = async () => {
-  try {
-    const response = await browser.runtime.sendMessage({
-      type: "hello",
-      name: "Aaron",
-    });
-    helloResponse.value = JSON.stringify(response);
-  } catch (err: any) {
-    helloResponse.value = `ERROR: ${  err.message}`;
-  }
+	try {
+		const response = await browser.runtime.sendMessage({
+			type: "hello",
+			name: "Aaron",
+		});
+		helloResponse.value = JSON.stringify(response);
+	} catch (err: any) {
+		helloResponse.value = `ERROR: ${err.message}`;
+	}
 };
 
-const helloUnknown = ref('');
+const helloUnknown = ref("");
 const sendUnknown = async () => {
-  try {
-    const response = await browser.runtime.sendMessage({ type: "unknown" });
-    console.log({ response });
-    helloUnknown.value = JSON.stringify(response);
-  } catch (err: any) {
-    helloUnknown.value = `ERROR: ${  err.message}`;
-  }
+	try {
+		const response = await browser.runtime.sendMessage({ type: "unknown" });
+		console.log({ response });
+		helloUnknown.value = JSON.stringify(response);
+	} catch (err: any) {
+		helloUnknown.value = `ERROR: ${err.message}`;
+	}
 };
 
 const longLivedMessageList = ref<HTMLUListElement>();
 const port = browser.runtime.connect();
 port.onMessage.addListener((message) => {
-  console.log({ message });
-  const li = document.createElement("li");
-  li.textContent = JSON.stringify(message);
-  longLivedMessageList.value?.append(li);
+	console.log({ message });
+	const li = document.createElement("li");
+	li.textContent = JSON.stringify(message);
+	longLivedMessageList.value?.append(li);
 });
-port.postMessage('Hello from the popup!');
+port.postMessage("Hello from the popup!");
 </script>
 
 <template>

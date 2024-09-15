@@ -1,21 +1,19 @@
 <script setup
         lang="ts"
 >
-
 import { useAppStore } from "@/stores/app.store";
-
 
 const store = useAppStore();
 
 const setTheme = (e: Event) => {
-  console.log(e.target);
-  // if you want this to not reset on page load
-  // you'll want to set a cookie or local storage value
-  // which restores the attribute on html
+	console.log(e.target);
+	// if you want this to not reset on page load
+	// you'll want to set a cookie or local storage value
+	// which restores the attribute on html
 
-  const target = e.target as HTMLInputElement;
-  document.firstElementChild!.setAttribute('color-scheme', target.value)
-}
+	const target = e.target as HTMLInputElement;
+	document.firstElementChild!.setAttribute("color-scheme", target.value);
+};
 </script>
 
 <template>

@@ -1,8 +1,4 @@
-import '@/assets/style.css'
-import App from './App.vue';
+import "@/assets/style.css";
+import App from "./App.vue";
 
-const app = setupApp(App)
-    .mount('#app');
-
-
-
+const app = setupApp(App).mount("#app");
