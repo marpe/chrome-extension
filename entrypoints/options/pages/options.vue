@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import presets from "@/assets/presets.json";
 import { useAppStore } from "@/stores/app.store";
 import { useTemplateRef } from "vue";
 
@@ -8,8 +9,6 @@ const store = useAppStore();
 const { logs, logInfo, logError } = useLogging();
 
 const { injectCSS, removeInjectedCSS, executeScript } = useScripting();
-
-import presets from "@/assets/presets.json";
 
 const initialStyle = `body {
   background-color: red;
@@ -22,99 +21,99 @@ const styleValue = ref({ value: "" });
 const scriptValue = ref({ value: "" });
 
 watch(
-    () => store.selectedEntry,
-    (entry) => {
-        // setting these triggers the MonacoEditor components to update
-        styleValue.value = { value: entry?.style ?? initialStyle };
-        scriptValue.value = { value: entry?.script ?? initialScript };
-    },
+	() => store.selectedEntry,
+	(entry) => {
+		// setting these triggers the MonacoEditor components to update
+		styleValue.value = { value: entry?.style ?? initialStyle };
+		scriptValue.value = { value: entry?.script ?? initialScript };
+	},
 );
 
 const saveButton = useTemplateRef("saveButton");
 
 const lastLog = computed(() => {
-    return logs.ref[logs.ref.length - 1];
+	return logs.ref[logs.ref.length - 1];
 });
 
 const logOpen = ref(false);
 
 const downloadData = async () => {
-    const data = {
-        entries: toRaw(store.entries.ref),
-    };
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "data.json";
-    a.click();
-    URL.revokeObjectURL(url);
+	const data = {
+		entries: toRaw(store.entries.ref),
+	};
+	const json = JSON.stringify(data, null, 2);
+	const blob = new Blob([json], { type: "application/json" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = "data.json";
+	a.click();
+	URL.revokeObjectURL(url);
 };
 
 const exportData = async () => {
-    try {
-        const data = {
-            entries: toRaw(store.entries.ref),
-        };
-        const json = JSON.stringify(data, null, 2);
-        await navigator.clipboard.writeText(json);
-        console.log("Copied to clipboard");
-    } catch (e) {
-        logError("Error exporting data", e);
-    }
+	try {
+		const data = {
+			entries: toRaw(store.entries.ref),
+		};
+		const json = JSON.stringify(data, null, 2);
+		await navigator.clipboard.writeText(json);
+		console.log("Copied to clipboard");
+	} catch (e) {
+		logError("Error exporting data", e);
+	}
 };
 
 const importData = async () => {
-    try {
-        const json = await navigator.clipboard.readText();
-        const data = JSON.parse(json);
-        store.entries.ref = data.entries;
-    } catch (e) {
-        logError("Error importing data", e);
-    }
+	try {
+		const json = await navigator.clipboard.readText();
+		const data = JSON.parse(json);
+		store.entries.ref = data.entries;
+	} catch (e) {
+		logError("Error importing data", e);
+	}
 };
 
 const importPresets = () => {
-    store.entries.ref = presets.entries;
+	store.entries.ref = presets.entries;
 };
 
 const removeAll = () => {
-    store.entries.ref = [];
+	store.entries.ref = [];
 };
 
 const save = async () => {
-    saveButton.value?.animate(
-        [
-            { transform: "scale(1)" },
-            { transform: "scale(1.1)" },
-            { transform: "scale(1)" },
-        ],
-        {
-            duration: 200,
-            easing: "ease-in-out",
-        },
-    );
-    await store.save();
+	saveButton.value?.animate(
+		[
+			{ transform: "scale(1)" },
+			{ transform: "scale(1.1)" },
+			{ transform: "scale(1)" },
+		],
+		{
+			duration: 200,
+			easing: "ease-in-out",
+		},
+	);
+	await store.save();
 
-    await removeInjectedCSS(store.injectedCSS.ref);
-    const { successfulInjections, failedInjections } = await injectCSS(
-        store.entries.ref,
-    );
-    await executeScript(store.entries.ref);
-    store.setCSSInjections(successfulInjections);
+	await removeInjectedCSS(store.injectedCSS.ref);
+	const { successfulInjections, failedInjections } = await injectCSS(
+		store.entries.ref,
+	);
+	await executeScript(store.entries.ref);
+	store.setCSSInjections(successfulInjections);
 
-    console.log("Saved and injected");
+	console.log("Saved and injected");
 };
 
 const keys = useMagicKeys({
-    passive: false,
-    onEventFired: (event) => {
-        if (event.key === "s" && event.ctrlKey) {
-            save();
-            event.preventDefault();
-        }
-    },
+	passive: false,
+	onEventFired: (event) => {
+		if (event.key === "s" && event.ctrlKey) {
+			save();
+			event.preventDefault();
+		}
+	},
 });
 </script>
 
@@ -125,21 +124,21 @@ const keys = useMagicKeys({
             <div class="grid grid-cols-[260px_1fr] flex-1 overflow-hidden">
                 <div class="flex flex-col gap-4 overflow-hidden">
                     <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
-                        <button @click="() => { store.addEntry(); save(); }" title="Add new entry"
-                            class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
+                        <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="Add new entry"
+                            @click="() => { store.addEntry(); save(); }">
                             <i-lucide-circle-plus />
                         </button>
-                        <button @click="() => { store.removeSelectedEntry(); save(); }" title="Remove selected entry"
-                            class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md">
+                        <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="Remove selected entry"
+                            @click="() => { store.removeSelectedEntry(); save(); }">
                             <i-lucide-circle-minus />
                         </button>
                     </div>
                     <div class="entry-list overflow-y-auto px-4">
                         <TransitionGroup>
                             <div v-for="(entry, index) in store.entries.ref" :key="index"
-                                @click="() => { store.selectEntry(index); save(); }"
                                 :class="{ checked: store.selectedIndex.ref.value === index }"
-                                class="flex flex-col gap-2 entry-button">
+                                class="flex flex-col gap-2 entry-button"
+                                @click="() => { store.selectEntry(index); save(); }">
                                 <div class="flex flex-row justify-between items-center">
                                     <div>{{ entry.description }}</div>
                                     <button class="remove btn-unstyled"
@@ -172,53 +171,52 @@ const keys = useMagicKeys({
                         </div>
 
                         <div :style="{ flex: '0 1 0' }">
-                            <MonacoEditor language="css" :value="styleValue" v-model="store.selectedEntry.style" />
+                            <MonacoEditor v-model="store.selectedEntry.style" :value="styleValue" language="css" />
                         </div>
 
                         <div :style="{ flex: '0 1 0' }">
-                            <MonacoEditor language="javascript" :value="scriptValue"
-                                v-model="store.selectedEntry.script" />
+                            <MonacoEditor v-model="store.selectedEntry.script" :value="scriptValue" language="javascript" />
                         </div>
                     </template>
                 </div>
             </div>
 
             <div class="px-4 pb-4">
-                <div class="inline-flex flex-row border border-[var(--brand-6)] rounded-md">
-                    <button @click="save" ref="saveButton"
-                        class="border-r rounded-r-none border-r-[var(--brand-6)] px-6">
-                        <i-lucide-save /> Save
+              <PopoverMenu>
+                <template #default="defaultProps">
+                  <div class="inline-flex flex-row border border-[var(--brand-6)] rounded-md">
+                    <button ref="saveButton" class="border-r rounded-r-none border-r-[var(--brand-6)] px-6"
+                            @click="save">
+                      <i-lucide-save /> Save
                     </button>
-                    <button class="aspect-square save-popover-btn" popovertarget="save-menu">
-                        <i-lucide-chevron-up />
+                    <button :class="{ ['aspect-square']: true }" :style="{ anchorName: defaultProps.anchorName }" @click="defaultProps.open">
+                      <i-lucide-chevron-up />
                     </button>
-                </div>
+                  </div>
+                </template>
+                <template #menu="openProps">
+                  <button @click="exportData();openProps.open(false)">
+                    <i-lucide-clipboard /> Copy to Clipboard
+                  </button>
+
+                  <button @click="downloadData">
+                    <i-lucide-download /> Download
+                  </button>
+
+                  <button @click="importData">
+                    <i-lucide-clipboard-paste /> Import from Clipboard
+                  </button>
+
+                  <button @click="importPresets">
+                    <i-lucide-import /> Import Presets
+                  </button>
+
+                  <button @click="removeAll">
+                    <i-lucide-trash-2 /> Remove All
+                  </button>
+                </template>
+              </PopoverMenu>
             </div>
-
-            <div class="save-popover bg-[var(--surface-3)] rounded-md" popover id="save-menu">
-                <div class="flex flex-col">
-                    <button @click="exportData">
-                        <i-lucide-clipboard /> Copy to Clipboard
-                    </button>
-
-                    <button @click="downloadData">
-                        <i-lucide-download /> Download
-                    </button>
-
-                    <button @click="importData">
-                        <i-lucide-clipboard-paste /> Import from Clipboard
-                    </button>
-
-                    <button @click="importPresets">
-                        <i-lucide-import /> Import Presets
-                    </button>
-
-                    <button @click="removeAll">
-                        <i-lucide-trash-2 /> Remove All
-                    </button>
-                </div>
-            </div>
-
         </template>
 
         <Teleport to="body">
@@ -247,7 +245,7 @@ const keys = useMagicKeys({
                                 <button @click="confirm(true)">
                                     Yes
                                 </button>
-                                <button @click="confirm(false)" class="btn-outlined">
+                                <button class="btn-outlined" @click="confirm(false)">
                                     No
                                 </button>
                             </div>
@@ -260,64 +258,6 @@ const keys = useMagicKeys({
 </template>
 
 <style>
-.save-popover-btn {
-    anchor-name: --save-popover-btn;
-}
-
-.save-popover {
-    position-anchor: --save-popover-btn;
-    inset: auto;
-    position-area: block-start span-inline-end;
-    position-try-fallbacks: flip-block;
-    margin-block: var(--size-2);
-    position-try-order: most-height;
-    position-visibility: anchors-visible;
-
-    button {
-        justify-content: start;
-        padding: 0.7rem 1rem;
-        gap: 1rem;
-
-        &:hover {
-            background-color: var(--surface-6);
-        }
-    }
-
-    &,
-    &::backdrop {
-        transition:
-            display .5s allow-discrete,
-            overlay .5s allow-discrete,
-            transform 1s var(--ease-spring-3),
-            opacity .5s;
-        opacity: 0;
-    }
-
-    &::backdrop {
-        background: black;
-    }
-
-
-    &:popover-open {
-        opacity: 1;
-
-        &::backdrop {
-            opacity: 0.5;
-        }
-    }
-
-    @starting-style {
-        &:popover-open {
-            transform: scale(.9);
-        }
-
-        &:popover-open,
-        &:popover-open::backdrop {
-            opacity: 0;
-        }
-    }
-}
-
 .modal-card {
     background-color: var(--surface-2);
     border: 1px solid var(--surface-5);
@@ -334,28 +274,28 @@ const keys = useMagicKeys({
   }*/
 
     .entry-button {
-        user-select: none;
+        background: linear-gradient(90deg, var(--_bg-from), var(--_bg-to));
 
         /*var(--surface-5);*/
-        --_border-color: transparent;
-        --_bg-from: var(--surface-2);
+        border-bottom: 1px solid oklch(from var(--brand) l c h / 0.4);
+        border-left: 3px solid transparent;
         /*var(--surface-2);*/
-        --_bg-to: transparent;
+        --_border-color: transparent;
         /*var(--surface-2);*/
         /*border: 1px solid var(--_border-color);
     border-top: none;*/
-        border-left: 3px solid transparent;
-        border-bottom: 1px solid oklch(from var(--brand) l c h / 0.4);
-        padding: 0.75rem 0.75rem;
         color: oklch(from var(--gray-1) l c h / 0.75);
-        font-weight: var(--font-weight-6);
-        font-size: 0.8rem;
-        background: linear-gradient(90deg, var(--_bg-from), var(--_bg-to));
         cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: var(--font-weight-6);
+        --_bg-from: var(--surface-2);
+        padding: 0.75rem 0.75rem;
+        --_bg-to: transparent;
+        user-select: none;
 
         .small {
-            font-size: 0.6rem;
             color: var(--text-muted);
+            font-size: 0.6rem;
         }
 
         .remove {
@@ -379,8 +319,8 @@ const keys = useMagicKeys({
 
         &.checked {
             border-left-color: var(--brand);
-            --_bg-from: oklch(from var(--brand) l c h / 0.33);
             color: oklch(from var(--gray-1) l c h / 1);
+            --_bg-from: oklch(from var(--brand) l c h / 0.33);
             /*--_border-color: var(--indigo-5);
       --_bg-from: var(--indigo-5);
       --_bg-to: var(--indigo-7);*/

@@ -1,4 +1,6 @@
 import "@/assets/style.css";
-import App from "./App.vue";
+import "~console";
+import "~console/theme-detect";
 
+import App from "./App.vue";
 const app = setupApp(App).mount("#app");

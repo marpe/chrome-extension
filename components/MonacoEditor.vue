@@ -1,10 +1,9 @@
-<script lang="ts"
-        setup>
+<script lang="ts" setup>
 import * as monaco from "monaco-editor";
 
+import { setupMonaco } from "@/utils/monacoSetup";
 import { useTemplateRef } from "vue";
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
-import { setupMonaco } from "@/utils/monacoSetup";
 
 interface MonacoEditorProps {
 	value: string;
@@ -29,6 +28,23 @@ const props = defineProps({
 const model = defineModel({ type: String });
 
 const monacoEl = useTemplateRef("monacoEl");
+const resizeEl = useTemplateRef("resizeHandle");
+
+useDraggable(resizeEl, {
+	axis: "y",
+	capture: true,
+	preventDefault: true,
+	stopPropagation: true,
+	onMove: (event) => {
+		const monacoElRect = monacoEl.value!.getBoundingClientRect();
+		const newHeight = event.y - monacoElRect.y;
+		// monacoEl.value!.style.height = `${newHeight}px`;
+		editor!.layout({
+			width: editor!.getLayoutInfo().width,
+			height: Math.max(getMinHeight(), newHeight),
+		});
+	},
+});
 
 let editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
@@ -58,7 +74,7 @@ onMounted(() => {
 	const settings: IStandaloneEditorConstructionOptions = {
 		value: props.value.value,
 		language: props.language,
-		automaticLayout: true,
+		automaticLayout: false,
 		scrollBeyondLastLine: false,
 		lineNumbers: "off",
 		minimap: { enabled: false },
@@ -92,6 +108,16 @@ onMounted(() => {
 	adjustHeight();
 
 	editor.onDidChangeModelContent(() => {
+		// const numLines = editor!.getModel()?.getLineCount();
+		// const cursorLine = editor!.getPosition()?.lineNumber;
+
+		const hasScrollbar =
+			editor!.getLayoutInfo().height < editor!.getContentHeight();
+
+		if (!hasScrollbar) {
+			adjustHeight(false);
+		}
+
 		const value = editor!.getValue();
 		if (model.value !== undefined) {
 			model.value = value;
@@ -99,15 +125,29 @@ onMounted(() => {
 	});
 });
 
-const adjustHeight = () => {
-	const contentHeight = editor!.getContentHeight();
+const getMinHeight = () => {
+	const lineHeight = editor!.getOption(monaco.editor.EditorOption.lineHeight);
+	return lineHeight * 12;
+};
+
+const adjustHeight = (allowShrink = false) => {
 	// const scrollHeight = editor!.getScrollHeight();
 	// const scrollWidth = editor!.getScrollWidth();
-	const monacoElRect = monacoEl.value!.getBoundingClientRect();
 	const lineHeight = editor!.getOption(monaco.editor.EditorOption.lineHeight);
+
+	const contentHeight = Math.max(
+		editor!.getContentHeight() + lineHeight * 2,
+		getMinHeight(),
+	);
+	const layoutInfo = editor!.getLayoutInfo();
+
+	const height = allowShrink
+		? contentHeight
+		: Math.max(contentHeight, layoutInfo.height);
+
 	const size = {
-		height: Math.max(contentHeight + lineHeight * 2, monacoElRect.height),
-		width: monacoElRect.width,
+		height: height,
+		width: layoutInfo.width,
 	};
 	console.log("Settings editor size", size);
 	editor!.layout(size);
@@ -134,27 +174,48 @@ const formatDocument = () => {
 </script>
 
 <template>
-  <div class="monaco-container"
-       style="min-height: 12rem; height: 100%; resize: vertical; overflow: hidden">
-    <div ref="monacoEl"
-         class="monaco-element"
-         style="height: 100%; min-height: 0px" />
-    <div>
-      <button class="btn-icon" title="Format document" @click="formatDocument">
-        <i-lucide-letter-text />
-      </button>
+    <div class="monaco-container">
+        <div ref="monacoEl" class="monaco-element"  />
+      <div ref="resizeHandle" class="resize-handle">
+
+      </div>
+        <div>
+          <button class="btn-icon" title="Format document (CTRL+ALT+L)" @click="formatDocument">
+            <i-lucide-letter-text />
+          </button>
+          <button class="btn-icon" title="Adjust size" @click="() => adjustHeight(true)">
+            <i-lucide-scaling />
+          </button>
+        </div>
     </div>
-  </div>
 </template>
 
 <style>
 .monaco-container {
-  display: grid;
-  border: 1px solid #4e4e4e;
-  border-radius: 4px;
+    border: 1px solid #4e4e4e;
+    border-radius: 4px;
+    display: grid;
+    grid-template-rows: 1fr 12px auto;
+    overflow: hidden;
+
+    &:focus-within {
+      border-color: var(--brand);
+    }
 }
 
 .monaco-element {
-  overflow: clip;
+  min-height: 12rem;
+  overflow: hidden;
+  /*resize: vertical;*/
+}
+
+/*.monaco-editor {
+  transition: height 0.2s ease-in-out;
+}*/
+
+.resize-handle {
+  background-color: #111417;
+  border-bottom: 1px solid #4e4e4e;
+  cursor: row-resize;
 }
 </style>

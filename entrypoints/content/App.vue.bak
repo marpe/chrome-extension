@@ -13,11 +13,11 @@ onKeyStroke(
 		const ignoredTags = ["INPUT", "SELECT", "TEXTAREA"];
 		const element = (e.target || e.srcElement) as HTMLElement;
 		const tagName = element?.tagName;
-		if (tagName && !ignoredTags.includes(tagName)) {
-			e.preventDefault();
-			// e.stopPropagation();
-			console.log("preventDefault");
-		}
+		if (
+			tagName &&
+			!(ignoredTags.includes(tagName) || element.isContentEditable)
+		) {
+			console.log("preventDefault", tagName);}
 	},
 	{ eventName: "keydown" },
 );
@@ -31,19 +31,19 @@ onKeyStroke(
 
 <style scoped>
 .container {
+  align-items: center;
+  background: #000;
+  border-radius: 8px;
+  color: #cecece;
+  display: flex;
+  flex-direction: column;
+  height: 24px;
+  justify-content: center;
+  pointer-events: none;
   position: fixed;
   right: 16px;
   top: 16px;
   width: 24px;
-  height: 24px;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #000;
-  border-radius: 8px;
-  color: #cecece;
   z-index: 999999;
 }
 
