@@ -37,7 +37,12 @@ export default defineConfig({
 			"webNavigation",
 			"scripting",
 		],
-		host_permissions: ["*://*/*"],
+		host_permissions: [
+            "*://*/*",
+        ],
+        optional_host_permissions: [
+            "*://*/*"
+        ],
 		content_security_policy: {
 			extension_pages:
 				"script-src 'self' http://localhost:3000; object-src 'self'",

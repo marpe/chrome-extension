@@ -76,39 +76,53 @@ export const removeInjectedCSS = async (cssInjections: CSSInjection[]) => {
 	}
 };
 
-const tryInjectCSS = async (injection: CSSInjection) => {
-	try {
-		await chrome.scripting.insertCSS(injection);
-		return true;
-	} catch (e) {
-		console.error(`Error injecting CSS: ${e}`, { e, injection });
-		return false;
-	}
+export const tabFilter = (tab: chrome.tabs.Tab) => {
+	if (tab.id === undefined) return false;
+	if (!tab.url) return false;
+	if (tab.url.startsWith("chrome://")) return false;
+	if (tab.url.startsWith("chrome-extension://")) return false;
+	return true;
 };
 
 export const injectCSS = async (entries: Entry[]) => {
 	try {
-		const tabs = await queryTabs();
+		const tabs = (await queryTabs()).filter(tabFilter);
 
 		const css = entries.map((entry) => entry.style).join("\n");
 
-		const cssInjections = tabs
-			.filter(
-				(tab) =>
-					tab.id !== undefined &&
-					!tab.url?.startsWith("chrome://") &&
-					!tab.url?.startsWith("chrome-extension://"),
-			)
-			.map(({ id }) => {
-				return {
-					css: css,
-					target: {
-						tabId: id,
-					},
-				} as CSSInjection;
-			});
+		// const result = await chrome.permissions.request({
+		// 	origins: ["*://*/*"],
+		// 	permissions: ["scripting"],
+		// });
 
-		const injectionResults = await Promise.all(cssInjections.map(tryInjectCSS));
+		// console.log(`Permission request result: ${result}`);
+
+		const cssInjections = tabs.map(({ id }) => {
+			return {
+				css: css,
+				target: {
+					tabId: id,
+				},
+			} as CSSInjection;
+		});
+
+		const injectionResults = await Promise.all(
+			cssInjections.map(async (i) => {
+				// const permissionRequestResult = await chrome.permissions.request({
+				// 	origins: [`${new URL(tab.url!).origin}/*`],
+				// 	permissions: ["scripting"],
+				// });
+				// console.log(`Request for ${tab.url}: ${permissionRequestResult}`);
+				try {
+					await chrome.scripting.insertCSS(i);
+					return true;
+				} catch (e) {
+					const tab = await chrome.tabs.get(i.target.tabId);
+					console.error(`Error injecting CSS (${tab.url}): ${e}`);
+					return false;
+				}
+			}),
+		);
 
 		const successfulInjections: CSSInjection[] = [];
 		const failedInjections: CSSInjection[] = [];
