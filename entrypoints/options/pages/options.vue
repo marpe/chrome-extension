@@ -115,6 +115,14 @@ const keys = useMagicKeys({
 		}
 	},
 });
+
+const { isSupported, open, sRGBHex } = useEyeDropper();
+const openEyeDropper = () => {
+	open().then((result) => {
+		navigator.clipboard.writeText(sRGBHex.value.toString());
+		console.log(`EyeDropper: ${sRGBHex.value}`);
+	});
+};
 </script>
 
 <template>
@@ -132,6 +140,10 @@ const keys = useMagicKeys({
                             @click="() => { store.removeSelectedEntry(); save(); }">
                             <i-lucide-circle-minus />
                         </button>
+                      <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="EyeDropper"
+                      @click="openEyeDropper">
+                        <i-lucide-palette />
+                      </button>
                     </div>
                     <div class="entry-list overflow-y-auto px-4">
                         <TransitionGroup>
