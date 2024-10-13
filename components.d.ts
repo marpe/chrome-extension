@@ -15,7 +15,6 @@ declare module 'vue' {
     ILucideCirclePlus: typeof import('~icons/lucide/circle-plus')['default']
     ILucideClipboard: typeof import('~icons/lucide/clipboard')['default']
     ILucideClipboardPaste: typeof import('~icons/lucide/clipboard-paste')['default']
-    ILucideColorPalette: typeof import('~icons/lucide/color-palette')['default']
     ILucideDownload: typeof import('~icons/lucide/download')['default']
     ILucideGithub: typeof import('~icons/lucide/github')['default']
     ILucideImport: typeof import('~icons/lucide/import')['default']

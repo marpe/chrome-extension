@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import presets from "@/assets/presets.json";
 import { useAppStore } from "@/stores/app.store";
+import { setupMonaco } from "@/utils/monacoSetup";
+import * as monaco from "monaco-editor";
 import { useTemplateRef } from "vue";
 
 const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
@@ -20,14 +22,65 @@ printHello();`;
 const styleValue = ref({ value: "" });
 const scriptValue = ref({ value: "" });
 
+const userScripts = ref<chrome.userScripts.RegisteredUserScript[]>([]);
+
+const registeredUserScriptEl = useTemplateRef("registeredUserScript");
+
+async function refreshUserScripts() {
+	userScripts.value = await chrome.userScripts.getScripts();
+}
+
+onMounted(async () => {
+	setupMonaco();
+	await refreshUserScripts();
+});
+
 watch(
 	() => store.selectedEntry,
-	(entry) => {
+	async (entry) => {
 		// setting these triggers the MonacoEditor components to update
 		styleValue.value = { value: entry?.style ?? initialStyle };
 		scriptValue.value = { value: entry?.script ?? initialScript };
 	},
 );
+
+const selectedUserScript = computed(() => {
+	return userScripts.value.find(
+		(script) => script.id === store.selectedEntry?.id,
+	);
+});
+
+const selectedUserScriptHtml = computedAsync(async () => {
+	return await monaco.editor.colorize(
+		selectedUserScript.value?.js[0].code ?? "",
+		"javascript",
+		{},
+	);
+});
+
+/*watch(registeredUserScriptEl, async () => {
+	if (selectedUserScript.value && registeredUserScriptEl.value) {
+		await colorizeElement(registeredUserScriptEl.value);
+	}
+});*/
+
+function loadUserScript() {
+	if (!selectedUserScript.value) {
+		logError("User script not found");
+		return;
+	}
+
+	const code = selectedUserScript.value.js[0].code;
+	if (!code) {
+		logError("User script has no code");
+		return;
+	}
+
+	store.selectedEntry.script = code;
+
+	// refresh the MonacoEditor component
+	scriptValue.value = { value: store.selectedEntry.script };
+}
 
 const saveButton = useTemplateRef("saveButton");
 
@@ -82,6 +135,39 @@ const removeAll = () => {
 	store.entries.ref = [];
 };
 
+const clear = async () => {
+	const scripts = await chrome.userScripts.getScripts();
+	logInfo("Unregistering scripts", scripts);
+	await chrome.userScripts.unregister();
+
+	await refreshUserScripts();
+};
+
+const loadRegistered = async () => {
+	const scripts = await chrome.userScripts.getScripts();
+	logInfo("Registered scripts", scripts);
+
+	for (const registeredScript of scripts) {
+		const scriptEntry = store.entries.ref.find(
+			(entry) => entry.id === registeredScript.id,
+		);
+		if (scriptEntry) {
+			if (registeredScript.js.length === 0) {
+				logError("Script has no js", { registeredScript, scriptEntry });
+				continue;
+			}
+
+			if (scriptEntry.script !== registeredScript.js[0].code) {
+				logError("Script does not match", { registeredScript, scriptEntry });
+			} else {
+				logInfo("Script matches", { registeredScript, scriptEntry });
+			}
+		} else {
+			logError("Script not found", registeredScript);
+		}
+	}
+};
+
 const save = async () => {
 	saveButton.value?.animate(
 		[
@@ -102,6 +188,8 @@ const save = async () => {
 	);
 	await executeScript(store.entries.ref);
 	store.setCSSInjections(successfulInjections);
+
+	await refreshUserScripts();
 
 	console.log("Saved and injected");
 };
@@ -189,11 +277,38 @@ const openEyeDropper = () => {
                         <div :style="{ flex: '0 1 0' }">
                             <MonacoEditor v-model="store.selectedEntry.script" :value="scriptValue" language="javascript" />
                         </div>
+
+                        <div class="flex flex-col gap-4">
+                          <template v-if="selectedUserScript">
+                            <div>
+                              Registered user script
+                            </div>
+                            <div class="text-sm">
+                              <div>id: <span class="font-mono">{{ selectedUserScript?.id }}</span></div>
+                              <div>matches: <span class="font-mono">{{ selectedUserScript?.matches }}</span></div> 
+                            </div>
+                            <div ref="registeredUserScript"
+                                 class="data font-mono text-[0.75rem] font-normal"
+                                 data-lang="javascript"
+                                 v-html="selectedUserScriptHtml">
+                            </div>
+                            <div>
+                              <button class="btn-outlined" @click="loadUserScript">
+                                Load
+                              </button>
+                            </div>
+                          </template>
+                          <template v-else>
+                            <div>
+                              No registered user script found.
+                            </div>
+                          </template>
+                        </div>
                     </template>
                 </div>
             </div>
 
-            <div class="px-4 pb-4">
+            <div class="px-4 pb-4 flex gap-4">
               <PopoverMenu>
                 <template #default="defaultProps">
                   <div class="inline-flex flex-row border border-[var(--brand-6)] rounded-md">
@@ -228,6 +343,14 @@ const openEyeDropper = () => {
                   </button>
                 </template>
               </PopoverMenu>
+
+              <button ref="logButton" class="btn-outlined" @click="loadRegistered">
+                <i-lucide-letter-text /> Log
+              </button>
+
+              <button ref="clearButton" class="btn-outlined" @click="clear">
+                <i-lucide-trash-2 /> Clear
+              </button>
             </div>
         </template>
 
@@ -275,6 +398,21 @@ const openEyeDropper = () => {
     border: 1px solid var(--surface-5);
     border-radius: 0.5rem;
     padding: 1rem;
+}
+
+.data {
+  background-color: var(--surface-2);
+  border: 1px solid var(--surface-6);
+  color: var(--text-3);
+  //cursor: pointer;
+  margin-top: 0.5rem;
+  min-height: 1ch;
+  overflow: hidden;
+  padding: 0.5rem;
+  &[data-open="false"] {
+    max-height: 1rem;
+    overflow: clip;
+  }
 }
 
 .entry-list {

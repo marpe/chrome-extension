@@ -16,6 +16,7 @@ export const setupMonaco = () => {
 	}
 
 	monaco.editor.defineTheme("github-dark", githubDark);
+	monaco.editor.setTheme("github-dark");
 
 	self.MonacoEnvironment = {
 		getWorker(_: string, label: string) {
