@@ -1,12 +1,15 @@
 import { createEntry } from "@/utils/createEntry";
 import type { Scripting } from "wxt/browser";
+import RunAt = chrome.userScripts.RunAt;
 
-export type Entry = {
+export type CustomEntry = {
 	id: string;
 	description: string;
 	site: string;
 	style: string;
 	script: string;
+	runAt: RunAt;
+	enabled: boolean;
 	created: number;
 	modified: number;
 	revision: number;
@@ -32,12 +35,12 @@ export enum StorageKey {
 const defaults: {
 	injectedCSS: CSSInjection[];
 	selectedIndex: { value: number };
-	entries: Entry[];
+	entries: CustomEntry[];
 	logs: LogEntry[];
 } = {
 	injectedCSS: [],
 	selectedIndex: { value: 0 },
-	entries: [createEntry()],
+	entries: [createEntry(`Default Entry`)],
 	logs: [],
 } as const;
 
@@ -56,7 +59,7 @@ export const storageItems = {
 			init: () => defaults.selectedIndex,
 		},
 	),
-	entries: storage.defineItem<Entry[]>(`${StorageKey.entries}-si`, {
+	entries: storage.defineItem<CustomEntry[]>(`${StorageKey.entries}-si`, {
 		fallback: defaults.entries,
 		init: () => defaults.entries,
 	}),

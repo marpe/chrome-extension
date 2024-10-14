@@ -1,16 +1,12 @@
 import { createEntry } from "@/utils/createEntry";
-import {
-	type CSSInjection,
-	type Entry,
-	type LogEntry,
-	StorageKey,
-	storageItems,
-} from "@/utils/state";
+import { type CSSInjection, type LogEntry, storageItems } from "@/utils/state";
 import type { Unwatch, WxtStorageItem } from "wxt/storage";
 
 const clamp = (value: number, min: number, max: number) => {
 	return Math.min(Math.max(value, min), max);
 };
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // biome-ignore lint/complexity/noBannedTypes: <explanation>
 function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
@@ -40,13 +36,19 @@ function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
 			innerValue.watcher = null;
 		};
 
-		storageItem.getValue().then((v) => {
-			console.log("loaded initial value", v);
-			innerValue.value = v;
-			innerValue.loaded.value = true;
-			trigger();
-			addWatcher();
-		});
+		storageItem
+			.getValue()
+			.then(async (v) => {
+				await sleep(1000);
+				return v;
+			})
+			.then((v) => {
+				console.log("loaded initial value", v);
+				innerValue.value = v;
+				innerValue.loaded.value = true;
+				trigger();
+				addWatcher();
+			});
 
 		return {
 			get() {
@@ -71,7 +73,6 @@ function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
 export const useAppStore = defineStore("app", () => {
 	const items = {
 		injectedCSS: createItemBackedRef(storageItems.injectedCSS),
-		selectedIndex: createItemBackedRef(storageItems.selectedIndex),
 		entries: createItemBackedRef(storageItems.entries),
 		logs: createItemBackedRef(storageItems.logs),
 	} as const;
@@ -86,29 +87,15 @@ export const useAppStore = defineStore("app", () => {
 		return Object.values(items).every((s) => s.innerValue.loaded.value);
 	});
 
-	const selectedEntry = computed(
-		() => items.entries.ref.value[items.selectedIndex.ref.value.value],
-	);
-
-	const save = async () => {
-		// set the ref value to trigger save to storage :///
-		items.entries.ref.value = [...items.entries.ref.value];
-	};
-
 	const addEntry = () => {
-		const entry = createEntry();
+		const entry = createEntry(`New Entry ${items.entries.ref.value.length}`);
 		items.entries.ref.value = [...items.entries.ref.value, entry];
 		selectEntry(items.entries.ref.value.length - 1);
 	};
 
-	const selectEntry = (index: number) => {
-		const clampedIndex = clamp(index, 0, items.entries.ref.value.length - 1);
-		items.selectedIndex.ref.value = { value: clampedIndex };
-	};
-
 	const removeEntry = (index: number) => {
 		items.entries.ref.value = items.entries.ref.value.filter(
-			(e) => e !== items.entries.ref.value[index],
+			(_, i) => i !== index,
 		);
 		const clamped = clamp(index, 0, items.entries.ref.value.length - 1);
 		if (clamped !== index) {
@@ -119,12 +106,16 @@ export const useAppStore = defineStore("app", () => {
 		);
 	};
 
-	const removeSelectedEntry = () => {
-		removeEntry(items.selectedIndex.ref.value.value);
-	};
-
 	const setCSSInjections = (injections: CSSInjection[]) => {
 		items.injectedCSS.ref.value = injections;
+	};
+
+	const router = useRouter();
+
+	const selectEntry = (index: number) => {
+		const clampedIndex = clamp(index, 0, items.entries.ref.value.length - 1);
+		// items.selectedIndex.ref.value = { value: clampedIndex };
+		void router.push(`/options/${clampedIndex}`);
 	};
 
 	const clearLogs = () => {
@@ -146,16 +137,13 @@ export const useAppStore = defineStore("app", () => {
 	return {
 		loaded,
 		...items,
-		save,
 		clearInjections,
 		removeEntry,
 		selectEntry,
-		removeSelectedEntry,
 		addEntry,
 		setCSSInjections,
 		log,
 		clearLogs,
-		selectedEntry,
 	} as const;
 });
 

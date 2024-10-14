@@ -1,94 +1,35 @@
 <script lang="ts" setup>
 import presets from "@/assets/presets.json";
+import { useFormatCreatedModified } from "@/composables/useCreatedModified";
 import { useAppStore } from "@/stores/app.store";
+import { createEntry } from "@/utils/createEntry";
 import { setupMonaco } from "@/utils/monacoSetup";
-import * as monaco from "monaco-editor";
-import { useTemplateRef } from "vue";
+import { useRouteParams } from "@vueuse/router";
 
-const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 const store = useAppStore();
+await until(() => store.loaded).toBe(true);
+setupMonaco();
 
-const { logs, logInfo, logError } = useLogging();
+const route = useRoute("/options/[index]");
+const selectedIndex = useRouteParams("index", "-1", { transform: Number });
 
+const { logInfo, logError } = useLogging();
 const { injectCSS, removeInjectedCSS, executeScript } = useScripting();
 
-const initialStyle = `body {
-  background-color: red;
-}`;
-
-const initialScript = `var printHello = () => { console.log('Hello from the script'); };
-printHello();`;
-
-const styleValue = ref({ value: "" });
-const scriptValue = ref({ value: "" });
-
-const userScripts = ref<chrome.userScripts.RegisteredUserScript[]>([]);
-
-const registeredUserScriptEl = useTemplateRef("registeredUserScript");
-
-async function refreshUserScripts() {
-	userScripts.value = await chrome.userScripts.getScripts();
-}
-
-onMounted(async () => {
-	setupMonaco();
-	await refreshUserScripts();
-});
-
-watch(
+/*watch(
 	() => store.selectedEntry,
 	async (entry) => {
 		// setting these triggers the MonacoEditor components to update
-		styleValue.value = { value: entry?.style ?? initialStyle };
-		scriptValue.value = { value: entry?.script ?? initialScript };
+		styleValue.value = entry?.style ?? initialStyle;
+		scriptValue.value = entry?.script ?? initialScript;
 	},
-);
-
-const selectedUserScript = computed(() => {
-	return userScripts.value.find(
-		(script) => script.id === store.selectedEntry?.id,
-	);
-});
-
-const selectedUserScriptHtml = computedAsync(async () => {
-	return await monaco.editor.colorize(
-		selectedUserScript.value?.js[0].code ?? "",
-		"javascript",
-		{},
-	);
-});
+);*/
 
 /*watch(registeredUserScriptEl, async () => {
 	if (selectedUserScript.value && registeredUserScriptEl.value) {
 		await colorizeElement(registeredUserScriptEl.value);
 	}
 });*/
-
-function loadUserScript() {
-	if (!selectedUserScript.value) {
-		logError("User script not found");
-		return;
-	}
-
-	const code = selectedUserScript.value.js[0].code;
-	if (!code) {
-		logError("User script has no code");
-		return;
-	}
-
-	store.selectedEntry.script = code;
-
-	// refresh the MonacoEditor component
-	scriptValue.value = { value: store.selectedEntry.script };
-}
-
-const saveButton = useTemplateRef("saveButton");
-
-const lastLog = computed(() => {
-	return logs.ref[logs.ref.length - 1];
-});
-
-const logOpen = ref(false);
 
 const downloadData = async () => {
 	const data = {
@@ -128,19 +69,21 @@ const importData = async () => {
 };
 
 const importPresets = () => {
-	store.entries.ref = presets.entries;
+	store.entries.ref = [
+		...store.entries.ref,
+		...(presets.entries as CustomEntry[]),
+	];
 };
 
 const removeAll = () => {
 	store.entries.ref = [];
 };
 
-const clear = async () => {
+const clearUserScripts = async () => {
 	const scripts = await chrome.userScripts.getScripts();
 	logInfo("Unregistering scripts", scripts);
 	await chrome.userScripts.unregister();
-
-	await refreshUserScripts();
+	// await refreshUserScripts();
 };
 
 const loadRegistered = async () => {
@@ -168,42 +111,6 @@ const loadRegistered = async () => {
 	}
 };
 
-const save = async () => {
-	saveButton.value?.animate(
-		[
-			{ transform: "scale(1)" },
-			{ transform: "scale(1.1)" },
-			{ transform: "scale(1)" },
-		],
-		{
-			duration: 200,
-			easing: "ease-in-out",
-		},
-	);
-	await store.save();
-
-	await removeInjectedCSS(store.injectedCSS.ref);
-	const { successfulInjections, failedInjections } = await injectCSS(
-		store.entries.ref,
-	);
-	await executeScript(store.entries.ref);
-	store.setCSSInjections(successfulInjections);
-
-	await refreshUserScripts();
-
-	console.log("Saved and injected");
-};
-
-const keys = useMagicKeys({
-	passive: false,
-	onEventFired: (event) => {
-		if (event.key === "s" && event.ctrlKey) {
-			save();
-			event.preventDefault();
-		}
-	},
-});
-
 const { isSupported, open, sRGBHex } = useEyeDropper();
 const openEyeDropper = () => {
 	open().then((result) => {
@@ -211,21 +118,41 @@ const openEyeDropper = () => {
 		console.log(`EyeDropper: ${sRGBHex.value}`);
 	});
 };
+
+function addEntry() {
+	store.addEntry();
+}
+
+const router = useRouter();
+
+function selectEntry(index: number) {
+	router.push(`/options/${index}`);
+}
+
+function formatCreatedAndModified(entry: CustomEntry) {
+	const { created, modified } = useFormatCreatedModified(entry);
+	return `Created: ${created} - Modified: ${modified}`;
+}
+
+function removeEntry(index: number) {
+	if (index === -1) {
+		return;
+	}
+	store.removeEntry(index);
+}
 </script>
 
 <template>
     <main>
-        <template v-if="store.loaded">
-
             <div class="grid grid-cols-[260px_1fr] flex-1 overflow-hidden">
                 <div class="flex flex-col gap-4 overflow-hidden">
                     <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
                         <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="Add new entry"
-                            @click="() => { store.addEntry(); save(); }">
+                            @click="() => { addEntry() }">
                             <i-lucide-circle-plus />
                         </button>
                         <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="Remove selected entry"
-                            @click="() => { store.removeSelectedEntry(); save(); }">
+                            @click="() => { removeEntry(selectedIndex) }">
                             <i-lucide-circle-minus />
                         </button>
                       <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="EyeDropper"
@@ -236,20 +163,22 @@ const openEyeDropper = () => {
                     <div class="entry-list overflow-y-auto px-4">
                         <TransitionGroup>
                             <div v-for="(entry, index) in store.entries.ref" :key="index"
-                                :class="{ checked: store.selectedIndex.ref.value === index }"
+                                :class="{ checked: selectedIndex === index }"
                                 class="flex flex-col gap-2 entry-button"
-                                @click="() => { store.selectEntry(index); save(); }">
+                                @click="() => selectEntry(index)">
                                 <div class="flex flex-row justify-between items-center">
                                     <div>{{ entry.description }}</div>
                                     <button class="remove btn-unstyled"
-                                        @click.stop="() => { store.removeEntry(index); save(); }">
+                                        @click.stop="() => { removeEntry(index) }">
                                         <i-lucide-x class="size-4" />
                                     </button>
                                 </div>
                                 <div class="flex flex-row gap-4 justify-between small">
                                     <div class="truncate">{{ entry.site }}</div>
-                                    <div class="whitespace-nowrap">{{ useDateFormat(entry.created, "YYYY-MM-DD HH:mm")
-                                        }}</div>
+                                    <div :title="formatCreatedAndModified(entry)" class="flex flex-row items-center">
+                                      <i-lucide-clock class="mr-2" />
+                                      <span>{{ useTimeAgo(entry.modified) }}</span>
+                                    </div>
                                 </div>
                                 <!--                <input type="radio"
                                        :id="'entry-' + index"
@@ -261,50 +190,19 @@ const openEyeDropper = () => {
                 </div>
 
                 <div class="overflow-y-auto flex flex-col gap-4 px-4 pt-4">
-                    <template v-if="!!store.selectedEntry">
-                        <div>
-                            <input v-model="store.selectedEntry.description" style="width: 100%" />
-                        </div>
-
-                        <div>
-                            <input v-model="store.selectedEntry.site" style="width: 100%" />
-                        </div>
-
-                        <div :style="{ flex: '0 1 0' }">
-                            <MonacoEditor v-model="store.selectedEntry.style" :value="styleValue" language="css" />
-                        </div>
-
-                        <div :style="{ flex: '0 1 0' }">
-                            <MonacoEditor v-model="store.selectedEntry.script" :value="scriptValue" language="javascript" />
-                        </div>
-
-                        <div class="flex flex-col gap-4">
-                          <template v-if="selectedUserScript">
-                            <div>
-                              Registered user script
-                            </div>
-                            <div class="text-sm">
-                              <div>id: <span class="font-mono">{{ selectedUserScript?.id }}</span></div>
-                              <div>matches: <span class="font-mono">{{ selectedUserScript?.matches }}</span></div> 
-                            </div>
-                            <div ref="registeredUserScript"
-                                 class="data font-mono text-[0.75rem] font-normal"
-                                 data-lang="javascript"
-                                 v-html="selectedUserScriptHtml">
-                            </div>
-                            <div>
-                              <button class="btn-outlined" @click="loadUserScript">
-                                Load
-                              </button>
-                            </div>
-                          </template>
-                          <template v-else>
-                            <div>
-                              No registered user script found.
-                            </div>
-                          </template>
-                        </div>
+                  <div class="flex flex-col gap-4">
+                    <template v-if="!!store.entries.ref[selectedIndex]">
+                      <div>
+                        Editing: {{ selectedIndex }} (<span class="font-mono">{{ store.entries.ref[selectedIndex]?.id }}</span>)
+                      </div>
+                      <RouterView :key="selectedIndex" />
                     </template>
+                    <template v-else>
+                      <div>
+                        No entry selected
+                      </div>
+                    </template>
+                  </div>
                 </div>
             </div>
 
@@ -313,10 +211,12 @@ const openEyeDropper = () => {
                 <template #default="defaultProps">
                   <div class="inline-flex flex-row border border-[var(--brand-6)] rounded-md">
                     <button ref="saveButton" class="border-r rounded-r-none border-r-[var(--brand-6)] px-6"
-                            @click="save">
+                            @click="() => { console.log('todo...') }">
                       <i-lucide-save /> Save
                     </button>
-                    <button :class="{ ['aspect-square']: true }" :style="{ anchorName: defaultProps.anchorName }" @click="defaultProps.open">
+                    <button :class="{ ['aspect-square']: true }"
+                            :style="{ anchorName: defaultProps.anchorName }"
+                            @click="defaultProps.open">
                       <i-lucide-chevron-up />
                     </button>
                   </div>
@@ -348,51 +248,20 @@ const openEyeDropper = () => {
                 <i-lucide-letter-text /> Log
               </button>
 
-              <button ref="clearButton" class="btn-outlined" @click="clear">
+              <button ref="clearButton" class="btn-outlined" @click="clearUserScripts">
                 <i-lucide-trash-2 /> Clear
               </button>
             </div>
-        </template>
 
-        <Teleport to="body">
-            <Transition name="modal">
-                <template v-if="!store.loaded">
-                    <div class="modal-layout">
-                        <div class="modal flex flex-col items-center justify-center gap-4">
-                            <h2>Loading</h2>
-                            <i-lucide-loader-circle class="spin size-8" />
-                        </div>
-                    </div>
-                </template>
-            </Transition>
-        </Teleport>
-        <Teleport to="body">
-            <Transition name="modal">
-                <template v-if="isRevealed">
-                    <div class="modal-layout">
-                        <div class="modal flex flex-col gap-4 modal-card">
-                            <h6>There are unsaved changes</h6>
-                            <div class="flex items-center gap-4">
-                                <i-lucide-info class="size-6" />
-                                Do you want to discard any unsaved changes?
-                            </div>
-                            <div class="flex flex-row justify-end gap-4">
-                                <button @click="confirm(true)">
-                                    Yes
-                                </button>
-                                <button class="btn-outlined" @click="confirm(false)">
-                                    No
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </Transition>
-        </Teleport>
+
     </main>
 </template>
 
 <style>
+svg {
+  display: inline-block;
+}
+
 .modal-card {
     background-color: var(--surface-2);
     border: 1px solid var(--surface-5);
@@ -404,7 +273,7 @@ const openEyeDropper = () => {
   background-color: var(--surface-2);
   border: 1px solid var(--surface-6);
   color: var(--text-3);
-  //cursor: pointer;
+  /*cursor: pointer;*/
   margin-top: 0.5rem;
   min-height: 1ch;
   overflow: hidden;

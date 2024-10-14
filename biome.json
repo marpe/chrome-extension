@@ -8,6 +8,7 @@
 		"rules": {
 			"recommended": true,
 			"style": {
+				"noUnusedTemplateLiteral": "off",
 				"noNonNullAssertion": "off"
 			}
 		}

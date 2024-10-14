@@ -15,21 +15,32 @@
     </NavLink>
   </nav>
   <RouterView v-slot="{ Component }">
-    <Transition name="slide-up"
-                mode="out-in">
-      <KeepAlive>
-        <Component :is="Component" />
-      </KeepAlive>
-    </Transition>
+    <template v-if="Component">
+      <Transition mode="out-in"
+                  name="slide-up">
+<!--        <KeepAlive>-->
+          <Suspense>
+            <component :is="Component" />
+
+            <template #fallback>
+              <div class="flex flex-col items-center justify-center gap-4">
+                <h2>Loading</h2>
+                <i-lucide-loader-circle class="spin size-8" />
+              </div>
+            </template>
+          </Suspense>
+<!--        </KeepAlive>-->
+      </Transition>
+    </template>
   </RouterView>
 </template>
 
 <style>
 
 body {
-  height: 100dvh;
   display: grid;
   grid-template-rows: 60px 1fr;
+  height: 100dvh;
 }
 
 .slide-up-enter-active,

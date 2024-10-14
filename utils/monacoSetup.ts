@@ -11,7 +11,6 @@ let initialized = false;
 
 export const setupMonaco = () => {
 	if (initialized) {
-		console.log("Monaco already initialized");
 		return;
 	}
 

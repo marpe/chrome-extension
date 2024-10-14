@@ -1,13 +1,14 @@
-import type { CSSInjection, Entry } from "@/utils/state";
+import type { CSSInjection, CustomEntry } from "@/utils/state";
 import RegisteredUserScript = chrome.userScripts.RegisteredUserScript;
 
-export const mapToScriptEntry = (entry: Entry): RegisteredUserScript => ({
+export const mapToScriptEntry = (entry: CustomEntry): RegisteredUserScript => ({
 	id: entry.id,
 	js: [{ code: entry.script }],
 	matches: [`*://${entry.site}/*`],
+	runAt: entry.runAt,
 });
 
-export const executeScript = async (entries: Entry[]) => {
+export const executeScript = async (entries: CustomEntry[]) => {
 	const scriptIds = entries.map((entry) => entry.id);
 
 	const scriptEntries = entries.map(mapToScriptEntry);
@@ -84,7 +85,7 @@ export const tabFilter = (tab: chrome.tabs.Tab) => {
 	return true;
 };
 
-export const injectCSS = async (entries: Entry[]) => {
+export const injectCSS = async (entries: CustomEntry[]) => {
 	try {
 		const tabs = (await queryTabs()).filter(tabFilter);
 

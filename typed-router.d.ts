@@ -23,5 +23,6 @@ declare module 'vue-router/auto-routes' {
     '/about': RouteRecordInfo<'/about', '/about', Record<never, never>, Record<never, never>>,
     '/logs': RouteRecordInfo<'/logs', '/logs', Record<never, never>, Record<never, never>>,
     '/options': RouteRecordInfo<'/options', '/options', Record<never, never>, Record<never, never>>,
+    '/options/[index]': RouteRecordInfo<'/options/[index]', '/options/:index', { index: ParamValue<true> }, { index: ParamValue<false> }>,
   }
 }

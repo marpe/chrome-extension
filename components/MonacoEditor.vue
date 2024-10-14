@@ -1,21 +1,15 @@
 <script lang="ts" setup>
 import * as monaco from "monaco-editor";
-
-import { setupMonaco } from "@/utils/monacoSetup";
 import { useTemplateRef } from "vue";
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
-
-interface MonacoEditorProps {
-	value: string;
-}
 
 const props = defineProps({
 	language: {
 		required: true,
 		type: String,
 	},
-	value: {
-		type: Object as PropType<MonacoEditorProps>,
+	initial: {
+		type: String,
 		required: true,
 	},
 	disabled: {
@@ -25,7 +19,8 @@ const props = defineProps({
 	},
 });
 
-const model = defineModel({ type: String });
+const model = defineModel({ type: String, default: "" });
+const version = defineModel("version", { type: Number });
 
 const monacoEl = useTemplateRef("monacoEl");
 const resizeEl = useTemplateRef("resizeHandle");
@@ -36,11 +31,14 @@ useDraggable(resizeEl, {
 	preventDefault: true,
 	stopPropagation: true,
 	onMove: (event) => {
-		const monacoElRect = monacoEl.value!.getBoundingClientRect();
+		if (!monacoEl.value || !editor) {
+			return;
+		}
+		const monacoElRect = monacoEl.value.getBoundingClientRect();
 		const newHeight = event.y - monacoElRect.y;
 		// monacoEl.value!.style.height = `${newHeight}px`;
-		editor!.layout({
-			width: editor!.getLayoutInfo().width,
+		editor.layout({
+			width: editor.getLayoutInfo().width,
 			height: Math.max(getMinHeight(), newHeight),
 		});
 	},
@@ -68,13 +66,13 @@ const joinLines = () => {
 	editor?.getAction("editor.action.joinLines")?.run();
 };
 
-setupMonaco();
+// setupMonaco();
 
 onMounted(() => {
 	const settings: IStandaloneEditorConstructionOptions = {
-		value: props.value.value,
+		value: model.value,
 		language: props.language,
-		automaticLayout: false,
+		automaticLayout: true,
 		scrollBeyondLastLine: false,
 		lineNumbers: "off",
 		minimap: { enabled: false },
@@ -108,38 +106,45 @@ onMounted(() => {
 	adjustHeight();
 
 	editor.onDidChangeModelContent(() => {
+		if (!editor) {
+			return;
+		}
 		// const numLines = editor!.getModel()?.getLineCount();
 		// const cursorLine = editor!.getPosition()?.lineNumber;
 
 		const hasScrollbar =
-			editor!.getLayoutInfo().height < editor!.getContentHeight();
+			editor.getLayoutInfo().height < editor.getContentHeight();
 
 		if (!hasScrollbar) {
 			adjustHeight(false);
 		}
 
-		const value = editor!.getValue();
-		if (model.value !== undefined) {
-			model.value = value;
-		}
+		model.value = editor.getValue();
+		version.value = editor.getModel()?.getAlternativeVersionId() ?? 1;
 	});
 });
 
 const getMinHeight = () => {
-	const lineHeight = editor!.getOption(monaco.editor.EditorOption.lineHeight);
+	if (!editor) {
+		return 0;
+	}
+	const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
 	return lineHeight * 12;
 };
 
 const adjustHeight = (allowShrink = false) => {
+	if (!editor) {
+		return;
+	}
 	// const scrollHeight = editor!.getScrollHeight();
 	// const scrollWidth = editor!.getScrollWidth();
-	const lineHeight = editor!.getOption(monaco.editor.EditorOption.lineHeight);
+	const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
 
 	const contentHeight = Math.max(
-		editor!.getContentHeight() + lineHeight * 2,
+		editor.getContentHeight() + lineHeight * 2,
 		getMinHeight(),
 	);
-	const layoutInfo = editor!.getLayoutInfo();
+	const layoutInfo = editor.getLayoutInfo();
 
 	const height = allowShrink
 		? contentHeight
@@ -149,22 +154,24 @@ const adjustHeight = (allowShrink = false) => {
 		height: height,
 		width: layoutInfo.width,
 	};
-	console.log("Settings editor size", size);
-	editor!.layout(size);
+	// console.log("Settings editor size", size);
+	editor.layout(size);
 };
 
-watch(
-	() => props.value,
-	(newValue) => {
-		editor!.setValue(newValue.value);
-		adjustHeight();
-	},
-);
+watch(model, (newValue) => {
+	const currentValue = editor?.getValue();
+	if (currentValue === newValue) {
+		return;
+	}
+	console.log("model value changed", { newValue, currentValue });
+	editor?.setValue(newValue);
+	adjustHeight();
+});
 
 watch(
 	() => props.disabled,
 	(newValue) => {
-		editor!.updateOptions({ readOnly: newValue });
+		editor?.updateOptions({ readOnly: newValue });
 	},
 );
 

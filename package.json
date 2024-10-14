@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@types/chrome": "^0.0.272",
 		"@types/webextension-polyfill": "^0.12.1",
+		"@vueuse/router": "^11.1.0",
 		"@wxt-dev/auto-icons": "^1.0.2",
 		"nanoid": "^5.0.7",
 		"open-props": "^1.7.6",
