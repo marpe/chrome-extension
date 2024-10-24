@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 export const createEntry = (description: string): CustomEntry => ({
 	id: `script-${nanoid()}`,
 	description: description,
-	site: "*",
+	site: "*://*/*",
 	runAt: "document_end",
 	style: "body {}",
 	script: 'console.log("Hello World")',

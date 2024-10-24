@@ -16,3 +16,4 @@ These other plugins/frameworks seem older:
 # TODO
 
 - [ ] Auto group tabs
+- [ ] Auto save

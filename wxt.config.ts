@@ -32,11 +32,11 @@ export default defineConfig({
 		permissions: [
 			"contextMenus",
 			"storage",
+			"unlimitedStorage",
 			"activeTab",
 			"userScripts",
 			"webNavigation",
 			"scripting",
-			"unlimitedStorage",
 		],
 		host_permissions: ["*://*/*"],
 		optional_host_permissions: ["*://*/*"],

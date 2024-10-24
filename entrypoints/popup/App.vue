@@ -1,5 +1,6 @@
 <script lang="ts"
         setup>
+import About from "@/entrypoints/options/pages/about.vue";
 import Options from "@/entrypoints/options/pages/options.vue";
 /*import { onMessage, sendMessage } from "webext-bridge/popup";
 
@@ -20,7 +21,11 @@ const send = async () => {
       Send Message
     </button>
   </div>-->
-  <Options />
+
+  <Suspense>
+    <Options />
+  </Suspense>
+
 </template>
 
 <style>

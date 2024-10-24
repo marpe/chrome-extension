@@ -68,13 +68,23 @@ onBeforeRouteLeave(async () => {
 	return await shouldNavigate();
 });
 
+const hasUserScripts = ref<boolean>(false);
+
 const {
 	state: userScripts,
 	isReady,
 	execute: refreshUserScripts,
 	isLoading,
-} = await useAsyncState(() => {
-	return chrome.userScripts.getScripts();
+} = await useAsyncState(async () => {
+	try {
+		const scripts = await chrome.userScripts.getScripts();
+		hasUserScripts.value = true;
+		return scripts;
+	} catch (e) {
+		hasUserScripts.value = false;
+		console.error(e);
+		return [];
+	}
 }, []);
 
 const selectedUserScript = computed(() =>
@@ -154,7 +164,7 @@ async function loadUserScript() {
 
 
 <template>
- <div>
+ <div v-if="hasUserScripts">
    <div class="flex flex-col gap-4">
      <EditEntry v-model="entryRef" />
      <template v-if="selectedUserScript">
@@ -231,4 +241,14 @@ async function loadUserScript() {
      </Teleport>
    </template>
  </div>
+  <div v-else>
+    <div class="flex flex-col gap-4">
+      <div>
+        <div>
+          <i-lucide-info class="size-6" />
+          User scripts are not supported in this browser.
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
