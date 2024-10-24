@@ -5,22 +5,33 @@ import RegisteredUserScript = chrome.userScripts.RegisteredUserScript;
 export const mapToScriptEntry = (entry: CustomEntry): RegisteredUserScript => ({
 	id: entry.id,
 	js: [{ code: entry.script }],
-	matches: [`*://${entry.site}/*`],
+	matches: [entry.site],
 	runAt: entry.runAt,
 });
 
 export const matchesPattern = (pattern: string, url: string) => {
 	const matcher = matchPattern(pattern);
 	if (!matcher.valid) {
-		throw new Error(`Invalid match pattern: ${pattern}`);
+		console.warn(`Invalid match pattern: ${pattern}`);
+		return false;
 	}
 	return matcher.match(url);
 };
 
+function hasValidMatchPattern(entry: CustomEntry) {
+	const valid = matchPattern(entry.site).valid;
+	if (!valid) {
+		console.warn(`Invalid match pattern: ${entry.site}`);
+	}
+	return valid;
+}
+
 export const executeScript = async (entries: CustomEntry[]) => {
 	const scriptIds = entries.map((entry) => entry.id);
 
-	const scriptEntries = entries.map(mapToScriptEntry);
+	const scriptEntries = entries
+		.filter(hasValidMatchPattern)
+		.map(mapToScriptEntry);
 
 	const existingScripts = await chrome.userScripts.getScripts({
 		ids: scriptIds,
@@ -89,6 +100,7 @@ export const removeInjectedCSS = async (cssInjections: CSSInjection[]) => {
 export const tabFilter = (tab: chrome.tabs.Tab) => {
 	if (tab.id === undefined) return false;
 	if (!tab.url) return false;
+	if (tab.url === "about:blank") return false;
 	if (tab.url.startsWith("chrome://")) return false;
 	if (tab.url.startsWith("chrome-extension://")) return false;
 	return true;
@@ -106,7 +118,16 @@ export const injectCSS = async (entries: CustomEntry[]) => {
 		// console.log(`Permission request result: ${result}`);
 
 		const entriesPerTab = tabs.map((tab) =>
-			entries.filter((entry) => matchesPattern(entry.site, tab.url!)),
+			entries.filter((entry) => {
+				if (!tab.url) {
+					return false;
+				}
+				const matches = matchesPattern(entry.site, tab.url);
+				if (!matches) {
+					console.log(`[${tab.id}]: ${tab.url} does not match ${entry.site}`);
+				}
+				return matches;
+			}),
 		);
 
 		const cssInjections = entriesPerTab

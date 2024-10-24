@@ -58,6 +58,10 @@ html, body, main {
     overflow: hidden;
 }
 
+:root {
+    interpolate-size: allow-keywords;
+}
+
 body {
     display: flex;
     flex-direction: column;
@@ -81,6 +85,11 @@ main {
 label {
     user-select: none;
     cursor: pointer;
+}
+
+label:not(:has(input[type="checkbox"])):not(input[type="checkbox"] + label) {
+    font-size: 0.75rem;
+    opacity: 0.6;
 }
 
 a[href] {
@@ -188,13 +197,18 @@ input, textarea {
     border: 1px solid var(--input-border);
     font-size: 0.8rem;
 
+    &[aria-invalid="true"] {
+        box-shadow: #ff0000 0px 0px 0px 2px;
+    }
+
     &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
     }
-    
+
     &:not(:disabled) {
         cursor: text;
+
         &:not(:focus-within) {
             cursor: pointer;
         }

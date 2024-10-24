@@ -7,7 +7,7 @@
 			"modified": 1725810376859,
 			"revision": 1,
 			"script": "console.log(\"--- MarpeScript Injected ---\")\r\n\r\ndocument.addEventListener(\"keydown\", (e) => {\r\n    if (\r\n        e.target.nodeName === \"INPUT\" ||\r\n        e.target.nodeName === \"TEXTAREA\" ||\r\n        e.target.isContentEditable\r\n    ) {\r\n        return;\r\n    }\r\n\r\n    if (e.key === \"ArrowUp\") {\r\n        console.log('pressed', e);\r\n        e.preventDefault();\r\n        e.stopPropagation();\r\n    } else {\r\n        console.log(\"pressed\", e);\r\n    }\r\n});\r\n\r\nwindow.printLocalStorage = () => {\r\n    if (chrome.storage) {\r\n        console.log(\"Local Storage\");\r\n        chrome.storage.local.get().then((r) => console.table(r));\r\n    }\r\n};\r\nwindow.printLocalStorage();\r\n\r\nwindow.printSharedStorage = () => {\r\n    if (chrome.storage) {\r\n        console.log(\"Shared Storage\");\r\n        chrome.storage.shared.get().then((r) => console.table(r));\r\n    }\r\n};\r\nwindow.printSharedStorage();",
-			"site": "*",
+			"site": "*://*/*",
 			"runAt": "document_end",
 			"style": "body { }",
 			"enabled": true
