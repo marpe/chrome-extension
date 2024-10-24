@@ -40,7 +40,7 @@ const downloadData = async () => {
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
-	a.download = "data.json";
+	a.download = "marpe-chrome-extension-scripts.json";
 	a.click();
 	URL.revokeObjectURL(url);
 };
