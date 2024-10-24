@@ -11,3 +11,8 @@ These other plugins/frameworks seem older:
 - https://crxjs.dev/vite-plugin
 - https://docs.plasmo.com/framework
 - https://github.com/AminoffZ/catonaut
+
+
+# TODO
+
+- [ ] Auto group tabs

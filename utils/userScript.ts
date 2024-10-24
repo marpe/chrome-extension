@@ -1,4 +1,5 @@
 import type { CSSInjection, CustomEntry } from "@/utils/state";
+import { matchPattern } from "browser-extension-url-match";
 import RegisteredUserScript = chrome.userScripts.RegisteredUserScript;
 
 export const mapToScriptEntry = (entry: CustomEntry): RegisteredUserScript => ({
@@ -7,6 +8,14 @@ export const mapToScriptEntry = (entry: CustomEntry): RegisteredUserScript => ({
 	matches: [`*://${entry.site}/*`],
 	runAt: entry.runAt,
 });
+
+export const matchesPattern = (pattern: string, url: string) => {
+	const matcher = matchPattern(pattern);
+	if (!matcher.valid) {
+		throw new Error(`Invalid match pattern: ${pattern}`);
+	}
+	return matcher.match(url);
+};
 
 export const executeScript = async (entries: CustomEntry[]) => {
 	const scriptIds = entries.map((entry) => entry.id);
@@ -89,8 +98,6 @@ export const injectCSS = async (entries: CustomEntry[]) => {
 	try {
 		const tabs = (await queryTabs()).filter(tabFilter);
 
-		const css = entries.map((entry) => entry.style).join("\n");
-
 		// const result = await chrome.permissions.request({
 		// 	origins: ["*://*/*"],
 		// 	permissions: ["scripting"],
@@ -98,14 +105,26 @@ export const injectCSS = async (entries: CustomEntry[]) => {
 
 		// console.log(`Permission request result: ${result}`);
 
-		const cssInjections = tabs.map(({ id }) => {
-			return {
-				css: css,
-				target: {
-					tabId: id,
-				},
-			} as CSSInjection;
-		});
+		const entriesPerTab = tabs.map((tab) =>
+			entries.filter((entry) => matchesPattern(entry.site, tab.url!)),
+		);
+
+		const cssInjections = entriesPerTab
+			.map((entries, i) => {
+				if (!entries.length) {
+					return null;
+				}
+
+				const css = entries.map((entry) => entry.style).join("\n");
+
+				return {
+					css: css,
+					target: {
+						tabId: tabs[i].id,
+					},
+				} as CSSInjection;
+			})
+			.filter((i) => i !== null);
 
 		const injectionResults = await Promise.all(
 			cssInjections.map(async (i) => {

@@ -11,7 +11,6 @@ declare module 'vue' {
     BackLink: typeof import('./components/BackLink.vue')['default']
     Debug: typeof import('./components/Debug.vue')['default']
     EditEntry: typeof import('./components/EditEntry.vue')['default']
-    Form: typeof import('./components/Form.vue')['default']
     ILucideChevronUp: typeof import('~icons/lucide/chevron-up')['default']
     ILucideCircleMinus: typeof import('~icons/lucide/circle-minus')['default']
     ILucideCirclePlus: typeof import('~icons/lucide/circle-plus')['default']

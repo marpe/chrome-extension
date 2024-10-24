@@ -36,13 +36,10 @@ export default defineConfig({
 			"userScripts",
 			"webNavigation",
 			"scripting",
+			"unlimitedStorage",
 		],
-		host_permissions: [
-            "*://*/*",
-        ],
-        optional_host_permissions: [
-            "*://*/*"
-        ],
+		host_permissions: ["*://*/*"],
+		optional_host_permissions: ["*://*/*"],
 		content_security_policy: {
 			extension_pages:
 				"script-src 'self' http://localhost:3000; object-src 'self'",

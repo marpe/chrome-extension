@@ -20,6 +20,9 @@ importers:
       '@wxt-dev/auto-icons':
         specifier: ^1.0.2
         version: 1.0.2(wxt@0.19.10(@types/node@22.5.4)(rollup@4.21.2))
+      browser-extension-url-match:
+        specifier: ^1.2.0
+        version: 1.2.0
       nanoid:
         specifier: ^5.0.7
         version: 5.0.7
@@ -1275,6 +1278,9 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
+  browser-extension-url-match@1.2.0:
+    resolution: {integrity: sha512-+O/t71m1opNU5KG/bJkeNLvXLp0OxlFekjdR8w6waUOyWhkL6+bnQ6dCDoJxc6YF6ZQM0r64ag/d9K4m05ULsg==}
+
   browserslist@4.23.3:
     resolution: {integrity: sha512-btwCFJVjI4YWDNfau8RhZ+B1Q/VLoUITrm3RlP6y1tYGWIOa+InuYiRGXUBXo8nA1qKmHMyLB/iVQg5TT4eFoA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
@@ -1716,6 +1722,9 @@ packages:
     resolution: {integrity: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==}
     engines: {node: '>= 10.17.0'}
     hasBin: true
+
+  fancy-regex@0.5.4:
+    resolution: {integrity: sha512-O6qfjtMnrPRs+3XOavCxGQDFaMS9K1vEsQMhPowqx2P/h1fDCvK5RUyeWeyDusMH2FkSHAsRE3IbSBMMg53fmw==}
 
   fast-glob@3.3.2:
     resolution: {integrity: sha512-oX2ruAFQwf/Orj8m737Y5adxDQO0LAB7/S5MnxCdTNDd4p6BsyIVsv9JQsATbTSq8KHRpLwIHbVlUNatxd+1Ow==}
@@ -4603,6 +4612,10 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
+  browser-extension-url-match@1.2.0:
+    dependencies:
+      fancy-regex: 0.5.4
+
   browserslist@4.23.3:
     dependencies:
       caniuse-lite: 1.0.30001658
@@ -5100,6 +5113,8 @@ snapshots:
       '@types/yauzl': 2.10.3
     transitivePeerDependencies:
       - supports-color
+
+  fancy-regex@0.5.4: {}
 
   fast-glob@3.3.2:
     dependencies:
