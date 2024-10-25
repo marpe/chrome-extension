@@ -1,17 +1,17 @@
 <script lang="ts"
         setup>
 import { useAppStore } from "@/stores/app.store";
+import type { CustomEntry } from "@/utils/state";
+import { updateUserScripts } from "@/utils/userScript";
+import { until, useAsyncState, useCloned, useConfirmDialog } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import * as monaco from "monaco-editor";
-import { useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 
 const store = useAppStore();
 await until(() => store.entries.innerValue.loaded).toBe(true);
 
-const { logError } = useLogging();
-
-const route = useRoute("/options/[index]");
-const router = useRouter();
 const selectedIndex = useRouteParams("index", "-1", { transform: Number });
 
 function stringifyEntry(entry: CustomEntry) {
@@ -19,7 +19,6 @@ function stringifyEntry(entry: CustomEntry) {
       {
         description: entry.description,
         script: entry.script,
-        style: entry.style,
         site: entry.site,
         runAt: entry.runAt,
         enabled: entry.enabled,
@@ -69,7 +68,17 @@ onBeforeRouteLeave(async () => {
   return await shouldNavigate();
 });
 
-const hasUserScripts = ref<boolean>(false);
+function isUserScriptsAvailable() {
+  try {
+    // Property access which throws if developer mode is not enabled.
+    chrome.userScripts;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const hasUserScripts = ref<boolean>(isUserScriptsAvailable());
 
 const {
   state: userScripts,
@@ -78,12 +87,8 @@ const {
   isLoading,
 } = await useAsyncState(async () => {
   try {
-    const scripts = await chrome.userScripts.getScripts();
-    hasUserScripts.value = true;
-    return scripts;
+    return await chrome.userScripts.getScripts();
   } catch (e) {
-    hasUserScripts.value = false;
-    console.error(e);
     return [];
   }
 }, []);
@@ -92,13 +97,6 @@ const selectedUserScript = computed(() =>
     userScripts.value.find((script) => script.id === entryRef.value.id),
 );
 
-const selectedUserScriptHtml = computedAsync(async () => {
-  return await monaco.editor.colorize(
-      selectedUserScript.value?.js[0].code ?? "",
-      "javascript",
-      {},
-  );
-});
 const saveButton = useTemplateRef("saveButton");
 
 const reset = async () => {
@@ -127,14 +125,9 @@ const save = async () => {
     ...store.entries.ref.slice(selectedIndex.value + 1),
   ];
 
-  await removeInjectedCSS(store.injectedCSS.ref);
-  const { successfulInjections, failedInjections } = await injectCSS(
-      store.entries.ref,
-  );
-  await executeScript(store.entries.ref);
-  store.setCSSInjections(successfulInjections);
+  const scriptChanges = await updateUserScripts(store.entries.ref);
 
-  console.log("Saved and injected");
+  console.log("Saved", scriptChanges);
 
   await refreshUserScripts();
 
@@ -143,13 +136,13 @@ const save = async () => {
 
 async function loadUserScript() {
   if (!selectedUserScript.value) {
-    logError("User script not found");
+    store.logError("User script not found");
     return;
   }
 
   const code = selectedUserScript.value.js[0].code;
   if (!code) {
-    logError("User script has no code");
+    store.logError("User script has no code");
     return;
   }
 
@@ -161,54 +154,24 @@ async function loadUserScript() {
     prevValue: prevValue,
   });
 }
+
+const vColorize = {
+  mounted: async (el: HTMLElement) => {
+    await monaco.editor.colorizeElement(el, { theme: "github-dark" });
+  },
+};
 </script>
 
 
 <template>
   <div v-if="hasUserScripts">
     <div class="flex flex-col gap-4">
+      <div>
+        Script Id: <span class="font-mono">{{ entryRef.id }}</span>
+      </div>
+
       <EditEntry v-model="entryRef" />
-      <template v-if="selectedUserScript">
-        <div class="border border-[var(--input-border)] p-4 flex rounded-md flex-col gap-4 userscript">
-          <div>
-            Registered user script
-          </div>
-          <div class="text-sm">
-            <table>
-              <tbody>
-                <tr>
-                  <td class="text-gray-400 text-right">id</td>
-                  <td class="font-mono text-left">{{ selectedUserScript.id }}</td>
-                </tr>
-                <tr>
-                  <td class="text-gray-400 text-right">matches</td>
-                  <td class="font-mono text-left">{{ selectedUserScript.matches }}</td>
-                </tr>
-                <tr>
-                  <td class="text-gray-400 text-right">run at</td>
-                  <td class="font-mono text-left">{{ selectedUserScript.runAt }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div ref="registeredUserScript"
-               class="data font-mono text-[0.75rem] font-normal"
-               data-lang="javascript"
-               v-html="selectedUserScriptHtml">
-          </div>
-          <div class="flex flex-row justify-end">
-            <button class="btn-outlined"
-                    @click="loadUserScript">
-              Use this
-            </button>
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <div>
-          No registered user script found.
-        </div>
-      </template>
+
       <div class="flex gap-4">
         <button ref="saveButton"
                 class="btn-outlined"
@@ -224,6 +187,54 @@ async function loadUserScript() {
           Reset
         </button>
       </div>
+
+      <template v-if="selectedUserScript">
+        <div class="border border-[var(--input-border)] p-4 flex rounded-md flex-col gap-4"
+             tabindex="-1"
+             @click="$event.currentTarget!.toggleAttribute('aria-expanded')">
+          <div>
+            <h3 class="mb-4">
+              Registered user script
+            </h3>
+            <div class="text-sm">
+              <table>
+                <tbody>
+                  <tr>
+                    <td class="text-gray-400 text-right">id</td>
+                    <td class="font-mono text-left">{{ selectedUserScript.id }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-gray-400 text-right">matches</td>
+                    <td class="font-mono text-left">{{ selectedUserScript.matches }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-gray-400 text-right">run at</td>
+                    <td class="font-mono text-left">{{ selectedUserScript.runAt }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div ref="registeredUserScript"
+                 v-colorize
+                 class="data font-mono text-[0.75rem] font-normal mb-4"
+                 data-lang="javascript">
+              {{ selectedUserScript.js[0].code }}
+            </div>
+            <div class="flex flex-row justify-end">
+              <button class="btn-outlined"
+                      @click="loadUserScript">
+                Use this
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div>
+          No registered user script found.
+        </div>
+      </template>
+
     </div>
 
     <template v-if="showModal">
@@ -252,25 +263,35 @@ async function loadUserScript() {
     </template>
   </div>
   <div v-else>
-    <div class="flex flex-col gap-4">
-      <div>
-        <div>
-          <i-lucide-info class="size-6" />
-          User scripts are not supported in this browser.
-        </div>
-      </div>
+    <div class="flex flex-row gap-4 items-center justify-center">
+      <i-lucide-info class="size-6" />
+      User scripts are not supported in this browser.
     </div>
   </div>
 </template>
 
 <style>
-.userscript {
+.folded {
   height: 40px;
-  overflow: clip;
-  transition: height 0.5s ease;
+  overflow: hidden;
 
-  &:hover {
+  transition: height 500ms;
+
+  &[aria-expanded], &:focus-visible, &:hover {
     height: auto;
+  }
+}
+
+dl {
+  font-size: var(--font-size-0);
+
+  > div {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    justify-content: start;
   }
 }
 </style>

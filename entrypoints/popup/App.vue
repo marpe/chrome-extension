@@ -22,9 +22,25 @@ const send = async () => {
     </button>
   </div>-->
 
-  <Suspense>
-    <Options />
-  </Suspense>
+  <RouterView v-slot="{ Component }">
+    <template v-if="Component">
+      <Transition mode="out-in"
+                  name="slide-up">
+        <!--        <KeepAlive>-->
+        <Suspense>
+          <component :is="Component" />
+
+          <template #fallback>
+            <div class="flex flex-col items-center justify-center gap-4">
+              <h2>Loading</h2>
+              <i-lucide-loader-circle class="spin size-8" />
+            </div>
+          </template>
+        </Suspense>
+        <!--        </KeepAlive>-->
+      </Transition>
+    </template>
+  </RouterView>
 
 </template>
 

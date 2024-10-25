@@ -2,6 +2,8 @@
         setup>
 import { matchPattern } from "browser-extension-url-match";
 import type { CustomEntry } from "@/utils/state";
+import { useDateFormat, useMagicKeys, useTimeAgo } from "@vueuse/core";
+import { computed, PropType, ref } from "vue";
 
 const model = defineModel({
   type: Object as PropType<CustomEntry>,
@@ -122,13 +124,6 @@ const exampleMatches = computed(() => {
           <option value="document_idle">document_idle</option>
         </select>
       </div>
-    </div>
-
-    <div :style="{ flex: '0 1 0' }">
-      <MonacoEditor v-model="model.style"
-                    v-model:version="styleVersion"
-                    :initial="model.style"
-                    language="css" />
     </div>
 
     <div :style="{ flex: '0 1 0' }">

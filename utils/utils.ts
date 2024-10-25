@@ -1,12 +1,14 @@
+import { pinia } from "@/stores/pinia-instance";
 import { createHead } from "@unhead/vue";
 import { DataLoaderPlugin } from "unplugin-vue-router/data-loaders";
-import type { Component } from "vue";
+import { type Component, createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { handleHotUpdate, routes } from "vue-router/auto-routes";
 
 export const setupApp = (App: Component) => {
 	const app = createApp(App);
 
+	console.log("routes", routes);
 	const router = createRouter({
 		history: createWebHashHistory(import.meta.env.BASE_URL),
 		// routes: setupLayouts(routes),
@@ -16,8 +18,6 @@ export const setupApp = (App: Component) => {
 	if (import.meta.hot) {
 		handleHotUpdate(router);
 	}
-
-	const pinia = createPinia();
 
 	const head = createHead();
 

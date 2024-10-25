@@ -18,12 +18,16 @@ export default defineConfig({
 		"vite:devServer:extendConfig": (config) => {
 			console.log(
 				"extending vite dev server config",
-				config.server?.watch.ignored,
+				config.server?.watch?.ignored,
 			);
 			config.plugins!.push(
 				vueDevTools({
 					launchEditor: "webstorm",
 					appendTo: "entrypoints/options/main.ts",
+				}),
+				vueDevTools({
+					launchEditor: "webstorm",
+					appendTo: "entrypoints/popup/main.ts",
 				}),
 			);
 		},
@@ -39,7 +43,7 @@ export default defineConfig({
 			"scripting",
 		],
 		host_permissions: ["*://*/*"],
-		optional_host_permissions: ["*://*/*"],
+		// optional_host_permissions: ["*://*/*"],
 		content_security_policy: {
 			extension_pages:
 				"script-src 'self' http://localhost:3000; object-src 'self'",
@@ -119,13 +123,20 @@ export default defineConfig({
 			],
 		};
 	},
-	imports: {
+	// See https://www.npmjs.com/package/unimport#configurations
+	// https://wxt.dev/guide/essentials/config/auto-imports.html
+	imports: false /*{
 		presets: ["vue-router", "@vueuse/core", "pinia"],
-		/*addons: {
+		/!*addons: {
 			vueTemplate: true,
-		},*/
+		},*!/
+		dirs: ["./components"],
+		dts: "./auto-imports.d.ts",
 		eslintrc: {
 			enabled: false,
 		},
-	},
+		biomelintrc: {
+			enabled: true,
+		},
+	},*/,
 });

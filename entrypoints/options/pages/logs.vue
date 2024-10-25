@@ -3,8 +3,9 @@
         lang="ts">
 import { useAppStore } from "@/stores/app.store";
 import type { LogEntry } from "@/utils/state";
+import { ref } from "vue";
+import { useSorted } from "@vueuse/core";
 const store = useAppStore();
-const logging = useLogging();
 
 const toggleShowDebug = (index: number) => {
 	open.value = {
@@ -16,11 +17,11 @@ const toggleShowDebug = (index: number) => {
 const open = ref<Record<number, boolean>>({});
 
 const clearLogs = () => {
-	logging.clearLogs();
+	store.clearLogs();
 };
 
 const sortedLogs = useSorted<LogEntry>(
-	() => logging.logs.ref,
+	() => store.logs.ref,
 	(a, b) => b.timestamp - a.timestamp,
 );
 </script>
@@ -30,13 +31,13 @@ const sortedLogs = useSorted<LogEntry>(
    <template v-if="store.loaded">
      <div class="flex flex-row items-center justify-between">
         <div>
-          <button @click="clearLogs" class="btn-outlined" :disabled="logging.logs.ref.length === 0">
+          <button @click="clearLogs" class="btn-outlined" :disabled="store.logs.ref.length === 0">
             Clear Logs
           </button>
         </div>
        
        <div>
-         {{logging.logs.ref.length}} log(s)
+         {{store.logs.ref.length}} log(s)
        </div>
      </div>
      <div class="logs">

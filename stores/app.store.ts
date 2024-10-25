@@ -1,87 +1,19 @@
+import { createStorageItemRef } from "@/stores/createStorageItemRef";
 import { createEntry } from "@/utils/createEntry";
-import { type CSSInjection, type LogEntry, storageItems } from "@/utils/state";
-import type { Unwatch, WxtStorageItem } from "wxt/storage";
+import { type LogEntry, storageItems } from "@/utils/state";
+import { acceptHMRUpdate, defineStore } from "pinia";
+import { computed } from "vue";
+import { useRouter } from "vue-router";
 
 const clamp = (value: number, min: number, max: number) => {
 	return Math.min(Math.max(value, min), max);
 };
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-// biome-ignore lint/complexity/noBannedTypes: <explanation>
-function createItemBackedRef<T, M extends Record<string, unknown> = {}>(
-	storageItem: WxtStorageItem<T, M>,
-) {
-	const innerValue: {
-		value: T;
-		loaded: Ref<boolean>;
-		watcher: Unwatch | null;
-	} = {
-		value: storageItem.fallback,
-		loaded: ref(false),
-		watcher: null,
-	};
-
-	const valueRef = customRef((track, trigger) => {
-		const addWatcher = () => {
-			innerValue.watcher = storageItem.watch((v) => {
-				innerValue.value = v;
-				trigger();
-			});
-		};
-
-		const removeWatcher = () => {
-			console.log("removing watcher");
-			innerValue.watcher?.();
-			innerValue.watcher = null;
-		};
-
-		storageItem
-			.getValue()
-			.then(async (v) => {
-				await sleep(1000);
-				return v;
-			})
-			.then((v) => {
-				console.log("loaded initial value", v);
-				innerValue.value = v;
-				innerValue.loaded.value = true;
-				trigger();
-				addWatcher();
-			});
-
-		return {
-			get() {
-				track();
-				return innerValue.value;
-			},
-			set(newValue: T) {
-				console.log("setting", newValue);
-				removeWatcher();
-				innerValue.value = newValue;
-				storageItem.setValue(newValue).then(() => {
-					trigger();
-					addWatcher();
-				});
-			},
-		};
-	});
-
-	return { storageItem, ref: valueRef, innerValue };
-}
-
 export const useAppStore = defineStore("app", () => {
 	const items = {
-		injectedCSS: createItemBackedRef(storageItems.injectedCSS),
-		entries: createItemBackedRef(storageItems.entries),
-		logs: createItemBackedRef(storageItems.logs),
+		entries: createStorageItemRef(storageItems.entries, "entries"),
+		logs: createStorageItemRef(storageItems.logs, "logs"),
 	} as const;
-
-	const clearInjections = () => {
-		while (items.injectedCSS.ref.value.length > 0) {
-			items.injectedCSS.ref.value.pop();
-		}
-	};
 
 	const loaded = computed(() => {
 		return Object.values(items).every((s) => s.innerValue.loaded.value);
@@ -106,10 +38,6 @@ export const useAppStore = defineStore("app", () => {
 		);
 	};
 
-	const setCSSInjections = (injections: CSSInjection[]) => {
-		items.injectedCSS.ref.value = injections;
-	};
-
 	const router = useRouter();
 
 	const selectEntry = (index: number) => {
@@ -122,27 +50,52 @@ export const useAppStore = defineStore("app", () => {
 		items.logs.ref.value = [];
 	};
 
-	const log = (l: LogEntry) => {
+	const log = (
+		severity: LogEntry["severity"],
+		message: string,
+		data?: LogEntry["data"],
+	) => {
+		addLog({ severity, message, data, timestamp: Date.now() });
+	};
+
+	const addLog = (l: LogEntry) => {
 		items.logs.ref.value = [...items.logs.ref.value, l];
 		while (items.logs.ref.value.length > 100) {
 			items.logs.ref.value = items.logs.ref.value.slice(1);
 		}
 		if (l.severity === "error") {
 			console.error(l.message, l.data);
+		} else if (l.severity === "warn") {
+			console.warn(l.message, l.data);
 		} else {
 			console.log(l.message, l.data);
 		}
 	};
 
+	const logInfo = (message: string, data?: LogEntry["data"]) => {
+		log("info", message, data);
+	};
+	const logError = (message: string, data?: LogEntry["data"]) => {
+		log("error", message, data);
+	};
+	const logWarn = (message: string, data?: LogEntry["data"]) => {
+		log("warn", message, data);
+	};
+	const logDebug = (message: string, data?: LogEntry["data"]) => {
+		log("debug", message, data);
+	};
+
 	return {
 		loaded,
 		...items,
-		clearInjections,
 		removeEntry,
 		selectEntry,
 		addEntry,
-		setCSSInjections,
 		log,
+		logDebug,
+		logError,
+		logInfo,
+		logWarn,
 		clearLogs,
 	} as const;
 });

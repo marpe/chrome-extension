@@ -5,6 +5,10 @@ import { useAppStore } from "@/stores/app.store";
 import { createEntry } from "@/utils/createEntry";
 import { setupMonaco } from "@/utils/monacoSetup";
 import { useRouteParams } from "@vueuse/router";
+import { toRaw } from "vue";
+import { CustomEntry } from "@/utils/state";
+import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
+import { useRoute, useRouter } from "vue-router";
 
 const store = useAppStore();
 await until(() => store.loaded).toBe(true);
@@ -12,9 +16,6 @@ setupMonaco();
 
 const route = useRoute("/options/[index]");
 const selectedIndex = useRouteParams("index", "-1", { transform: Number });
-
-const { logInfo, logError } = useLogging();
-const { injectCSS, removeInjectedCSS, executeScript } = useScripting();
 
 /*watch(
 	() => store.selectedEntry,
@@ -54,7 +55,7 @@ const exportData = async () => {
 		await navigator.clipboard.writeText(json);
 		console.log("Copied to clipboard");
 	} catch (e) {
-		logError("Error exporting data", e);
+		store.logError("Error exporting data", e);
 	}
 };
 
@@ -64,7 +65,7 @@ const importData = async () => {
 		const data = JSON.parse(json);
 		store.entries.ref = data.entries;
 	} catch (e) {
-		logError("Error importing data", e);
+    store.logError("Error importing data", e);
 	}
 };
 
@@ -81,14 +82,14 @@ const removeAll = () => {
 
 const clearUserScripts = async () => {
 	const scripts = await chrome.userScripts.getScripts();
-	logInfo("Unregistering scripts", scripts);
+  store.logInfo("Unregistering scripts", scripts);
 	await chrome.userScripts.unregister();
 	// await refreshUserScripts();
 };
 
 const loadRegistered = async () => {
 	const scripts = await chrome.userScripts.getScripts();
-	logInfo("Registered scripts", scripts);
+  store.logInfo("Registered scripts", scripts);
 
 	for (const registeredScript of scripts) {
 		const scriptEntry = store.entries.ref.find(
@@ -96,17 +97,17 @@ const loadRegistered = async () => {
 		);
 		if (scriptEntry) {
 			if (registeredScript.js.length === 0) {
-				logError("Script has no js", { registeredScript, scriptEntry });
+				store.logError("Script has no js", { registeredScript, scriptEntry });
 				continue;
 			}
 
 			if (scriptEntry.script !== registeredScript.js[0].code) {
-				logError("Script does not match", { registeredScript, scriptEntry });
+        store.logError("Script does not match", { registeredScript, scriptEntry });
 			} else {
-				logInfo("Script matches", { registeredScript, scriptEntry });
+        store.logInfo("Script matches", { registeredScript, scriptEntry });
 			}
 		} else {
-			logError("Script not found", registeredScript);
+      store.logError("Script not found", registeredScript);
 		}
 	}
 };
@@ -144,7 +145,7 @@ function removeEntry(index: number) {
 
 <template>
     <main>
-            <div class="grid grid-cols-[260px_1fr] flex-1 overflow-hidden">
+            <div class="grid grid-cols-[260px_1fr] flex-1 overflow-y-auto">
                 <div class="flex flex-col gap-4 overflow-hidden">
                     <div class="flex flex-row gap-2 flex-wrap pt-4 pl-4">
                         <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md" title="Add new entry"
@@ -189,12 +190,9 @@ function removeEntry(index: number) {
                     </div>
                 </div>
 
-                <div class="overflow-y-auto flex flex-col gap-4 px-4 pt-4">
+                <div class="flex flex-col gap-4 px-4 pt-4">
                   <div class="flex flex-col gap-4">
                     <template v-if="!!store.entries.ref[selectedIndex]">
-                      <div>
-                        Editing: {{ selectedIndex }} (<span class="font-mono">{{ store.entries.ref[selectedIndex]?.id }}</span>)
-                      </div>
                       <RouterView :key="selectedIndex" />
                     </template>
                     <template v-else>

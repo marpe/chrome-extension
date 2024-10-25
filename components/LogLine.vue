@@ -1,5 +1,9 @@
 
 <script setup lang="ts">
+import { useDateFormat } from "@vueuse/core";
+import { PropType } from "vue";
+import { LogEntry } from "@/utils/state";
+
 const props = defineProps({
 	log: {
 		type: Object as PropType<LogEntry>,

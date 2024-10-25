@@ -32,6 +32,7 @@ declare module 'vue' {
     LogLine: typeof import('./components/LogLine.vue')['default']
     LogToast: typeof import('./components/LogToast.vue')['default']
     MessageButtons: typeof import('./components/MessageButtons.vue')['default']
+    MonacoColorize: typeof import('./components/MonacoColorize.vue')['default']
     MonacoEditor: typeof import('./components/MonacoEditor.vue')['default']
     NavLink: typeof import('./components/NavLink.vue')['default']
     NotFound: typeof import('./components/NotFound.vue')['default']

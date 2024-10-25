@@ -1,6 +1,9 @@
 <script lang="ts"
         setup
 >
+import { ref } from "vue";
+import { browser } from "wxt/browser";
+
 const helloResponse = ref("");
 const sendHello = async () => {
 	try {

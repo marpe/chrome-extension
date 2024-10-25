@@ -1,14 +1,16 @@
-import { executeScript, injectCSS } from "@/utils/userScript";
+import { useAppStore } from "@/stores/app.store";
+import { pinia } from "@/stores/pinia-instance";
+import { updateUserScripts } from "@/utils/userScript";
+import { until } from "@vueuse/core";
 import { onMessage } from "webext-bridge/background";
+import { browser } from "wxt/browser";
+import { defineBackground } from "wxt/sandbox";
+
+const store = useAppStore(pinia);
 
 export default defineBackground({
 	type: "module",
 	main: () => {
-		console.log(`Hello from ${browser.runtime.id}!`);
-
-		const storedEntries = storageItems.entries;
-		const storedCSSInjections = storageItems.injectedCSS;
-
 		const openPopup = () => {
 			browser.windows.create({
 				url: "popup.html",
@@ -19,46 +21,53 @@ export default defineBackground({
 		};
 
 		browser.commands.onCommand.addListener((command, tab) => {
-			console.log("Command:", { command, tab });
+			store.logInfo("Command:", { command, tab });
 
 			if (command === "popout") {
 				openPopup();
 			} else {
-				console.log("Unknown command:", command);
+				store.logError("Unknown command:", command);
 			}
 		});
 
 		const onContextMenuClicked = (info: chrome.contextMenus.OnClickData) => {
-			console.log("Context menu clicked:", info);
 			openPopup();
 		};
 
 		chrome.contextMenus.onClicked.addListener(onContextMenuClicked);
 
-		chrome.webNavigation.onCompleted.addListener(async (details) => {
-			const entries = await storedEntries.getValue();
-			const cssInjections = await storedCSSInjections.getValue();
+		chrome.webNavigation.onCommitted.addListener(async (details) => {});
+
+		/*const updateCSS = async () => {
+			await until(() => store.loaded).toBe(true);
+
+			const cssInjections = [...store.injectedCSS.innerValue.value];
 
 			await removeInjectedCSS(cssInjections);
-			const { successfulInjections, failedInjections } =
-				await injectCSS(entries);
-			await executeScript(entries);
-			storedCSSInjections.setValue(successfulInjections);
-			console.log("Web navigation completed:", {
-				details,
-				successfulInjections,
-				failedInjections,
-				entries,
-			});
-		});
 
-		browser.runtime.onInstalled.addListener((details) => {
+			const entries = [...store.entries.innerValue.value];
+
+			// biome-ignore format: keep on 1 line
+			const { successfulInjections, failedInjections } = await injectCSS(entries, [details.tabId]);
+		}*/
+
+		chrome.webNavigation.onCompleted.addListener(async (details) => {});
+
+		async function reregisterUserScripts() {
+			await until(() => store.loaded).toBe(true);
+			const entries = [...store.entries.ref];
+			const changes = await updateUserScripts(entries);
+			store.logInfo("Reregistered scripts", changes);
+		}
+
+		browser.runtime.onInstalled.addListener(async (details) => {
 			const optionsUrl = browser.runtime.getURL("/options.html");
 			if (details.reason === "update") {
-				console.log("Extension updated", details);
+				store.logInfo("Extension updated", details);
+				await reregisterUserScripts();
 				browser.tabs.create({ url: `${optionsUrl}?updated` });
 			} else {
-				console.log("Extension installed", details);
+				store.logInfo("Extension installed", details);
 				browser.tabs.create({ url: `${optionsUrl}?installed` });
 			}
 

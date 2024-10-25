@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import * as monaco from "monaco-editor";
-import { useTemplateRef } from "vue";
+import { onMounted, useTemplateRef, watch } from "vue";
 import IStandaloneEditorConstructionOptions = monaco.editor.IStandaloneEditorConstructionOptions;
+import { useDraggable, useMagicKeys } from "@vueuse/core";
 
 const props = defineProps({
 	language: {

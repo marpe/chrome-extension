@@ -2,6 +2,7 @@
         lang="ts">
 // @ts-nocheck
 import { RouterLink } from "vue-router";
+import { computed } from "vue";
 
 defineOptions({
 	inheritAttrs: false,

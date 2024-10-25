@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { computed, ref } from "vue";
+import { useLogging } from "@/utils/logging";
+
 const { logs, logInfo, logError } = useLogging();
 const lastLog = computed(() => {
 	return logs.ref[logs.ref.length - 1];
@@ -16,10 +19,10 @@ const logOpen = ref(false);
         <button @click="logOpen = false">Close</button>
       </div>
       <div class="log-toast-body">
-        <div v-for="log in logs" :key="log.id" class="log-toast-item">
+        <div v-for="log in logs.ref" class="log-toast-item">
           <div class="log-toast-item-header">
-            <span>{{ log.type }}</span>
-            <span>{{ log.time }}</span>
+            <span>{{ log.severity }}</span>
+            <span>{{ log.timestamp }}</span>
           </div>
           <div class="log-toast-item-body">
             <pre>{{ log.message }}</pre>
@@ -27,4 +30,5 @@ const logOpen = ref(false);
         </div>
       </div>
     </div>
+  </template>
 </template>

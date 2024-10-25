@@ -6,7 +6,6 @@ export const createEntry = (description: string): CustomEntry => ({
 	description: description,
 	site: "*://*/*",
 	runAt: "document_end",
-	style: "body {}",
 	script: 'console.log("Hello World")',
 	created: Date.now(),
 	modified: Date.now(),
