@@ -170,7 +170,7 @@ const vColorize = {
         Script Id: <span class="font-mono">{{ entryRef.id }}</span>
       </div>
 
-      <EditEntry v-model="entryRef" />
+      <EditEntry @save="save" v-model="entryRef" />
 
       <div class="flex gap-4">
         <button ref="saveButton"
@@ -188,51 +188,53 @@ const vColorize = {
         </button>
       </div>
 
-      <template v-if="selectedUserScript">
-        <div class="border border-[var(--input-border)] p-4 flex rounded-md flex-col gap-4"
-             tabindex="-1"
-             @click="$event.currentTarget!.toggleAttribute('aria-expanded')">
-          <div>
-            <h3 class="mb-4">
-              Registered user script
-            </h3>
-            <div class="text-sm">
-              <table>
-                <tbody>
-                  <tr>
-                    <td class="text-gray-400 text-right">id</td>
-                    <td class="font-mono text-left">{{ selectedUserScript.id }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-gray-400 text-right">matches</td>
-                    <td class="font-mono text-left">{{ selectedUserScript.matches }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-gray-400 text-right">run at</td>
-                    <td class="font-mono text-left">{{ selectedUserScript.runAt }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div ref="registeredUserScript"
-                 v-colorize
-                 class="data font-mono text-[0.75rem] font-normal mb-4"
-                 data-lang="javascript">
-              {{ selectedUserScript.js[0].code }}
-            </div>
-            <div class="flex flex-row justify-end">
-              <button class="btn-outlined"
-                      @click="loadUserScript">
-                Use this
-              </button>
+      <template v-if="store.showDebug">
+        <template v-if="selectedUserScript">
+          <div class="border border-[var(--input-border)] p-4 flex rounded-md flex-col gap-4"
+               tabindex="-1"
+               @click="$event.currentTarget!.toggleAttribute('aria-expanded')">
+            <div>
+              <h3 class="mb-4">
+                Registered user script
+              </h3>
+              <div class="text-sm">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td class="text-gray-400 text-right">id</td>
+                      <td class="font-mono text-left">{{ selectedUserScript.id }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-gray-400 text-right">matches</td>
+                      <td class="font-mono text-left">{{ selectedUserScript.matches }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-gray-400 text-right">run at</td>
+                      <td class="font-mono text-left">{{ selectedUserScript.runAt }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div ref="registeredUserScript"
+                   v-colorize
+                   class="data font-mono text-[0.75rem] font-normal mb-4"
+                   data-lang="javascript">
+                {{ selectedUserScript.js[0].code }}
+              </div>
+              <div class="flex flex-row justify-end">
+                <button class="btn-outlined"
+                        @click="loadUserScript">
+                  Use this
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </template>
-      <template v-else>
-        <div>
-          No registered user script found.
-        </div>
+        </template>
+        <template v-else>
+          <div>
+            No registered user script found.
+          </div>
+        </template>
       </template>
 
     </div>

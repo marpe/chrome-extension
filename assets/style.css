@@ -192,7 +192,7 @@ button {
     }
 }
 
-input, textarea {
+input, textarea, select {
     background: var(--surface-3);
     border: 1px solid var(--input-border);
     font-size: 0.8rem;

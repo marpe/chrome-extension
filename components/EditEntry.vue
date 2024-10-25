@@ -4,6 +4,9 @@ import { matchPattern } from "browser-extension-url-match";
 import type { CustomEntry } from "@/utils/state";
 import { useDateFormat, useMagicKeys, useTimeAgo } from "@vueuse/core";
 import { computed, PropType, ref } from "vue";
+import { useAppStore } from "@/stores/app.store";
+
+const store = useAppStore();
 
 const model = defineModel({
   type: Object as PropType<CustomEntry>,
@@ -26,7 +29,7 @@ const formattedCreatedDateTime = useDateFormat(
 const keys = useMagicKeys({
   passive: false,
   onEventFired: (event) => {
-    if (event.key === "s" && event.ctrlKey) {
+    if (event.key === "s" && event.ctrlKey && event.type === "keydown") {
       emit("save");
       event.preventDefault();
     }
@@ -90,19 +93,23 @@ const exampleMatches = computed(() => {
                style="width: 100%" />
       </div>
 
-      <div v-if="isSiteValid"
-           class="flex flex-col gap-2"
-           style="display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.75rem;">
-        <div v-for="example in exampleMatches"
-             style="display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div>{{ example.matches ? '✔️' : '❌' }}</div>
-          <div>{{ example.url }}</div>
+
+      <template v-if="store.showDebug">
+        <div v-if="isSiteValid"
+             class="flex flex-col gap-2"
+             style="display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.75rem;">
+          <div v-for="example in exampleMatches"
+               style="display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>{{ example.matches ? '✔️' : '❌' }}</div>
+            <div>{{ example.url }}</div>
+          </div>
         </div>
-      </div>
-      <div v-if="matcherError"
-           class="flex flex-col gap-2">
-        {{ matcherError.name }}: {{ matcherError.message }}
-      </div>
+        <div v-if="matcherError"
+             class="flex flex-col gap-2">
+          {{ matcherError.name }}: {{ matcherError.message }}
+        </div>
+      </template>
+
       <div class="flex flex-col gap-2">
         <div class="flex flex-row items-center gap-4">
           <input id="enabled"

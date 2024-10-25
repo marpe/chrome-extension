@@ -2,7 +2,7 @@ import { createStorageItemRef } from "@/stores/createStorageItemRef";
 import { createEntry } from "@/utils/createEntry";
 import { type LogEntry, storageItems } from "@/utils/state";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const clamp = (value: number, min: number, max: number) => {
@@ -19,6 +19,8 @@ export const useAppStore = defineStore("app", () => {
 		return Object.values(items).every((s) => s.innerValue.loaded.value);
 	});
 
+	const showDebug = ref<boolean>(false);
+
 	const addEntry = () => {
 		const entry = createEntry(`New Entry ${items.entries.ref.value.length}`);
 		items.entries.ref.value = [...items.entries.ref.value, entry];
@@ -33,7 +35,7 @@ export const useAppStore = defineStore("app", () => {
 		if (clamped !== index) {
 			selectEntry(clamped);
 		}
-		console.log(
+		logInfo(
 			`Removed entry, number of entries: ${items.entries.ref.value.length}`,
 		);
 	};
@@ -88,6 +90,7 @@ export const useAppStore = defineStore("app", () => {
 	return {
 		loaded,
 		...items,
+		showDebug,
 		removeEntry,
 		selectEntry,
 		addEntry,
