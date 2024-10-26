@@ -77,14 +77,15 @@ onMounted(() => {
 		scrollBeyondLastLine: false,
 		lineNumbers: "off",
 		minimap: { enabled: false },
-		theme: "github-dark",
 		formatOnPaste: true,
 		formatOnType: true,
 		autoIndent: "full",
 		fontFamily: "JetBrains Mono",
 		fontLigatures: true,
+		fontWeight: "400",
 		overviewRulerLanes: 0,
-		fontSize: 12,
+		fontSize: 14,
+		lineHeight: 21,
 		trimAutoWhitespace: true,
 		fixedOverflowWidgets: true,
 		scrollbar: {
@@ -103,6 +104,8 @@ onMounted(() => {
 	}
 
 	editor = monaco.editor.create(monacoEl.value, settings);
+
+	monaco.editor.setTheme("aurora-x");
 
 	adjustHeight();
 
@@ -194,6 +197,23 @@ const formatDocument = () => {
           <button class="btn-icon" title="Adjust size" @click="() => adjustHeight(true)">
             <i-lucide-scaling />
           </button>
+          <select @change="monaco.editor.setTheme($event.target.value)">
+            <option value="andromeeda">Andromeeda</option>
+            <option value="aurora-x">Aurora X</option>
+            <option value="ayu-dark">Ayu Dark</option>
+            <option value="synthwave-84">Synthwave '84</option>
+            <option value="plastic">Plastic</option>
+            <option value="vitesse-dark">Vitesse Dark</option>
+            <option value="one-dark-pro">One Dark Pro</option>
+            <option value="github-dark">Github Dark</option>
+          </select>
+
+          <select @change="editor?.updateOptions({ fontFamily: $event.target.value })">
+            <option value="Segoe UI">Segoe UI</option>
+            <option value="DM Mono">DM Mono</option>
+            <option value="JetBrains Mono">JetBrains Mono</option>
+            <option value="Consolas">Consolas</option>
+          </select>
         </div>
     </div>
 </template>

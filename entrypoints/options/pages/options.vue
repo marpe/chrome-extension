@@ -4,15 +4,15 @@ import presets from "@/assets/presets.json";
 import { useFormatCreatedModified } from "@/composables/useCreatedModified";
 import { useAppStore } from "@/stores/app.store";
 import { setupMonaco } from "@/utils/monacoSetup";
+import type { CustomEntry } from "@/utils/state";
+import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { toRaw } from "vue";
-import { CustomEntry } from "@/utils/state";
-import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
 import { useRoute, useRouter } from "vue-router";
 
 const store = useAppStore();
 await until(() => store.loaded).toBe(true);
-setupMonaco();
+await setupMonaco();
 
 const route = useRoute("/options/[index]");
 const router = useRouter();
@@ -20,7 +20,7 @@ const selectedIndex = useRouteParams("index", "-1", { transform: Number });
 
 await until(() => store.entries.innerValue.loaded).toBe(true);
 if (selectedIndex.value === -1 && store.entries.ref.length > 0) {
-  router.push("/options/0");
+	router.push("/options/0");
 }
 
 /*watch(
@@ -39,111 +39,114 @@ if (selectedIndex.value === -1 && store.entries.ref.length > 0) {
 });*/
 
 const downloadData = async () => {
-  const data = {
-    entries: toRaw(store.entries.ref),
-  };
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "marpe-chrome-extension-scripts.json";
-  a.click();
-  URL.revokeObjectURL(url);
+	const data = {
+		entries: toRaw(store.entries.ref),
+	};
+	const json = JSON.stringify(data, null, 2);
+	const blob = new Blob([json], { type: "application/json" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = "marpe-chrome-extension-scripts.json";
+	a.click();
+	URL.revokeObjectURL(url);
 };
 
 const exportData = async () => {
-  try {
-    const data = {
-      entries: toRaw(store.entries.ref),
-    };
-    const json = JSON.stringify(data, null, 2);
-    await navigator.clipboard.writeText(json);
-    console.log("Copied to clipboard");
-  } catch (e) {
-    store.logError("Error exporting data", e);
-  }
+	try {
+		const data = {
+			entries: toRaw(store.entries.ref),
+		};
+		const json = JSON.stringify(data, null, 2);
+		await navigator.clipboard.writeText(json);
+		console.log("Copied to clipboard");
+	} catch (e) {
+		store.logError("Error exporting data", e);
+	}
 };
 
 const importData = async () => {
-  try {
-    const json = await navigator.clipboard.readText();
-    const data = JSON.parse(json);
-    store.entries.ref = data.entries;
-  } catch (e) {
-    store.logError("Error importing data", e);
-  }
+	try {
+		const json = await navigator.clipboard.readText();
+		const data = JSON.parse(json);
+		store.entries.ref = data.entries;
+	} catch (e) {
+		store.logError("Error importing data", e);
+	}
 };
 
 const importPresets = () => {
-  store.entries.ref = [
-    ...store.entries.ref,
-    ...(presets.entries as CustomEntry[]),
-  ];
+	store.entries.ref = [
+		...store.entries.ref,
+		...(presets.entries as CustomEntry[]),
+	];
 };
 
 const removeAll = () => {
-  store.entries.ref = [];
+	store.entries.ref = [];
 };
 
 const clearUserScripts = async () => {
-  const scripts = await chrome.userScripts.getScripts();
-  store.logInfo("Unregistering scripts", scripts);
-  await chrome.userScripts.unregister();
-  // await refreshUserScripts();
+	const scripts = await chrome.userScripts.getScripts();
+	store.logInfo("Unregistering scripts", scripts);
+	await chrome.userScripts.unregister();
+	// await refreshUserScripts();
 };
 
 const loadRegistered = async () => {
-  const scripts = await chrome.userScripts.getScripts();
-  store.logInfo("Registered scripts", scripts);
+	const scripts = await chrome.userScripts.getScripts();
+	store.logInfo("Registered scripts", scripts);
 
-  for (const registeredScript of scripts) {
-    const scriptEntry = store.entries.ref.find(
-        (entry) => entry.id === registeredScript.id,
-    );
-    if (scriptEntry) {
-      if (registeredScript.js.length === 0) {
-        store.logError("Script has no js", { registeredScript, scriptEntry });
-        continue;
-      }
+	for (const registeredScript of scripts) {
+		const scriptEntry = store.entries.ref.find(
+			(entry) => entry.id === registeredScript.id,
+		);
+		if (scriptEntry) {
+			if (registeredScript.js.length === 0) {
+				store.logError("Script has no js", { registeredScript, scriptEntry });
+				continue;
+			}
 
-      if (scriptEntry.script !== registeredScript.js[0].code) {
-        store.logError("Script does not match", { registeredScript, scriptEntry });
-      } else {
-        store.logInfo("Script matches", { registeredScript, scriptEntry });
-      }
-    } else {
-      store.logError("Script not found", registeredScript);
-    }
-  }
+			if (scriptEntry.script !== registeredScript.js[0].code) {
+				store.logError("Script does not match", {
+					registeredScript,
+					scriptEntry,
+				});
+			} else {
+				store.logInfo("Script matches", { registeredScript, scriptEntry });
+			}
+		} else {
+			store.logError("Script not found", registeredScript);
+		}
+	}
 };
 
 const { isSupported, open, sRGBHex } = useEyeDropper();
 const openEyeDropper = () => {
-  open().then((result) => {
-    navigator.clipboard.writeText(sRGBHex.value.toString());
-    console.log(`EyeDropper: ${sRGBHex.value}`);
-  });
+	open().then((result) => {
+		navigator.clipboard.writeText(sRGBHex.value.toString());
+		console.log(`EyeDropper: ${sRGBHex.value}`);
+	});
 };
 
 function addEntry() {
-  store.addEntry();
+	store.addEntry();
 }
 
 function selectEntry(index: number) {
-  router.push(`/options/${index}`);
+	router.push(`/options/${index}`);
 }
 
 function formatCreatedAndModified(entry: CustomEntry) {
-  const { created, modified } = useFormatCreatedModified(entry);
-  return `Created: ${created} - Modified: ${modified}`;
+	const { created, modified } = useFormatCreatedModified(entry);
+	return `Created: ${created} - Modified: ${modified}`;
 }
 
 function removeEntry(index: number) {
-  if (index === -1) {
-    return;
-  }
-  store.removeEntry(index);
+	if (index === -1) {
+		return;
+	}
+	store.removeEntry(index);
 }
 </script>
 

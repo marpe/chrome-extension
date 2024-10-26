@@ -3,7 +3,12 @@
 import { useAppStore } from "@/stores/app.store";
 import type { CustomEntry } from "@/utils/state";
 import { updateUserScripts } from "@/utils/userScript";
-import { until, useAsyncState, useCloned, useConfirmDialog } from "@vueuse/core";
+import {
+	until,
+	useAsyncState,
+	useCloned,
+	useConfirmDialog,
+} from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import * as monaco from "monaco-editor";
 import { computed, ref, useTemplateRef } from "vue";
@@ -15,150 +20,150 @@ await until(() => store.entries.innerValue.loaded).toBe(true);
 const selectedIndex = useRouteParams("index", "-1", { transform: Number });
 
 function stringifyEntry(entry: CustomEntry) {
-  return JSON.stringify(
-      {
-        description: entry.description,
-        script: entry.script,
-        site: entry.site,
-        runAt: entry.runAt,
-        enabled: entry.enabled,
-      },
-      null,
-      2,
-  );
+	return JSON.stringify(
+		{
+			description: entry.description,
+			script: entry.script,
+			site: entry.site,
+			runAt: entry.runAt,
+			enabled: entry.enabled,
+		},
+		null,
+		2,
+	);
 }
 
 const { cloned: entryRef, sync: syncEntryRef } = useCloned(() => {
-  return store.entries.ref[selectedIndex.value];
+	return store.entries.ref[selectedIndex.value];
 });
 /*const { cloned: entryRef, sync: syncEntryRef } = useCloned(
 	store.entries.ref[selectedIndex.value],
 );*/
 const initialValue = computed(() =>
-    stringifyEntry(store.entries.ref[selectedIndex.value]),
+	stringifyEntry(store.entries.ref[selectedIndex.value]),
 );
 
 const isModified = computed(() => {
-  const currentValue = stringifyEntry(entryRef.value);
-  return currentValue !== initialValue.value;
+	const currentValue = stringifyEntry(entryRef.value);
+	return currentValue !== initialValue.value;
 });
 
 const {
-  isRevealed: showModal,
-  reveal: revealModal,
-  confirm: confirmModal,
-  cancel: cancelModal,
+	isRevealed: showModal,
+	reveal: revealModal,
+	confirm: confirmModal,
+	cancel: cancelModal,
 } = useConfirmDialog();
 
 async function shouldNavigate() {
-  if (isModified.value) {
-    const { isCanceled, data } = await revealModal();
-    if (isCanceled || !data) {
-      return false;
-    }
-  }
-  return true;
+	if (isModified.value) {
+		const { isCanceled, data } = await revealModal();
+		if (isCanceled || !data) {
+			return false;
+		}
+	}
+	return true;
 }
 
 onBeforeRouteUpdate(async () => {
-  return await shouldNavigate();
+	return await shouldNavigate();
 });
 
 onBeforeRouteLeave(async () => {
-  return await shouldNavigate();
+	return await shouldNavigate();
 });
 
 function isUserScriptsAvailable() {
-  try {
-    // Property access which throws if developer mode is not enabled.
-    chrome.userScripts;
-    return true;
-  } catch {
-    return false;
-  }
+	try {
+		// Property access which throws if developer mode is not enabled.
+		chrome.userScripts;
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 const hasUserScripts = ref<boolean>(isUserScriptsAvailable());
 
 const {
-  state: userScripts,
-  isReady,
-  execute: refreshUserScripts,
-  isLoading,
+	state: userScripts,
+	isReady,
+	execute: refreshUserScripts,
+	isLoading,
 } = await useAsyncState(async () => {
-  try {
-    return await chrome.userScripts.getScripts();
-  } catch (e) {
-    return [];
-  }
+	try {
+		return await chrome.userScripts.getScripts();
+	} catch (e) {
+		return [];
+	}
 }, []);
 
 const selectedUserScript = computed(() =>
-    userScripts.value.find((script) => script.id === entryRef.value.id),
+	userScripts.value.find((script) => script.id === entryRef.value.id),
 );
 
 const saveButton = useTemplateRef("saveButton");
 
 const reset = async () => {
-  syncEntryRef();
+	syncEntryRef();
 };
 
 const save = async () => {
-  saveButton.value?.animate(
-      [
-        { transform: "scale(1)" },
-        { transform: "scale(1.1)" },
-        { transform: "scale(1)" },
-      ],
-      {
-        duration: 200,
-        easing: "ease-in-out",
-      },
-  );
+	saveButton.value?.animate(
+		[
+			{ transform: "scale(1)" },
+			{ transform: "scale(1.1)" },
+			{ transform: "scale(1)" },
+		],
+		{
+			duration: 200,
+			easing: "ease-in-out",
+		},
+	);
 
-  entryRef.value.revision++;
-  entryRef.value.modified = Date.now();
+	entryRef.value.revision++;
+	entryRef.value.modified = Date.now();
 
-  store.entries.ref = [
-    ...store.entries.ref.slice(0, selectedIndex.value),
-    entryRef.value,
-    ...store.entries.ref.slice(selectedIndex.value + 1),
-  ];
+	store.entries.ref = [
+		...store.entries.ref.slice(0, selectedIndex.value),
+		entryRef.value,
+		...store.entries.ref.slice(selectedIndex.value + 1),
+	];
 
-  const scriptChanges = await updateUserScripts(store.entries.ref);
+	const scriptChanges = await updateUserScripts(store.entries.ref);
 
-  console.log("Saved", scriptChanges);
+	console.log("Saved", scriptChanges);
 
-  await refreshUserScripts();
+	await refreshUserScripts();
 
-  // await router.push(`/options/${selectedIndex.value}`);
+	// await router.push(`/options/${selectedIndex.value}`);
 };
 
 async function loadUserScript() {
-  if (!selectedUserScript.value) {
-    store.logError("User script not found");
-    return;
-  }
+	if (!selectedUserScript.value) {
+		store.logError("User script not found");
+		return;
+	}
 
-  const code = selectedUserScript.value.js[0].code;
-  if (!code) {
-    store.logError("User script has no code");
-    return;
-  }
+	const code = selectedUserScript.value.js[0].code;
+	if (!code) {
+		store.logError("User script has no code");
+		return;
+	}
 
-  const prevValue = entryRef.value.script;
-  entryRef.value.script = code;
+	const prevValue = entryRef.value.script;
+	entryRef.value.script = code;
 
-  console.log("Loaded user script", {
-    code: code,
-    prevValue: prevValue,
-  });
+	console.log("Loaded user script", {
+		code: code,
+		prevValue: prevValue,
+	});
 }
 
 const vColorize = {
-  mounted: async (el: HTMLElement) => {
-    await monaco.editor.colorizeElement(el, { theme: "github-dark" });
-  },
+	mounted: async (el: HTMLElement) => {
+		await monaco.editor.colorizeElement(el);
+	},
 };
 </script>
 

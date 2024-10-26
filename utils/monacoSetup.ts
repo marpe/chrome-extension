@@ -1,6 +1,7 @@
 import * as monaco from "monaco-editor";
 
-import { githubDark } from "@/utils/githubDark";
+import { getHighlighter } from "@/utils/shiki";
+import { shikiToMonaco } from "@shikijs/monaco";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
@@ -9,13 +10,14 @@ import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 
 let initialized = false;
 
-export const setupMonaco = () => {
+export async function setupMonaco() {
 	if (initialized) {
 		return;
 	}
 
-	monaco.editor.defineTheme("github-dark", githubDark);
-	monaco.editor.setTheme("github-dark");
+	const highlighter = await getHighlighter();
+
+	shikiToMonaco(highlighter, monaco);
 
 	self.MonacoEnvironment = {
 		getWorker(_: string, label: string) {
@@ -36,4 +38,4 @@ export const setupMonaco = () => {
 	};
 
 	initialized = true;
-};
+}
