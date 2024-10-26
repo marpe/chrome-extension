@@ -3,6 +3,7 @@
 import presets from "@/assets/presets.json";
 import { useFormatCreatedModified } from "@/composables/useCreatedModified";
 import { useAppStore } from "@/stores/app.store";
+import { createEntry } from "@/utils/createEntry";
 import { setupMonaco } from "@/utils/monacoSetup";
 import type { CustomEntry } from "@/utils/state";
 import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
@@ -22,21 +23,6 @@ await until(() => store.entries.innerValue.loaded).toBe(true);
 if (selectedIndex.value === -1 && store.entries.ref.length > 0) {
 	router.push("/options/0");
 }
-
-/*watch(
-	() => store.selectedEntry,
-	async (entry) => {
-		// setting these triggers the MonacoEditor components to update
-		styleValue.value = entry?.style ?? initialStyle;
-		scriptValue.value = entry?.script ?? initialScript;
-	},
-);*/
-
-/*watch(registeredUserScriptEl, async () => {
-	if (selectedUserScript.value && registeredUserScriptEl.value) {
-		await colorizeElement(registeredUserScriptEl.value);
-	}
-});*/
 
 const downloadData = async () => {
 	const data = {
@@ -76,10 +62,15 @@ const importData = async () => {
 };
 
 const importPresets = () => {
-	store.entries.ref = [
-		...store.entries.ref,
-		...(presets.entries as CustomEntry[]),
-	];
+	const newEntries: CustomEntry[] = [];
+
+	for (const preset of presets.entries) {
+		const newEntry = createEntry(preset.description);
+		newEntry.script = preset.script;
+		newEntries.push(newEntry);
+	}
+
+	store.entries.ref = [...store.entries.ref, ...newEntries];
 };
 
 const removeAll = () => {
