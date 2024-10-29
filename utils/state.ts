@@ -10,6 +10,7 @@ export type CustomEntry = {
 	script: string;
 	runAt: RunAt;
 	world: "USER_SCRIPT" | "MAIN";
+	allFrames: boolean;
 	enabled: boolean;
 	created: number;
 	modified: number;

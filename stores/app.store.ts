@@ -1,35 +1,14 @@
 import {
-	type StorageItemRef,
-	createStorageItemRef,
-} from "@/stores/createStorageItemRef";
+	type UseStoredValueReturn,
+	useStoredValue,
+} from "@/composables/useStoredValue";
 import { createEntry } from "@/utils/createEntry";
-import {
-	type CustomEntry,
-	type CustomEntryId,
-	type LogEntry,
-	storageItems,
-} from "@/utils/state";
-import { type StorageLikeAsync, until } from "@vueuse/core";
+import type { CustomEntry, CustomEntryId, LogEntry } from "@/utils/state";
+import { until } from "@vueuse/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { ref, toRaw } from "vue";
+import { ref, shallowRef, toRaw } from "vue";
 import { useRouter } from "vue-router";
 import { storage } from "wxt/storage";
-
-const clamp = (value: number, min: number, max: number) => {
-	return Math.min(Math.max(value, min), max);
-};
-
-const syncStorage: StorageLikeAsync = {
-	getItem: async (key: string) => {
-		return await chrome.storage.sync.get(key);
-	},
-	setItem: async (key: string, value: string) => {
-		await chrome.storage.sync.set({ [key]: value });
-	},
-	removeItem: async (key: string) => {
-		await chrome.storage.sync.remove(key);
-	},
-};
 
 export const useAppStore = defineStore("app", () => {
 	const getItemsInSync = async () => {
@@ -37,9 +16,13 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const items = {
-		entryIds: createStorageItemRef(storageItems.entryIds, "entries"),
-		entries: new Map<string, StorageItemRef<CustomEntry>>(),
-		logs: createStorageItemRef(storageItems.logs, "logs"),
+		entryIds: useStoredValue<string[]>("sync:entryIds", [], {
+			onError: (e) => logError(`${e}`, e),
+		}),
+		entries: shallowRef<Record<string, UseStoredValueReturn<CustomEntry>>>({}),
+		logs: useStoredValue<LogEntry[]>("local:logs", [], {
+			onError: (e) => logError(`${e}`, e),
+		}),
 	};
 
 	let loaded = false;
@@ -49,26 +32,39 @@ export const useAppStore = defineStore("app", () => {
 			return;
 		}
 		isLoading = true;
-		await until(() => items.entryIds.innerValue.loaded.value).toBe(true);
+		await until(() => items.entryIds.isLoading.value).toBe(false);
 
-		for (const id of items.entryIds.ref.value) {
+		console.log("Loading ids", items.entryIds.state.value);
+
+		for (const id of items.entryIds.state.value) {
 			createStorageItemEntry(id);
 		}
 
+		console.log(
+			"Loading entries",
+			Object.values(items.entries.value).map((e) => e.state.value),
+		);
+
 		await until(() =>
-			items.entries.values().every((s) => s.innerValue.loaded.value),
+			Object.values(items.entries.value)
+				.map((e) => e.isReady)
+				.every((r) => r),
 		).toBe(true);
 		loaded = true;
 		isLoading = false;
+		console.log("Data loaded", items.entries);
 	};
 
 	const createStorageItemEntry = (id: string) => {
-		const entryStorageItem = storage.defineItem<CustomEntry>(`sync:${id}`, {
-			fallback: createEntry(`Entry not found ${id}`, id),
-			init: () => createEntry(`New Entry ${id}`, id),
-		});
-		const entryStorageRef = createStorageItemRef(entryStorageItem, id);
-		items.entries.set(id, entryStorageRef);
+		const entryStorageRef = useStoredValue<CustomEntry>(
+			`sync:${id}`,
+			createEntry(`New Entry ${id}`, id),
+			{ onError: (e) => logError(`${e}`, e) },
+		);
+		items.entries.value = {
+			...items.entries.value,
+			[id]: entryStorageRef,
+		};
 		return entryStorageRef;
 	};
 
@@ -81,9 +77,9 @@ export const useAppStore = defineStore("app", () => {
 
 	const getDataForExport = () => {
 		const data: DataForExport = {
-			entryIds: toRaw(items.entryIds.ref.value),
-			entries: Array.from(items.entries.values()).map((entry) =>
-				toRaw(entry.ref.value),
+			entryIds: toRaw(items.entryIds.state.value),
+			entries: Object.values(items.entries.value).map((entry) =>
+				toRaw(entry.state.value),
 			),
 		};
 		return JSON.stringify(data, null, 2);
@@ -119,14 +115,15 @@ export const useAppStore = defineStore("app", () => {
 			const json = await navigator.clipboard.readText();
 			const data = JSON.parse(json) as DataForExport;
 			for (const id of data.entryIds) {
-				if (!items.entryIds.ref.value.includes(id)) {
-					items.entryIds.ref.value.push(id);
+				if (!items.entryIds.state.value.includes(id)) {
+					items.entryIds.state.value = [...items.entryIds.state.value, id];
 				}
+			}
 
-				for (const entry of data.entries) {
-					const siEntry = items.entries.get(id) ?? createStorageItemEntry(id);
-					await siEntry!.storageItem.setValue(entry);
-				}
+			for (const entry of data.entries) {
+				const siEntry =
+					items.entries.value[entry.id] ?? createStorageItemEntry(entry.id);
+				siEntry.state.value = entry;
 			}
 		} catch (e) {
 			logError("Error importing data", e);
@@ -134,23 +131,27 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const addEntry = () => {
-		const entry = createEntry(`New Entry ${items.entryIds.ref.value.length}`);
-		items.entryIds.ref.value.push(entry.id);
+		const entry = createEntry(`New Entry ${items.entryIds.state.value.length}`);
+		items.entryIds.state.value = [...items.entryIds.state.value, entry.id];
+		console.log("Adding entry", entry.id);
 		createStorageItemEntry(entry.id);
 		selectEntry(entry.id);
 	};
 
 	const removeEntry = async (entryId: string) => {
-		const entryIdx = items.entryIds.ref.value.indexOf(entryId);
+		const entryIdx = items.entryIds.state.value.indexOf(entryId);
 		if (entryIdx === -1) {
 			logError(
 				`Unexpected error while deleting entry: ${entryId}, the id wasn't found`,
 			);
 		} else {
-			items.entryIds.ref.value.splice(entryIdx, 1);
+			items.entryIds.state.value = [
+				...items.entryIds.state.value.slice(0, entryIdx),
+				...items.entryIds.state.value.slice(entryIdx + 1),
+			];
 		}
 
-		const entry = items.entries.get(entryId);
+		const entry = items.entries.value[entryId];
 
 		if (!entry) {
 			logError(
@@ -159,11 +160,13 @@ export const useAppStore = defineStore("app", () => {
 			return;
 		}
 
-		await entry.storageItem.removeValue({ removeMeta: true });
-		items.entries.delete(entryId);
+		await storage.removeItem(`sync:${entryId}`, { removeMeta: true });
+		items.entries.value = Object.fromEntries(
+			Object.entries(items.entries.value).filter(([id]) => id !== entryId),
+		);
 
 		logInfo(
-			`Removed entry, number of entries: ${items.entryIds.ref.value.length}`,
+			`Removed entry, number of entries: ${items.entryIds.state.value.length}`,
 		);
 	};
 
@@ -174,9 +177,7 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const clearLogs = () => {
-		while (items.logs.ref.value.length > 0) {
-			items.logs.ref.value.pop();
-		}
+		items.logs.state.value = [];
 	};
 
 	const log = (
@@ -188,10 +189,7 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const addLog = (l: LogEntry) => {
-		items.logs.ref.value.push(l);
-		while (items.logs.ref.value.length > 100) {
-			items.logs.ref.value.shift();
-		}
+		items.logs.state.value = [...items.logs.state.value, l];
 		if (l.severity === "error") {
 			console.error(l.message, l.data);
 		} else if (l.severity === "warn") {

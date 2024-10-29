@@ -7,23 +7,21 @@ import { createEntry } from "@/utils/createEntry";
 import { setupMonaco } from "@/utils/monacoSetup";
 import type { CustomEntry } from "@/utils/state";
 import { updateUserScripts } from "@/utils/userScript";
-import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
+import { useEyeDropper, useTimeAgo } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
-import { toRaw } from "vue";
+import { reactive } from "vue";
 import { useRouter } from "vue-router";
 
 const store = useAppStore();
 
 await store.loadData();
-
 await setupMonaco();
 
 const router = useRouter();
-const selectedEntryId = useRouteParams("id", undefined);
+const selectedEntryId = useRouteParams<string | undefined>("id", undefined);
 
-await until(() => store.entryIds.innerValue.loaded).toBe(true);
-if (selectedEntryId.value === undefined && store.entryIds.ref.length > 0) {
-	const firstId = store.entryIds.ref[0];
+if (selectedEntryId.value === undefined && store.entryIds.state.length > 0) {
+	const firstId = store.entryIds.state[0];
 	router.push(`/options/${firstId}`);
 }
 
@@ -48,14 +46,14 @@ const importPresets = () => {
 		newEntries.push(newEntry);
 	}
 
-	store.entryIds.ref = [
-		...store.entryIds.ref,
+	store.entryIds.state = [
+		...store.entryIds.state,
 		...newEntries.map((entry) => entry.id),
 	];
 };
 
 const removeAll = () => {
-	store.entryIds.ref = [];
+	store.entryIds.state = [];
 };
 
 const clearUserScripts = async () => {
@@ -73,7 +71,7 @@ const loadRegistered = async () => {
 	store.logInfo("Registered scripts", scripts);
 
 	for (const registeredScript of scripts) {
-		const scriptEntry = store.entries.get(registeredScript.id)?.ref.script;
+		const scriptEntry = store.entries[registeredScript.id]?.state.value.script;
 		if (scriptEntry) {
 			if (registeredScript.js.length === 0) {
 				store.logError("Script has no js", { registeredScript, scriptEntry });
@@ -118,7 +116,9 @@ function formatCreatedAndModified(entry: CustomEntry) {
 async function removeEntry(entryId: string) {
 	await store.removeEntry(entryId);
 
-	const entries = Array.from(store.entries.values()).map((entry) => entry.ref);
+	const entries = Object.values(store.entries).map(
+		(entry) => entry.state.value,
+	);
 	const scriptChanges = await updateUserScripts(entries);
 	console.log("Removed script", scriptChanges);
 	await router.push(`/options`);
@@ -149,24 +149,24 @@ async function removeEntry(entryId: string) {
         </div>
         <div class="entry-list overflow-y-auto px-4">
           <TransitionGroup>
-            <div v-for="([entryId, entry], index) in store.entries"
+            <div v-for="(entry, entryId, index) in store.entries"
                  :key="entryId"
                  :class="{ checked: selectedEntryId === entryId }"
                  class="flex flex-col gap-2 entry-button"
                  @click="() => selectEntry(entryId)">
               <div class="flex flex-row justify-between items-center">
-                <div>{{ entry.ref.description }}</div>
+                <div>{{ entry.state.value.description }}</div>
                 <button class="remove btn-unstyled"
                         @click.stop="() => { removeEntry(entryId) }">
                   <i-lucide-x class="size-4" />
                 </button>
               </div>
               <div class="flex flex-row gap-4 justify-between small">
-                <div class="truncate">{{ entry.ref.site }}</div>
-                <div :title="formatCreatedAndModified(entry.ref)"
+                <div class="truncate">{{ entry.state.value.site }}</div>
+                <div :title="formatCreatedAndModified(entry.state.value)"
                      class="flex flex-row items-center">
                   <i-lucide-clock class="mr-2" />
-                  <span>{{ useTimeAgo(entry.ref.modified) }}</span>
+                  <span>{{ useTimeAgo(entry.state.value.modified) }}</span>
                 </div>
               </div>
               <!--                <input type="radio"
@@ -180,7 +180,7 @@ async function removeEntry(entryId: string) {
 
       <div class="flex flex-col gap-4 px-4 pt-4">
         <div class="flex flex-col gap-4">
-          <template v-if="selectedEntryId && store.entries.get(selectedEntryId)">
+          <template v-if="selectedEntryId && store.entries[selectedEntryId]">
             <RouterView v-slot="{ Component }">
               <template v-if="Component">
                 <Transition mode="out-in" name="slide-up">

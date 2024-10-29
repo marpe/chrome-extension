@@ -13,6 +13,7 @@ export const createEntry = (
 	created: Date.now(),
 	modified: Date.now(),
 	world: "MAIN",
+	allFrames: false,
 	revision: 1,
 	enabled: true,
 });

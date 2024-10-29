@@ -1,10 +1,9 @@
-import { useAppStore } from "@/stores/app.store";
-import { pinia } from "@/stores/pinia-instance";
+import type { CustomEntry } from "@/utils/state";
 import { updateUserScripts } from "@/utils/userScript";
-import { until } from "@vueuse/core";
 import { onMessage } from "webext-bridge/background";
 import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/sandbox";
+import { type StorageItemKey, storage } from "wxt/storage";
 
 export default defineBackground({
 	type: "module",
@@ -18,16 +17,13 @@ export default defineBackground({
 			});
 		};
 
-		const store = useAppStore(pinia);
-		void store.loadData();
-
 		browser.commands.onCommand.addListener((command, tab) => {
-			store?.logInfo("Command:", { command, tab });
+			console.log("Command:", { command, tab });
 
 			if (command === "popout") {
 				openPopup();
 			} else {
-				store?.logError("Unknown command:", command);
+				console.log("Unknown command:", command);
 			}
 		});
 
@@ -55,34 +51,35 @@ export default defineBackground({
 		chrome.webNavigation.onCompleted.addListener(async (details) => {});
 
 		async function reregisterUserScripts() {
-			await store.loadData();
+			const entryIds = await storage.getItem<string[]>("sync:entryIds", {
+				fallback: [],
+			});
 
-			const entryIds = await chrome.storage.sync.get("entryIds");
+			console.log("entryIds", entryIds);
 
-			console.log("entryIds in sync storage", entryIds);
+			const entries = entryIds
+				.map((id) => `sync:${id}` as StorageItemKey)
+				.map((key) => storage.getItem<CustomEntry>(key));
 
-			console.log("store entries", store.entryIds.ref);
-
-			const entriesFromStorage = await chrome.storage.sync.get(
-				store.entryIds.ref,
-			);
+			const entriesFromStorage = await Promise.all(entries);
 
 			console.log("Entries from storage", entriesFromStorage);
 
-			const loadedEntries = Object.values(entriesFromStorage);
-
-			const changes = await updateUserScripts(loadedEntries);
-			store!.logInfo("Reregistered scripts", changes);
+			const filtered: CustomEntry[] = entriesFromStorage.filter(
+				Boolean,
+			) as CustomEntry[];
+			const changes = await updateUserScripts(filtered);
+			console.log("Reregistered scripts", changes);
 		}
 
 		browser.runtime.onInstalled.addListener(async (details) => {
 			const optionsUrl = browser.runtime.getURL("/options.html");
 			if (details.reason === "update") {
-				store?.logInfo("Extension updated", details);
+				console.log("Extension updated", details);
 				await reregisterUserScripts();
 				browser.tabs.create({ url: `${optionsUrl}?updated` });
 			} else {
-				store?.logInfo("Extension installed", details);
+				console.log("Extension installed", details);
 				browser.tabs.create({ url: `${optionsUrl}?installed` });
 			}
 

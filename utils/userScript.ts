@@ -6,6 +6,7 @@ export const mapToScriptEntry = (entry: CustomEntry): RegisteredUserScript => ({
 	id: entry.id,
 	js: [{ code: entry.script }],
 	world: entry.world,
+	allFrames: entry.allFrames,
 	matches: [entry.site],
 	runAt: entry.runAt,
 });
@@ -48,6 +49,7 @@ export const updateUserScripts = async (entries: CustomEntry[]) => {
 				existing.js.length > 0 &&
 				existing.runAt === entry.runAt &&
 				existing.js[0].code === entry.js[0].code &&
+				existing.allFrames === entry.allFrames &&
 				existing.world === entry.world
 			) {
 				changes.unchanged.push(entry.id);

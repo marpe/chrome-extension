@@ -28,6 +28,7 @@ function stringifyEntry(entry: CustomEntry) {
 			site: entry.site,
 			world: entry.world,
 			runAt: entry.runAt,
+			allFrames: entry.allFrames,
 			enabled: entry.enabled,
 		},
 		null,
@@ -36,21 +37,21 @@ function stringifyEntry(entry: CustomEntry) {
 }
 
 const { cloned: entryRef, sync: syncEntryRef } = useCloned(() => {
-	const entry = store.entries.get(entryId.value);
+	const entry = store.entries[entryId.value];
 	if (!entry) {
 		throw new Error(`Entry with id ${entryId} not found`);
 	}
-	return entry.ref;
+	return entry.state.value;
 });
 /*const { cloned: entryRef, sync: syncEntryRef } = useCloned(
 	store.entries.ref[selectedIndex.value],
 );*/
 const initialValue = computed(() => {
-	const entry = store.entries.get(entryId.value);
+	const entry = store.entries[entryId.value];
 	if (!entry) {
 		throw new Error(`Entry with id ${entryId} not found`);
 	}
-	return stringifyEntry(entry.ref);
+	return stringifyEntry(entry.state.value);
 });
 
 const isModified = computed(() => {
@@ -142,14 +143,16 @@ const save = async () => {
 	entryRef.value.revision++;
 	entryRef.value.modified = Date.now();
 
-	const entry = store.entries.get(entryId.value);
+	const entry = store.entries[entryId.value];
 	if (!entry) {
 		throw new Error(`Entry with id ${entryId} not found`);
 	}
 
-	entry.ref = entryRef.value;
+	entry.state.value = entryRef.value;
 
-	const entries = Array.from(store.entries.values()).map((entry) => entry.ref);
+	const entries = Object.values(store.entries).map(
+		(entry) => entry.state.value,
+	);
 
 	console.log("Entries", store.entries);
 	const scriptChanges = await updateUserScripts(entries);
@@ -268,6 +271,10 @@ const storageQuota = chrome.storage.sync.QUOTA_BYTES_PER_ITEM;
                     <tr>
                       <td class="text-gray-400 text-right">run at</td>
                       <td class="font-mono text-left">{{ selectedUserScript.runAt }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-gray-400 text-right">allFrames</td>
+                      <td class="font-mono text-left">{{ selectedUserScript.allFrames }}</td>
                     </tr>
                   </tbody>
                 </table>

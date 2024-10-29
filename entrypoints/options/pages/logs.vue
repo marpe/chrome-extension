@@ -24,7 +24,7 @@ const clearLogs = () => {
 };
 
 const sortedLogs = useSorted<LogEntry>(
-	() => store.logs.ref,
+	() => store.logs.state,
 	(a, b) => b.timestamp - a.timestamp,
 );
 </script>
@@ -33,13 +33,13 @@ const sortedLogs = useSorted<LogEntry>(
  <main class="p-4">
    <div class="flex flex-row items-center justify-between">
       <div>
-        <button :disabled="store.logs.ref.length === 0" class="btn-outlined" @click="clearLogs">
+        <button :disabled="store.logs.state.length === 0" class="btn-outlined" @click="clearLogs">
           Clear Logs
         </button>
       </div>
 
      <div>
-       {{store.logs.ref.length}} log(s)
+       {{store.logs.state.length}} log(s)
      </div>
    </div>
    <div class="logs">

@@ -161,6 +161,17 @@ watch(
         </div>
       </div>
 
+
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-row items-center gap-4">
+          <input id="allFrames"
+                 v-model="model.allFrames"
+                 :checked="model.allFrames"
+                 type="checkbox" />
+          <label for="allFrames">All Frames</label>
+        </div>
+      </div>
+
       <div class="flex flex-col gap-2">
         <label for="runAt">Run at</label>
         <select id="runAt"
