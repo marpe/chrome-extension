@@ -5,6 +5,7 @@ import RegisteredUserScript = chrome.userScripts.RegisteredUserScript;
 export const mapToScriptEntry = (entry: CustomEntry): RegisteredUserScript => ({
 	id: entry.id,
 	js: [{ code: entry.script }],
+	world: entry.world,
 	matches: [entry.site],
 	runAt: entry.runAt,
 });
@@ -46,7 +47,8 @@ export const updateUserScripts = async (entries: CustomEntry[]) => {
 				existing.js &&
 				existing.js.length > 0 &&
 				existing.runAt === entry.runAt &&
-				existing.js[0].code === entry.js[0].code
+				existing.js[0].code === entry.js[0].code &&
+				existing.world === entry.world
 			) {
 				changes.unchanged.push(entry.id);
 			} else {

@@ -9,6 +9,7 @@ export type CustomEntry = {
 	site: string;
 	script: string;
 	runAt: RunAt;
+	world: "USER_SCRIPT" | "MAIN";
 	enabled: boolean;
 	created: number;
 	modified: number;

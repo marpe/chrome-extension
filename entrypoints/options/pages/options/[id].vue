@@ -26,6 +26,7 @@ function stringifyEntry(entry: CustomEntry) {
 			description: entry.description,
 			script: entry.script,
 			site: entry.site,
+			world: entry.world,
 			runAt: entry.runAt,
 			enabled: entry.enabled,
 		},
@@ -259,6 +260,10 @@ const storageQuota = chrome.storage.sync.QUOTA_BYTES_PER_ITEM;
                     <tr>
                       <td class="text-gray-400 text-right">matches</td>
                       <td class="font-mono text-left">{{ selectedUserScript.matches }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-gray-400 text-right">world</td>
+                      <td class="font-mono text-left">{{ selectedUserScript.world }}</td>
                     </tr>
                     <tr>
                       <td class="text-gray-400 text-right">run at</td>

@@ -12,6 +12,7 @@ export const createEntry = (
 	script: 'console.log("Hello World")',
 	created: Date.now(),
 	modified: Date.now(),
+	world: "MAIN",
 	revision: 1,
 	enabled: true,
 });

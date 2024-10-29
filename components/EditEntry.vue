@@ -141,6 +141,17 @@ watch(
       </template>
 
       <div class="flex flex-col gap-2">
+        <label for="world">World</label>
+        <select id="world"
+                v-model="model.world"
+                class="text-xs"
+                style="width: 100%">
+          <option value="USER_SCRIPT">USER_SCRIPT</option>
+          <option value="MAIN">MAIN</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
         <div class="flex flex-row items-center gap-4">
           <input id="enabled"
                  v-model="model.enabled"
