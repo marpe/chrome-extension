@@ -3,10 +3,15 @@ import {
 	createStorageItemRef,
 } from "@/stores/createStorageItemRef";
 import { createEntry } from "@/utils/createEntry";
-import { type CustomEntry, type LogEntry, storageItems } from "@/utils/state";
+import {
+	type CustomEntry,
+	type CustomEntryId,
+	type LogEntry,
+	storageItems,
+} from "@/utils/state";
 import { type StorageLikeAsync, until } from "@vueuse/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, toRaw } from "vue";
 import { useRouter } from "vue-router";
 import { storage } from "wxt/storage";
 
@@ -64,27 +69,85 @@ export const useAppStore = defineStore("app", () => {
 		});
 		const entryStorageRef = createStorageItemRef(entryStorageItem, id);
 		items.entries.set(id, entryStorageRef);
+		return entryStorageRef;
 	};
 
 	const showDebug = ref<boolean>(true);
 
+	type DataForExport = {
+		entryIds: CustomEntryId[];
+		entries: CustomEntry[];
+	};
+
+	const getDataForExport = () => {
+		const data: DataForExport = {
+			entryIds: toRaw(items.entryIds.ref.value),
+			entries: Array.from(items.entries.values()).map((entry) =>
+				toRaw(entry.ref.value),
+			),
+		};
+		return JSON.stringify(data, null, 2);
+	};
+
+	const downloadData = async () => {
+		try {
+			const json = getDataForExport();
+			const blob = new Blob([json], { type: "application/json" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "marpe-chrome-extension-scripts.json";
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (e) {
+			logError("Error downloading data", e);
+		}
+	};
+
+	const exportDataToClipboard = async () => {
+		try {
+			const json = getDataForExport();
+			await navigator.clipboard.writeText(json);
+			console.log("Copied to clipboard");
+		} catch (e) {
+			logError("Error exporting data", e);
+		}
+	};
+
+	const importDataFromClipboard = async () => {
+		try {
+			const json = await navigator.clipboard.readText();
+			const data = JSON.parse(json) as DataForExport;
+			for (const id of data.entryIds) {
+				if (!items.entryIds.ref.value.includes(id)) {
+					items.entryIds.ref.value.push(id);
+				}
+
+				for (const entry of data.entries) {
+					const siEntry = items.entries.get(id) ?? createStorageItemEntry(id);
+					await siEntry!.storageItem.setValue(entry);
+				}
+			}
+		} catch (e) {
+			logError("Error importing data", e);
+		}
+	};
+
 	const addEntry = () => {
 		const entry = createEntry(`New Entry ${items.entryIds.ref.value.length}`);
-		items.entryIds.ref.value = [...items.entryIds.ref.value, entry.id];
+		items.entryIds.ref.value.push(entry.id);
 		createStorageItemEntry(entry.id);
 		selectEntry(entry.id);
 	};
 
 	const removeEntry = async (entryId: string) => {
-		const hasEntry = items.entryIds.ref.value.includes(entryId);
-		if (!hasEntry) {
+		const entryIdx = items.entryIds.ref.value.indexOf(entryId);
+		if (entryIdx === -1) {
 			logError(
 				`Unexpected error while deleting entry: ${entryId}, the id wasn't found`,
 			);
 		} else {
-			items.entryIds.ref.value = items.entryIds.ref.value.filter(
-				(id, _) => id !== entryId,
-			);
+			items.entryIds.ref.value.splice(entryIdx, 1);
 		}
 
 		const entry = items.entries.get(entryId);
@@ -111,7 +174,9 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const clearLogs = () => {
-		items.logs.ref.value = [];
+		while (items.logs.ref.value.length > 0) {
+			items.logs.ref.value.pop();
+		}
 	};
 
 	const log = (
@@ -123,9 +188,9 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const addLog = (l: LogEntry) => {
-		items.logs.ref.value = [...items.logs.ref.value, l];
+		items.logs.ref.value.push(l);
 		while (items.logs.ref.value.length > 100) {
-			items.logs.ref.value = items.logs.ref.value.slice(1);
+			items.logs.ref.value.shift();
 		}
 		if (l.severity === "error") {
 			console.error(l.message, l.data);
@@ -150,6 +215,9 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	return {
+		exportDataToClipboard,
+		importDataFromClipboard,
+		downloadData,
 		loadData,
 		entryIds: items.entryIds,
 		entries: items.entries,

@@ -10,7 +10,7 @@ import { updateUserScripts } from "@/utils/userScript";
 import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { toRaw } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 
 const store = useAppStore();
 
@@ -27,41 +27,16 @@ if (selectedEntryId.value === undefined && store.entryIds.ref.length > 0) {
 	router.push(`/options/${firstId}`);
 }
 
-const downloadData = async () => {
-	const data = {
-		entries: toRaw(store.entryIds.ref),
-	};
-	const json = JSON.stringify(data, null, 2);
-	const blob = new Blob([json], { type: "application/json" });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = "marpe-chrome-extension-scripts.json";
-	a.click();
-	URL.revokeObjectURL(url);
+const exportData = async () => {
+	await store.exportDataToClipboard();
 };
 
-const exportData = async () => {
-	try {
-		const data = {
-			entries: toRaw(store.entryIds.ref),
-		};
-		const json = JSON.stringify(data, null, 2);
-		await navigator.clipboard.writeText(json);
-		console.log("Copied to clipboard");
-	} catch (e) {
-		store.logError("Error exporting data", e);
-	}
+const downloadData = async () => {
+	await store.downloadData();
 };
 
 const importData = async () => {
-	try {
-		const json = await navigator.clipboard.readText();
-		const data = JSON.parse(json);
-		store.entryIds.ref = data.entries;
-	} catch (e) {
-		store.logError("Error importing data", e);
-	}
+	await store.importDataFromClipboard();
 };
 
 const importPresets = () => {
@@ -160,9 +135,9 @@ async function removeEntry(entryId: string) {
                   @click="() => { addEntry() }">
             <i-lucide-circle-plus />
           </button>
-          <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md"
+          <button :disabled="selectedEntryId === undefined"
+                  class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md"
                   title="Remove selected entry"
-                  :disabled="selectedEntryId === undefined"
                   @click="() => { removeEntry(selectedEntryId!) }">
             <i-lucide-circle-minus />
           </button>
