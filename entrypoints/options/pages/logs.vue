@@ -1,11 +1,14 @@
 
-<script setup
-        lang="ts">
+<script lang="ts"
+        setup>
 import { useAppStore } from "@/stores/app.store";
 import type { LogEntry } from "@/utils/state";
-import { ref } from "vue";
 import { useSorted } from "@vueuse/core";
+import { ref } from "vue";
+
 const store = useAppStore();
+
+await store.loadData();
 
 const toggleShowDebug = (index: number) => {
 	open.value = {
@@ -28,31 +31,29 @@ const sortedLogs = useSorted<LogEntry>(
 
 <template>
  <main class="p-4">
-   <template v-if="store.loaded">
-     <div class="flex flex-row items-center justify-between">
-        <div>
-          <button @click="clearLogs" class="btn-outlined" :disabled="store.logs.ref.length === 0">
-            Clear Logs
-          </button>
-        </div>
-       
-       <div>
-         {{store.logs.ref.length}} log(s)
-       </div>
+   <div class="flex flex-row items-center justify-between">
+      <div>
+        <button :disabled="store.logs.ref.length === 0" class="btn-outlined" @click="clearLogs">
+          Clear Logs
+        </button>
+      </div>
+
+     <div>
+       {{store.logs.ref.length}} log(s)
      </div>
-     <div class="logs">
-       <template v-for="(log, index) in sortedLogs" :key="index">
-         <LogLine :log="log" :index="index" :open="!!open[index]" @toggle="toggleShowDebug" />
-       </template>
-     </div>
-   </template>
+   </div>
+   <div class="logs">
+     <template v-for="(log, index) in sortedLogs" :key="index">
+       <LogLine :index="index" :log="log" :open="!!open[index]" @toggle="toggleShowDebug" />
+     </template>
+   </div>
  </main>
 </template>
 
 <style>
 .logs {
-  overflow: auto;
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  overflow: auto;
 }
 </style>

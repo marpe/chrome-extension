@@ -15,6 +15,8 @@ export type CustomEntry = {
 	revision: number;
 };
 
+export type CustomEntryId = CustomEntry["id"];
+
 export type CSSInjection = Scripting.CSSInjection;
 
 export type LogEntry = {
@@ -26,26 +28,26 @@ export type LogEntry = {
 };
 
 export enum StorageKey {
-	entries = "sync:entries",
+	entryIds = "sync:entryIds",
 	logs = "local:logs",
 }
 
 const defaults: {
 	injectedCSS: CSSInjection[];
-	entries: CustomEntry[];
+	entryIds: CustomEntryId[];
 	logs: LogEntry[];
 } = {
 	injectedCSS: [],
-	entries: [],
+	entryIds: [],
 	logs: [],
 } as const;
 
 export const storageItems = {
-	entries: storage.defineItem<CustomEntry[]>(`${StorageKey.entries}-si`, {
-		fallback: defaults.entries,
-		init: () => defaults.entries,
+	entryIds: storage.defineItem<CustomEntryId[]>(StorageKey.entryIds, {
+		fallback: defaults.entryIds,
+		init: () => defaults.entryIds,
 	}),
-	logs: storage.defineItem<LogEntry[]>(`${StorageKey.logs}-si`, {
+	logs: storage.defineItem<LogEntry[]>(StorageKey.logs, {
 		fallback: defaults.logs,
 		init: () => defaults.logs,
 	}),

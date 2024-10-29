@@ -75,6 +75,7 @@ onMounted(() => {
 		language: props.language,
 		automaticLayout: true,
 		scrollBeyondLastLine: false,
+		theme: "aurora-x",
 		lineNumbers: "off",
 		minimap: { enabled: false },
 		formatOnPaste: true,
@@ -182,6 +183,17 @@ watch(
 const formatDocument = () => {
 	editor?.getAction("editor.action.formatDocument")?.run();
 };
+
+const setTheme = (ev: Event) => {
+	const theme = (ev.target as HTMLSelectElement).value;
+	monaco.editor.setTheme(theme);
+	// editor?.updateOptions({ theme: $event.target.value })
+};
+
+const setFont = (ev: Event) => {
+	const font = (ev.target as HTMLSelectElement).value;
+	editor?.updateOptions({ fontFamily: font });
+};
 </script>
 
 <template>
@@ -197,7 +209,7 @@ const formatDocument = () => {
           <button class="btn-icon" title="Adjust size" @click="() => adjustHeight(true)">
             <i-lucide-scaling />
           </button>
-          <select @change="monaco.editor.setTheme($event.target.value)">
+          <select @change="setTheme">
             <option value="andromeeda">Andromeeda</option>
             <option value="aurora-x">Aurora X</option>
             <option value="ayu-dark">Ayu Dark</option>
@@ -208,7 +220,7 @@ const formatDocument = () => {
             <option value="github-dark">Github Dark</option>
           </select>
 
-          <select @change="editor?.updateOptions({ fontFamily: $event.target.value })">
+          <select @change="setFont">
             <option value="Segoe UI">Segoe UI</option>
             <option value="DM Mono">DM Mono</option>
             <option value="JetBrains Mono">JetBrains Mono</option>

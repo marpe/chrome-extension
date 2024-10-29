@@ -1,23 +1,24 @@
 <script lang="ts"
         setup>
 import { useAppStore } from "@/stores/app.store";
+import { setupMonaco } from "@/utils/monacoSetup";
+import { getHighlighter } from "@/utils/shiki";
 import type { CustomEntry } from "@/utils/state";
 import { updateUserScripts } from "@/utils/userScript";
-import {
-	until,
-	useAsyncState,
-	useCloned,
-	useConfirmDialog,
-} from "@vueuse/core";
+import { useAsyncState, useCloned, useConfirmDialog } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
-import * as monaco from "monaco-editor";
 import { computed, ref, useTemplateRef } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 
 const store = useAppStore();
-await until(() => store.entries.innerValue.loaded).toBe(true);
+await store.loadData();
+await setupMonaco();
 
-const selectedIndex = useRouteParams("index", "-1", { transform: Number });
+const entryId = useRouteParams("id", undefined, { transform: String });
+
+if (!entryId) {
+	throw new Error("id is required");
+}
 
 function stringifyEntry(entry: CustomEntry) {
 	return JSON.stringify(
@@ -34,18 +35,34 @@ function stringifyEntry(entry: CustomEntry) {
 }
 
 const { cloned: entryRef, sync: syncEntryRef } = useCloned(() => {
-	return store.entries.ref[selectedIndex.value];
+	const entry = store.entries.get(entryId.value);
+	if (!entry) {
+		throw new Error(`Entry with id ${entryId} not found`);
+	}
+	return entry.ref;
 });
 /*const { cloned: entryRef, sync: syncEntryRef } = useCloned(
 	store.entries.ref[selectedIndex.value],
 );*/
-const initialValue = computed(() =>
-	stringifyEntry(store.entries.ref[selectedIndex.value]),
-);
+const initialValue = computed(() => {
+	const entry = store.entries.get(entryId.value);
+	if (!entry) {
+		throw new Error(`Entry with id ${entryId} not found`);
+	}
+	return stringifyEntry(entry.ref);
+});
 
 const isModified = computed(() => {
 	const currentValue = stringifyEntry(entryRef.value);
 	return currentValue !== initialValue.value;
+});
+
+const storageUsed = computed(() => {
+	return JSON.stringify(entryRef.value).length;
+});
+
+const storageLeft = computed(() => {
+	return chrome.storage.sync.QUOTA_BYTES_PER_ITEM - storageUsed.value;
 });
 
 const {
@@ -124,13 +141,17 @@ const save = async () => {
 	entryRef.value.revision++;
 	entryRef.value.modified = Date.now();
 
-	store.entries.ref = [
-		...store.entries.ref.slice(0, selectedIndex.value),
-		entryRef.value,
-		...store.entries.ref.slice(selectedIndex.value + 1),
-	];
+	const entry = store.entries.get(entryId.value);
+	if (!entry) {
+		throw new Error(`Entry with id ${entryId} not found`);
+	}
 
-	const scriptChanges = await updateUserScripts(store.entries.ref);
+	entry.ref = entryRef.value;
+
+	const entries = Array.from(store.entries.values()).map((entry) => entry.ref);
+
+	console.log("Entries", store.entries);
+	const scriptChanges = await updateUserScripts(entries);
 
 	console.log("Saved", scriptChanges);
 
@@ -160,11 +181,33 @@ async function loadUserScript() {
 	});
 }
 
+const highlighter = await getHighlighter();
+
 const vColorize = {
 	mounted: async (el: HTMLElement) => {
-		await monaco.editor.colorizeElement(el);
+		const colorized = highlighter.codeToHtml(el.textContent ?? "", {
+			theme: "andromeeda",
+			lang: "javascript",
+		});
+		el.innerHTML = colorized;
+
+		/*const colorized = await monaco.editor.colorize(
+			el.textContent ?? "",
+			"javascript",
+			{
+				tabSize: 2,
+			},
+		);
+
+		el.innerHTML = colorized;*/
+		/*await monaco.editor.colorizeElement(el, {
+			theme: "andromeeda",
+			mimeType: "text/javascript",
+		});*/
 	},
 };
+
+const storageQuota = chrome.storage.sync.QUOTA_BYTES_PER_ITEM;
 </script>
 
 
@@ -175,7 +218,11 @@ const vColorize = {
         Script Id: <span class="font-mono">{{ entryRef.id }}</span>
       </div>
 
-      <EditEntry @save="save" v-model="entryRef" />
+      <div>
+        Used: {{ storageUsed }} out of {{ storageQuota }} bytes
+      </div>
+
+      <EditEntry v-model="entryRef" @save="save" />
 
       <div class="flex gap-4">
         <button ref="saveButton"

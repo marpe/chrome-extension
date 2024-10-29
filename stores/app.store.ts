@@ -1,51 +1,113 @@
-import { createStorageItemRef } from "@/stores/createStorageItemRef";
+import {
+	type StorageItemRef,
+	createStorageItemRef,
+} from "@/stores/createStorageItemRef";
 import { createEntry } from "@/utils/createEntry";
-import { type LogEntry, storageItems } from "@/utils/state";
+import { type CustomEntry, type LogEntry, storageItems } from "@/utils/state";
+import { type StorageLikeAsync, until } from "@vueuse/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { storage } from "wxt/storage";
 
 const clamp = (value: number, min: number, max: number) => {
 	return Math.min(Math.max(value, min), max);
 };
 
+const syncStorage: StorageLikeAsync = {
+	getItem: async (key: string) => {
+		return await chrome.storage.sync.get(key);
+	},
+	setItem: async (key: string, value: string) => {
+		await chrome.storage.sync.set({ [key]: value });
+	},
+	removeItem: async (key: string) => {
+		await chrome.storage.sync.remove(key);
+	},
+};
+
 export const useAppStore = defineStore("app", () => {
-	const items = {
-		entries: createStorageItemRef(storageItems.entries, "entries"),
-		logs: createStorageItemRef(storageItems.logs, "logs"),
-	} as const;
-
-	const loaded = computed(() => {
-		return Object.values(items).every((s) => s.innerValue.loaded.value);
-	});
-
-	const showDebug = ref<boolean>(false);
-
-	const addEntry = () => {
-		const entry = createEntry(`New Entry ${items.entries.ref.value.length}`);
-		items.entries.ref.value = [...items.entries.ref.value, entry];
-		selectEntry(items.entries.ref.value.length - 1);
+	const getItemsInSync = async () => {
+		return await chrome.storage.sync.get();
 	};
 
-	const removeEntry = (index: number) => {
-		items.entries.ref.value = items.entries.ref.value.filter(
-			(_, i) => i !== index,
-		);
-		const clamped = clamp(index, 0, items.entries.ref.value.length - 1);
-		if (clamped !== index) {
-			selectEntry(clamped);
+	const items = {
+		entryIds: createStorageItemRef(storageItems.entryIds, "entries"),
+		entries: new Map<string, StorageItemRef<CustomEntry>>(),
+		logs: createStorageItemRef(storageItems.logs, "logs"),
+	};
+
+	let loaded = false;
+	let isLoading = false;
+	const loadData = async () => {
+		if (loaded || isLoading) {
+			return;
 		}
+		isLoading = true;
+		await until(() => items.entryIds.innerValue.loaded.value).toBe(true);
+
+		for (const id of items.entryIds.ref.value) {
+			createStorageItemEntry(id);
+		}
+
+		await until(() =>
+			items.entries.values().every((s) => s.innerValue.loaded.value),
+		).toBe(true);
+		loaded = true;
+		isLoading = false;
+	};
+
+	const createStorageItemEntry = (id: string) => {
+		const entryStorageItem = storage.defineItem<CustomEntry>(`sync:${id}`, {
+			fallback: createEntry(`Entry not found ${id}`, id),
+			init: () => createEntry(`New Entry ${id}`, id),
+		});
+		const entryStorageRef = createStorageItemRef(entryStorageItem, id);
+		items.entries.set(id, entryStorageRef);
+	};
+
+	const showDebug = ref<boolean>(true);
+
+	const addEntry = () => {
+		const entry = createEntry(`New Entry ${items.entryIds.ref.value.length}`);
+		items.entryIds.ref.value = [...items.entryIds.ref.value, entry.id];
+		createStorageItemEntry(entry.id);
+		selectEntry(entry.id);
+	};
+
+	const removeEntry = async (entryId: string) => {
+		const hasEntry = items.entryIds.ref.value.includes(entryId);
+		if (!hasEntry) {
+			logError(
+				`Unexpected error while deleting entry: ${entryId}, the id wasn't found`,
+			);
+		} else {
+			items.entryIds.ref.value = items.entryIds.ref.value.filter(
+				(id, _) => id !== entryId,
+			);
+		}
+
+		const entry = items.entries.get(entryId);
+
+		if (!entry) {
+			logError(
+				`Unexpected error while deleting entry: ${entryId}, the entry wasn't found`,
+			);
+			return;
+		}
+
+		await entry.storageItem.removeValue({ removeMeta: true });
+		items.entries.delete(entryId);
+
 		logInfo(
-			`Removed entry, number of entries: ${items.entries.ref.value.length}`,
+			`Removed entry, number of entries: ${items.entryIds.ref.value.length}`,
 		);
 	};
 
 	const router = useRouter();
 
-	const selectEntry = (index: number) => {
-		const clampedIndex = clamp(index, 0, items.entries.ref.value.length - 1);
-		// items.selectedIndex.ref.value = { value: clampedIndex };
-		void router.push(`/options/${clampedIndex}`);
+	const selectEntry = (entryId: string) => {
+		void router.push(`/options/${entryId}`);
 	};
 
 	const clearLogs = () => {
@@ -88,8 +150,10 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	return {
-		loaded,
-		...items,
+		loadData,
+		entryIds: items.entryIds,
+		entries: items.entries,
+		logs: items.logs,
 		showDebug,
 		removeEntry,
 		selectEntry,

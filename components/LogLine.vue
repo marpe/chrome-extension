@@ -1,8 +1,8 @@
 
-<script setup lang="ts">
+<script lang="ts" setup>
+import type { LogEntry } from "@/utils/state";
 import { useDateFormat } from "@vueuse/core";
-import { PropType } from "vue";
-import { LogEntry } from "@/utils/state";
+import type { PropType } from "vue";
 
 const props = defineProps({
 	log: {
@@ -25,12 +25,12 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="flex flex-col log" :data-severity="log.severity">
-    <div class="flex flex-row gap-4">
+  <div :data-severity="log.severity" class="flex flex-col log">
+    <div class="flex flex-row gap-4" @click="emit('toggle', index)">
       <span class="timestamp">
         {{ useDateFormat(props.log.timestamp, "HH:mm:ss") }}
       </span>
-      <span class="severity" :data-severity="log.severity">
+      <span :data-severity="log.severity" class="severity">
         {{ props.log.severity }}
       </span>
       <span class="message">
@@ -39,9 +39,8 @@ const emit = defineEmits<{
     </div>
     <div
         v-if="props.log.data !== undefined && log.data !== null"
-        class="data"
         :data-open="props.open"
-        @click="emit('toggle', index)"
+        class="data"
     >
       <Debug>
         {{ JSON.stringify(log.data, null, 2) }}
@@ -53,8 +52,8 @@ const emit = defineEmits<{
 <style>
 
 .log {
-  padding: 0.25rem;
   border-bottom: 1px solid var(--surface-5);
+  padding: 0.25rem;
 }
 
 .log[data-severity="error"] {
@@ -71,18 +70,18 @@ const emit = defineEmits<{
 }
 
 .data {
-  &[data-open="false"] {
-    overflow: clip;
-    max-height: 1rem;
-  }
+  background-color: var(--surface-2);
+  border: 1px solid var(--surface-6);
+  color: var(--text-3);
   cursor: pointer;
+  margin-top: 0.5rem;
   min-height: 1ch;
   overflow: hidden;
-  border: 1px solid var(--surface-6);
   padding: 0.5rem;
-  background-color: var(--surface-2);
-  margin-top: 0.5rem;
-  color: var(--text-3);
+  &[data-open="false"] {
+    max-height: 1rem;
+    overflow: clip;
+  }
 }
 
 .timestamp {

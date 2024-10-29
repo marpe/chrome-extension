@@ -3,21 +3,33 @@ import type { Unwatch, WxtStorageItem } from "wxt/storage";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+export type StorageItemInnerValue<T> = {
+	value: T;
+	loaded: Ref<boolean>;
+	watcher: Unwatch | null;
+	debug?: string;
+	error: Ref<object | null>;
+};
+
+export type StorageItemMetaData = Record<string, unknown>;
+
+export type StorageItemRef<T, M extends StorageItemMetaData = {}> = {
+	storageItem: WxtStorageItem<T, M>;
+	ref: Ref<T>;
+	innerValue: StorageItemInnerValue<T>;
+};
+
 // biome-ignore lint/complexity/noBannedTypes: <explanation>
-export function createStorageItemRef<T, M extends Record<string, unknown> = {}>(
+export function createStorageItemRef<T, M extends StorageItemMetaData = {}>(
 	storageItem: WxtStorageItem<T, M>,
 	debug?: string,
-) {
-	const innerValue: {
-		value: T;
-		loaded: Ref<boolean>;
-		watcher: Unwatch | null;
-		debug?: string;
-	} = {
+): StorageItemRef<T, M> {
+	const innerValue: StorageItemInnerValue<T> = {
 		value: storageItem.fallback,
 		loaded: ref(false),
 		watcher: null,
 		debug,
+		error: ref(null),
 	};
 
 	const valueRef = customRef((track, trigger) => {
@@ -63,13 +75,18 @@ export function createStorageItemRef<T, M extends Record<string, unknown> = {}>(
 				// console.log(`[${debug}] setting`, newValue);
 				removeWatcher();
 				innerValue.value = newValue;
-				storageItem.setValue(newValue).then(() => {
-					trigger();
-					addWatcher();
-				});
+				storageItem
+					.setValue(newValue)
+					.then(() => {
+						trigger();
+						addWatcher();
+					})
+					.catch((e) => {
+						innerValue.error.value = e;
+					});
 			},
 		};
 	});
 
-	return { storageItem, ref: valueRef, innerValue };
+	return { storageItem, ref: valueRef, innerValue } as const;
 }

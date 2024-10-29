@@ -15,6 +15,8 @@ export async function setupMonaco() {
 		return;
 	}
 
+	console.log("Setting up Monaco");
+
 	const highlighter = await getHighlighter();
 
 	shikiToMonaco(highlighter, monaco);

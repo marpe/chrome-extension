@@ -6,8 +6,6 @@ import { onMessage } from "webext-bridge/background";
 import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/sandbox";
 
-const store = useAppStore(pinia);
-
 export default defineBackground({
 	type: "module",
 	main: () => {
@@ -20,13 +18,16 @@ export default defineBackground({
 			});
 		};
 
+		const store = useAppStore(pinia);
+		void store.loadData();
+
 		browser.commands.onCommand.addListener((command, tab) => {
-			store.logInfo("Command:", { command, tab });
+			store?.logInfo("Command:", { command, tab });
 
 			if (command === "popout") {
 				openPopup();
 			} else {
-				store.logError("Unknown command:", command);
+				store?.logError("Unknown command:", command);
 			}
 		});
 
@@ -54,20 +55,34 @@ export default defineBackground({
 		chrome.webNavigation.onCompleted.addListener(async (details) => {});
 
 		async function reregisterUserScripts() {
-			await until(() => store.loaded).toBe(true);
-			const entries = [...store.entries.ref];
-			const changes = await updateUserScripts(entries);
-			store.logInfo("Reregistered scripts", changes);
+			await store.loadData();
+
+			const entryIds = await chrome.storage.sync.get("entryIds");
+
+			console.log("entryIds in sync storage", entryIds);
+
+			console.log("store entries", store.entryIds.ref);
+
+			const entriesFromStorage = await chrome.storage.sync.get(
+				store.entryIds.ref,
+			);
+
+			console.log("Entries from storage", entriesFromStorage);
+
+			const loadedEntries = Object.values(entriesFromStorage);
+
+			const changes = await updateUserScripts(loadedEntries);
+			store!.logInfo("Reregistered scripts", changes);
 		}
 
 		browser.runtime.onInstalled.addListener(async (details) => {
 			const optionsUrl = browser.runtime.getURL("/options.html");
 			if (details.reason === "update") {
-				store.logInfo("Extension updated", details);
+				store?.logInfo("Extension updated", details);
 				await reregisterUserScripts();
 				browser.tabs.create({ url: `${optionsUrl}?updated` });
 			} else {
-				store.logInfo("Extension installed", details);
+				store?.logInfo("Extension installed", details);
 				browser.tabs.create({ url: `${optionsUrl}?installed` });
 			}
 

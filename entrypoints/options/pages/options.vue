@@ -6,27 +6,30 @@ import { useAppStore } from "@/stores/app.store";
 import { createEntry } from "@/utils/createEntry";
 import { setupMonaco } from "@/utils/monacoSetup";
 import type { CustomEntry } from "@/utils/state";
+import { updateUserScripts } from "@/utils/userScript";
 import { until, useEyeDropper, useTimeAgo } from "@vueuse/core";
 import { useRouteParams } from "@vueuse/router";
 import { toRaw } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 const store = useAppStore();
-await until(() => store.loaded).toBe(true);
+
+await store.loadData();
+
 await setupMonaco();
 
-const route = useRoute("/options/[index]");
 const router = useRouter();
-const selectedIndex = useRouteParams("index", "-1", { transform: Number });
+const selectedEntryId = useRouteParams("id", undefined);
 
-await until(() => store.entries.innerValue.loaded).toBe(true);
-if (selectedIndex.value === -1 && store.entries.ref.length > 0) {
-	router.push("/options/0");
+await until(() => store.entryIds.innerValue.loaded).toBe(true);
+if (selectedEntryId.value === undefined && store.entryIds.ref.length > 0) {
+	const firstId = store.entryIds.ref[0];
+	router.push(`/options/${firstId}`);
 }
 
 const downloadData = async () => {
 	const data = {
-		entries: toRaw(store.entries.ref),
+		entries: toRaw(store.entryIds.ref),
 	};
 	const json = JSON.stringify(data, null, 2);
 	const blob = new Blob([json], { type: "application/json" });
@@ -41,7 +44,7 @@ const downloadData = async () => {
 const exportData = async () => {
 	try {
 		const data = {
-			entries: toRaw(store.entries.ref),
+			entries: toRaw(store.entryIds.ref),
 		};
 		const json = JSON.stringify(data, null, 2);
 		await navigator.clipboard.writeText(json);
@@ -55,7 +58,7 @@ const importData = async () => {
 	try {
 		const json = await navigator.clipboard.readText();
 		const data = JSON.parse(json);
-		store.entries.ref = data.entries;
+		store.entryIds.ref = data.entries;
 	} catch (e) {
 		store.logError("Error importing data", e);
 	}
@@ -70,11 +73,14 @@ const importPresets = () => {
 		newEntries.push(newEntry);
 	}
 
-	store.entries.ref = [...store.entries.ref, ...newEntries];
+	store.entryIds.ref = [
+		...store.entryIds.ref,
+		...newEntries.map((entry) => entry.id),
+	];
 };
 
 const removeAll = () => {
-	store.entries.ref = [];
+	store.entryIds.ref = [];
 };
 
 const clearUserScripts = async () => {
@@ -85,20 +91,21 @@ const clearUserScripts = async () => {
 };
 
 const loadRegistered = async () => {
+	const itemsInSync = await chrome.storage.sync.get();
+	store.logInfo("Items in sync", itemsInSync);
+
 	const scripts = await chrome.userScripts.getScripts();
 	store.logInfo("Registered scripts", scripts);
 
 	for (const registeredScript of scripts) {
-		const scriptEntry = store.entries.ref.find(
-			(entry) => entry.id === registeredScript.id,
-		);
+		const scriptEntry = store.entries.get(registeredScript.id)?.ref.script;
 		if (scriptEntry) {
 			if (registeredScript.js.length === 0) {
 				store.logError("Script has no js", { registeredScript, scriptEntry });
 				continue;
 			}
 
-			if (scriptEntry.script !== registeredScript.js[0].code) {
+			if (scriptEntry !== registeredScript.js[0].code) {
 				store.logError("Script does not match", {
 					registeredScript,
 					scriptEntry,
@@ -107,7 +114,7 @@ const loadRegistered = async () => {
 				store.logInfo("Script matches", { registeredScript, scriptEntry });
 			}
 		} else {
-			store.logError("Script not found", registeredScript);
+			store.logInfo("Script not found", registeredScript);
 		}
 	}
 };
@@ -124,8 +131,8 @@ function addEntry() {
 	store.addEntry();
 }
 
-function selectEntry(index: number) {
-	router.push(`/options/${index}`);
+function selectEntry(entryId: string) {
+	store.selectEntry(entryId);
 }
 
 function formatCreatedAndModified(entry: CustomEntry) {
@@ -133,11 +140,13 @@ function formatCreatedAndModified(entry: CustomEntry) {
 	return `Created: ${created} - Modified: ${modified}`;
 }
 
-function removeEntry(index: number) {
-	if (index === -1) {
-		return;
-	}
-	store.removeEntry(index);
+async function removeEntry(entryId: string) {
+	await store.removeEntry(entryId);
+
+	const entries = Array.from(store.entries.values()).map((entry) => entry.ref);
+	const scriptChanges = await updateUserScripts(entries);
+	console.log("Removed script", scriptChanges);
+	await router.push(`/options`);
 }
 </script>
 
@@ -153,7 +162,8 @@ function removeEntry(index: number) {
           </button>
           <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md"
                   title="Remove selected entry"
-                  @click="() => { removeEntry(selectedIndex) }">
+                  :disabled="selectedEntryId === undefined"
+                  @click="() => { removeEntry(selectedEntryId!) }">
             <i-lucide-circle-minus />
           </button>
           <button class="text-white/50 hover:text-white transition-all size-9 p-0 rounded-md"
@@ -164,24 +174,24 @@ function removeEntry(index: number) {
         </div>
         <div class="entry-list overflow-y-auto px-4">
           <TransitionGroup>
-            <div v-for="(entry, index) in store.entries.ref"
-                 :key="index"
-                 :class="{ checked: selectedIndex === index }"
+            <div v-for="([entryId, entry], index) in store.entries"
+                 :key="entryId"
+                 :class="{ checked: selectedEntryId === entryId }"
                  class="flex flex-col gap-2 entry-button"
-                 @click="() => selectEntry(index)">
+                 @click="() => selectEntry(entryId)">
               <div class="flex flex-row justify-between items-center">
-                <div>{{ entry.description }}</div>
+                <div>{{ entry.ref.description }}</div>
                 <button class="remove btn-unstyled"
-                        @click.stop="() => { removeEntry(index) }">
+                        @click.stop="() => { removeEntry(entryId) }">
                   <i-lucide-x class="size-4" />
                 </button>
               </div>
               <div class="flex flex-row gap-4 justify-between small">
-                <div class="truncate">{{ entry.site }}</div>
-                <div :title="formatCreatedAndModified(entry)"
+                <div class="truncate">{{ entry.ref.site }}</div>
+                <div :title="formatCreatedAndModified(entry.ref)"
                      class="flex flex-row items-center">
                   <i-lucide-clock class="mr-2" />
-                  <span>{{ useTimeAgo(entry.modified) }}</span>
+                  <span>{{ useTimeAgo(entry.ref.modified) }}</span>
                 </div>
               </div>
               <!--                <input type="radio"
@@ -195,11 +205,11 @@ function removeEntry(index: number) {
 
       <div class="flex flex-col gap-4 px-4 pt-4">
         <div class="flex flex-col gap-4">
-          <template v-if="!!store.entries.ref[selectedIndex]">
+          <template v-if="selectedEntryId && store.entries.get(selectedEntryId)">
             <RouterView v-slot="{ Component }">
               <template v-if="Component">
                 <Transition mode="out-in" name="slide-up">
-                  <component :is="Component" :key="selectedIndex" />
+                  <component :is="Component" :key="selectedEntryId" />
                 </Transition>
               </template>
             </RouterView>

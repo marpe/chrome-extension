@@ -8,12 +8,18 @@ import {
 let highlighter: HighlighterGeneric<BundledLanguage, BundledTheme> | null =
 	null;
 
+let highlighterPromise: Promise<
+	HighlighterGeneric<BundledLanguage, BundledTheme>
+> | null = null;
+
 export async function getHighlighter() {
-	if (highlighter) {
-		return highlighter;
+	if (highlighterPromise) {
+		return highlighterPromise;
 	}
 
-	highlighter = await createHighlighter({
+	console.log("Creating highlighter");
+
+	highlighterPromise = createHighlighter({
 		themes: [
 			"andromeeda",
 			"aurora-x",
@@ -25,7 +31,10 @@ export async function getHighlighter() {
 			"github-dark",
 		],
 		langs: ["javascript"],
+	}).then((h) => {
+		highlighter = h;
+		return highlighter;
 	});
 
-	return highlighter;
+	return highlighterPromise;
 }
