@@ -37,19 +37,8 @@ const importData = async () => {
 	await store.importDataFromClipboard();
 };
 
-const importPresets = () => {
-	const newEntries: CustomEntry[] = [];
-
-	for (const preset of presets.entries) {
-		const newEntry = createEntry(preset.description);
-		newEntry.script = preset.script;
-		newEntries.push(newEntry);
-	}
-
-	store.entryIds.state = [
-		...store.entryIds.state,
-		...newEntries.map((entry) => entry.id),
-	];
+const importPresets = async () => {
+	await store.importPresets(presets);
 };
 
 const removeAll = () => {
@@ -100,8 +89,9 @@ const openEyeDropper = () => {
 	});
 };
 
-function addEntry() {
-	store.addEntry();
+async function addEntry() {
+	const newEntry = store.addEntry();
+	selectEntry(newEntry.state.value.id);
 }
 
 function selectEntry(entryId: string) {

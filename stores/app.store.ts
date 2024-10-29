@@ -5,6 +5,7 @@ import {
 import { createEntry } from "@/utils/createEntry";
 import type { CustomEntry, CustomEntryId, LogEntry } from "@/utils/state";
 import { until } from "@vueuse/core";
+import { nanoid } from "nanoid";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ref, shallowRef, toRaw } from "vue";
 import { useRouter } from "vue-router";
@@ -47,7 +48,7 @@ export const useAppStore = defineStore("app", () => {
 
 		await until(() =>
 			Object.values(items.entries.value)
-				.map((e) => e.isReady)
+				.map((e) => e.isReady.value)
 				.every((r) => r),
 		).toBe(true);
 		loaded = true;
@@ -55,7 +56,7 @@ export const useAppStore = defineStore("app", () => {
 		console.log("Data loaded", items.entries);
 	};
 
-	const createStorageItemEntry = (id: string) => {
+	const createStorageItemEntry = (id = `script-${nanoid()}`) => {
 		const entryStorageRef = useStoredValue<CustomEntry>(
 			`sync:${id}`,
 			createEntry(`New Entry ${id}`, id),
@@ -110,6 +111,24 @@ export const useAppStore = defineStore("app", () => {
 		}
 	};
 
+	const importPresets = async (presets: {
+		entries: Pick<CustomEntry, "description" | "script">[];
+	}) => {
+		console.log("Adding preset", presets);
+		const addedEntries = Array.from({ length: presets.entries.length }, () =>
+			addEntry(),
+		);
+		await until(() => addedEntries.every((e) => e.isReady.value)).toBe(true);
+		addedEntries.forEach((entry, idx) => {
+			const newValue = {
+				...entry.state.value,
+				...presets.entries[idx],
+			};
+			console.log("Setting entry", idx, newValue);
+			entry.state.value = newValue;
+		});
+	};
+
 	const importDataFromClipboard = async () => {
 		try {
 			const json = await navigator.clipboard.readText();
@@ -131,11 +150,10 @@ export const useAppStore = defineStore("app", () => {
 	};
 
 	const addEntry = () => {
-		const entry = createEntry(`New Entry ${items.entryIds.state.value.length}`);
-		items.entryIds.state.value = [...items.entryIds.state.value, entry.id];
-		console.log("Adding entry", entry.id);
-		createStorageItemEntry(entry.id);
-		selectEntry(entry.id);
+		const entryId = `script-${nanoid()}`;
+		items.entryIds.state.value = [...items.entryIds.state.value, entryId];
+		console.log("Adding entry", entryId);
+		return createStorageItemEntry(entryId);
 	};
 
 	const removeEntry = async (entryId: string) => {
@@ -217,6 +235,7 @@ export const useAppStore = defineStore("app", () => {
 		importDataFromClipboard,
 		downloadData,
 		loadData,
+		importPresets,
 		entryIds: items.entryIds,
 		entries: items.entries,
 		logs: items.logs,

@@ -1,11 +1,12 @@
 import { type UseAsyncStateOptions, useAsyncState } from "@vueuse/core";
-import { type Ref, type WritableComputedRef, computed } from "vue";
+import { type Ref, type WritableComputedRef, computed, ref } from "vue";
 import { type StorageItemKey, storage } from "wxt/storage";
 
 export type UseStoredValueReturn<T> = {
 	state: WritableComputedRef<T>;
 	isReady: Ref<boolean>;
 	isLoading: Ref<boolean>;
+	isInitialized: Ref<boolean>;
 };
 
 export function useStoredValue<T>(
@@ -36,8 +37,10 @@ export function useStoredValue<T>(
 		opts,
 	);
 
+	const isInitialized = ref(false);
+
 	asyncState.then((value) => {
-		console.log("useStoredValue", key, value.state);
+		isInitialized.value = true;
 		return value;
 	});
 
@@ -59,10 +62,12 @@ export function useStoredValue<T>(
 				return state.value;
 			},
 			set(newValue) {
+				console.log("set", key, newValue);
 				void storage.setItem(key, newValue);
 				state.value = newValue;
 			},
 		}),
+		isInitialized,
 		isLoading: asyncState.isLoading,
 		isReady: asyncState.isReady,
 	};
