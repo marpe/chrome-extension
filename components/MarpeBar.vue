@@ -2,7 +2,6 @@
         setup>
 import { AddHighlight } from "@/composables/Highlight";
 import { onKeyStroke } from "@vueuse/core";
-import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { sendMessage } from "webext-bridge/popup";
 import type { Tabs } from "webextension-polyfill";
@@ -16,6 +15,8 @@ const containerEl = useTemplateRef("containerEl");
 /*const { hasFocus, activate, deactivate } = useFocusTrap(containerEl, {
 	immediate: true,
 });*/
+
+const emit = defineEmits<{ hide: [] }>();
 
 async function getTabs() {
 	const response = await sendMessage(
@@ -81,9 +82,11 @@ onKeyStroke(true, (e) => {
 		moveFocus("down");
 		e.preventDefault();
 	} else if (e.key === "Escape") {
-		// todo
+		emit("hide");
+		e.preventDefault();
 	} else if (e.key === "Enter") {
 		filteredTabs.value[0] && handleKeyDown(filteredTabs.value[0], e);
+		emit("hide");
 		e.preventDefault();
 	} else {
 		inputEl.value?.focus();
@@ -182,21 +185,21 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
   background: var(--vimium-base);
   border-color: var(--vimium-lavender);
   border-radius: 6px;
   border-width: 2px;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 80dvh;
+  opacity: 1;
   padding: 1rem;
   pointer-events: auto;
-  width: clamp(320px, 80dvw, 100dvw - 2rem);
-  max-height: 80dvh;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.5);
 
-  opacity: 1;
   transform: scale(1.0) translateY(0);
   transition: all 0.2s ease-out;
+  width: clamp(320px, 80dvw, 100dvw - 2rem);
 
   @starting-style {
     transform: scale(0.9) translateY(30px);
@@ -207,14 +210,14 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 .marpebar-input {
   background: var(--vimium-base);
   border: none;
+  border-bottom: 1px solid var(--vimium-surface0);
+  border-radius: 0;
   color: var(--vimium-lavender);
   font: inherit;
   font-size: 1.25rem;
   font-weight: 500;
   padding: 1rem 1rem;
   width: 100%;
-  border-radius: 0;
-  border-bottom: 1px solid var(--vimium-surface0);
 
   &:focus {
     outline: none;
@@ -227,8 +230,8 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 
 .tab-title, .tab-url {
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tab-title {

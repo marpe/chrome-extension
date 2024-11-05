@@ -29,13 +29,14 @@ onKeyStroke(
 	{ eventName: "keydown" },
 );
 
+function onHide() {
+	showBar.value = false;
+}
+
 onKeyStroke(
 	["Escape"],
 	(e) => {
-		console.log("pressed escape");
-		if (showBar.value) {
-			showBar.value = false;
-		}
+		onHide();
 	},
 	{ eventName: "keydown" },
 );
@@ -46,8 +47,7 @@ const { focused } = useFocusWithin(containerEl);
 
 watch(focused, (value) => {
 	if (!value) {
-		console.log("Target no longer has focus");
-		// showBar.value = false;
+		onHide();
 	}
 });
 </script>
@@ -56,7 +56,7 @@ watch(focused, (value) => {
   <div ref="containerEl" class="marpebar-container">
   <template v-if="showBar">
     <Suspense>
-      <MarpeBar />
+      <MarpeBar @hide="onHide" />
     </Suspense>
   </template>
   </div>
