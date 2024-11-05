@@ -1,0 +1,45 @@
+{
+  "entryIds": [
+    "script-ZqDBLyDm92ROo4Amw8bXK",
+    "script-FQaKczyva4BiJcxPa8-Co",
+    "script-3Aoy2W7iFIT82nMKRteiJ"
+  ],
+  "entries": [
+    {
+      "created": 1730194809253,
+      "description": "Youtube Progressbar",
+      "enabled": true,
+      "id": "script-ZqDBLyDm92ROo4Amw8bXK",
+      "modified": 1730196231716,
+      "revision": 4,
+      "runAt": "document_start",
+      "script": "const sheet = new CSSStyleSheet();\r\nsheet.replaceSync(`\r\n.ytp-cairo-refresh .ytp-swatch-background-color {\r\n    background: #0e82ff;\r\n}\r\n\r\n.ytp-cairo-refresh-signature-moments .ytp-play-progress {\r\n    background: linear-gradient(to right, #0e82ff 80%, #7bceff 100%);\r\n}\r\n`);\r\n\r\ndocument.adoptedStyleSheets.push(sheet);\r\n",
+      "site": "*://*.youtube.com/*",
+      "world": "USER_SCRIPT"
+    },
+    {
+      "created": 1730194850651,
+      "description": "Youtube Prevent Scroll",
+      "enabled": true,
+      "id": "script-FQaKczyva4BiJcxPa8-Co",
+      "modified": 1730196413743,
+      "revision": 10,
+      "runAt": "document_start",
+      "script": "window.scrollBlock = () => {\r\n\tconsole.log(\"Preventing scrolling...\");\r\n\tObject.defineProperty(document.documentElement, \"scrollTop\", {\r\n\t\tset: (value) => {\r\n\t\t\treturn 0;\r\n\t\t},\r\n\t\tget: () => {\r\n\t\t\treturn 0;\r\n\t\t},\r\n\t\tconfigurable: false,\r\n\t});\r\n};\r\n\r\nwindow.scrollBlock();\r\n",
+      "site": "*://*.youtube.com/*",
+      "world": "MAIN"
+    },
+    {
+      "created": 1730194876509,
+      "description": "Github LOC",
+      "enabled": true,
+      "id": "script-3Aoy2W7iFIT82nMKRteiJ",
+      "modified": 1730196217049,
+      "revision": 4,
+      "runAt": "document_idle",
+      "script": "(() => {\r\n  const CONTAINER_ID = \"_stats-link\";\r\n  const githubUrlRegex = /^(?:https?:\\/\\/github\\.com\\/|git@github\\.com:)?(?<owner>[^\\/]+?)\\/(?<repo>[^\\/]+?)(?:\\/(?<refType>tree|blob)\\/(?<branch>[^\\/]+?)(?<path>\\/.*)?)?$/;\r\n\r\n  function parseCurrentGithubUrl() {\r\n    const match = location.href.match(githubUrlRegex);\r\n    if (!match?.groups) {\r\n      return null;\r\n    }\r\n\r\n    const groups = match.groups;\r\n    if (!groups.branch) {\r\n      const branchSelect = document.querySelector(\"[data-hotkey='w']\");\r\n      if (branchSelect?.textContent) {\r\n        groups.branch = branchSelect.textContent.trim();\r\n      }\r\n    }\r\n\r\n    return groups;\r\n  }\r\n\r\n  async function getStats({ owner, repo, branch }) {\r\n    fetch(`https://ghloc.ifels.dev/${owner}/${repo}/${branch}?pretty=false`, {\r\n      \"headers\": {\r\n        \"accept\": \"*/*\",\r\n        \"accept-language\": \"en-US,en;q=0.9\",\r\n        \"cache-control\": \"no-cache\",\r\n        \"pragma\": \"no-cache\",\r\n        \"priority\": \"u=1, i\",\r\n        \"sec-ch-ua\": \"\\\"Google Chrome\\\";v=\\\"131\\\", \\\"Chromium\\\";v=\\\"131\\\", \\\"Not_A Brand\\\";v=\\\"24\\\"\",\r\n        \"sec-ch-ua-mobile\": \"?0\",\r\n        \"sec-ch-ua-platform\": \"\\\"Windows\\\"\",\r\n        \"sec-fetch-dest\": \"empty\",\r\n        \"sec-fetch-mode\": \"cors\",\r\n        \"sec-fetch-site\": \"cross-site\",\r\n      },\r\n      \"referrer\": \"https://ghloc.vercel.app/\",\r\n      \"referrerPolicy\": \"strict-origin-when-cross-origin\",\r\n      \"body\": null,\r\n      \"method\": \"GET\",\r\n      \"mode\": \"cors\",\r\n      \"credentials\": \"omit\",\r\n    });\r\n\r\n    fetch(`https://bundlephobia.com/api/size?package=${package}@latest&record=true`, {\r\n      \"headers\": {\r\n        \"accept\": \"application/json\",\r\n        \"accept-language\": \"en-US,en;q=0.9\",\r\n        \"cache-control\": \"no-cache\",\r\n        \"pragma\": \"no-cache\",\r\n        \"priority\": \"u=1, i\",\r\n        \"sec-ch-ua\": \"\\\"Google Chrome\\\";v=\\\"131\\\", \\\"Chromium\\\";v=\\\"131\\\", \\\"Not_A Brand\\\";v=\\\"24\\\"\",\r\n        \"sec-ch-ua-mobile\": \"?0\",\r\n        \"sec-ch-ua-platform\": \"\\\"Windows\\\"\",\r\n        \"sec-fetch-dest\": \"empty\",\r\n        \"sec-fetch-mode\": \"cors\",\r\n        \"sec-fetch-site\": \"same-origin\",\r\n        \"x-bundlephobia-user\": \"bundlephobia website\",\r\n      },\r\n      \"referrer\": \"https://bundlephobia.com/package/adm-zip@0.5.16\",\r\n      \"referrerPolicy\": \"strict-origin-when-cross-origin\",\r\n      \"body\": null,\r\n      \"method\": \"GET\",\r\n      \"mode\": \"cors\",\r\n      \"credentials\": \"omit\",\r\n    });\r\n  }\r\n\r\n  /** @param {Record<string, string>} styles **/\r\n  function stringifyStyles(styles) {\r\n    /** @param {string} str **/\r\n    const camelCaseToKebabCase = (str) => str.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);\r\n    return Object.entries(styles)\r\n        .map(([key, value]) => `${camelCaseToKebabCase(key)}: ${value};`)\r\n        .join(\" \");\r\n  }\r\n\r\n\r\n  function createLink(id, label, href) {\r\n    const link = document.createElement(\"button\");\r\n    link.className = [\"btn\", \"ml-2\"].filter(Boolean).join(\" \");\r\n    link.textContent = label;\r\n    link.id = id;\r\n    link.dataset.hotkey = \"g l\";\r\n\r\n    const anchorName = `--${id}`;\r\n    const linkStyles = {\r\n      anchorName,\r\n    }\r\n    link.setAttribute(\"style\", stringifyStyles(linkStyles));\r\n    const popoverId = `popover-${id}`;\r\n    link.setAttribute(\"popovertarget\", popoverId);\r\n\r\n    const frame = document.createElement(\"iframe\");\r\n    frame.src = href;\r\n    const frameStyles = {\r\n      minWidth: '800px',\r\n      minHeight: '600px',\r\n      maxWidth: 'max-content',\r\n      paddingRight: '1rem',\r\n      resize: 'both',\r\n      border: 0,\r\n    }\r\n    frame.setAttribute(\"style\", stringifyStyles(frameStyles));\r\n\r\n    const popover = document.createElement(\"div\");\r\n    popover.id = popoverId;\r\n    popover.setAttribute('popover', 'auto')\r\n    popover.appendChild(frame);\r\n\r\n    const popoverStyles = {\r\n      margin: 0,\r\n      positionAnchor: anchorName,\r\n      inset: 'auto',\r\n      positionArea: 'bottom',\r\n      positionTry: 'top, block-start span-inline-end, top right, top left, bottom, block-end span-inline-end, bottom right, bottom left, left, right',\r\n      border: `1px solid #333`,\r\n      borderRadius: `3px`,\r\n    }\r\n    popover.setAttribute(\"style\", stringifyStyles(popoverStyles))\r\n    document.body.appendChild(popover);\r\n\r\n    // link.target = \"_blank\";\r\n    // link.rel = \"noopener\";\r\n    // link.href = href;\r\n    return link;\r\n  }\r\n\r\n\r\n  function attachLink() {\r\n    if (!location.href.startsWith('https://github.com')) {\r\n      console.log(\"GH-STATS: Not on github.com\");\r\n      return;\r\n    }\r\n\r\n    const prevLinkContainer = document.getElementById(CONTAINER_ID);\r\n\r\n    if (prevLinkContainer) {\r\n      console.log(`GH-STATS: Container \"${CONTAINER_ID}\" already attached`);\r\n      prevLinkContainer.parentElement.removeChild(prevLinkContainer);\r\n    }\r\n\r\n    const container = document.querySelector(\".react-directory-add-file-icon\")?.parentElement?.parentElement\r\n        ?? document.querySelector('[data-hotkey=\"Control+Shift+<\"]')?.parentElement\r\n\r\n    if (!container) {\r\n      console.log(\"GH-STATS: Couldn't find a suitable container\");\r\n      return;\r\n    }\r\n\r\n    const url = parseCurrentGithubUrl();\r\n\r\n    console.log(url);\r\n    if (!url) {\r\n      console.log(\"GH-STATS: Couldn't parse the current URL\");\r\n      return;\r\n    }\r\n\r\n    const params = new URLSearchParams();\r\n    if (url.branch) {\r\n      params.append(\"branch\", url.branch);\r\n    }\r\n    const paramsString = params.toString();\r\n\r\n    const links = [\r\n      createLink('_bundlephobia', 'BUNDLEPHOBIA', `https://bundlephobia.com/package/${url.repo}`),\r\n      createLink('_ghloc', 'GHLOC', `https://ghloc.vercel.app/${url.owner}/${url.repo}?${paramsString}`),\r\n    ];\r\n\r\n    const linkContainer = document.createElement(\"div\");\r\n    linkContainer.id = CONTAINER_ID;\r\n\r\n    links.forEach((link) => linkContainer.appendChild(link));\r\n\r\n    container.appendChild(linkContainer);\r\n\r\n    console.log(`GH-STATS: Attaching links to ${links.map((link) => link.href).join(\", \")}`);\r\n  }\r\n\r\n  console.log(\"GH-STATS: Initialized\");\r\n  /*const observer = new MutationObserver(() => {\r\n    attachLink();\r\n  });\r\n  observer.observe(document.body, { subtree: true, childList: true });*/\r\n  attachLink();\r\n})();\r\n",
+      "site": "*://*.github.com/*",
+      "world": "USER_SCRIPT"
+    }
+  ]
+}

@@ -95,8 +95,19 @@ export default defineBackground({
 		});
 
 		onMessage("ACTION", async ({ data }) => {
-			console.log("Received message:", data);
-			return { message: "hello!" };
+			const tabs = await browser.tabs.query({});
+			return { message: "hello!", tabs };
+		});
+
+		onMessage("ACTIVATE_TAB", async ({ data }) => {
+			const { tabId, windowId } = data;
+			if (tabId) {
+				await browser.tabs.update(tabId, { active: true });
+			}
+			if (windowId) {
+				await browser.windows.update(windowId, { focused: true });
+			}
+			return { result: true };
 		});
 	},
 });
