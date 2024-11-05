@@ -33,7 +33,7 @@ export default defineConfig({
 		},
 	},
 	manifest: {
-		version: "0.0.5",
+		version: "0.0.6",
 		permissions: [
 			"contextMenus",
 			"storage",
