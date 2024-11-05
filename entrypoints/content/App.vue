@@ -73,7 +73,7 @@ html {
   display: grid;
   inset: 0;
   justify-content: center;
-  padding-top: 20vh;
+  margin-top: 10vh;
   position: fixed;
 }
 

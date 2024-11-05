@@ -13,9 +13,9 @@ const tabs = ref<Tabs.Tab[]>([]);
 
 const containerEl = useTemplateRef("containerEl");
 
-const { hasFocus, activate, deactivate } = useFocusTrap(containerEl, {
+/*const { hasFocus, activate, deactivate } = useFocusTrap(containerEl, {
 	immediate: true,
-});
+});*/
 
 async function getTabs() {
 	const response = await sendMessage(
@@ -64,11 +64,19 @@ onKeyStroke(true, (e) => {
 		return;
 	}
 
-	if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
+	if (
+		e.key === "PageUp" ||
+		e.key === "ArrowUp" ||
+		(e.key === "Tab" && e.shiftKey)
+	) {
 		console.log("up", e);
 		moveFocus("up");
 		e.preventDefault();
-	} else if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) {
+	} else if (
+		e.key === "PageDown" ||
+		e.key === "ArrowDown" ||
+		(e.key === "Tab" && !e.shiftKey)
+	) {
 		console.log("down", e);
 		moveFocus("down");
 		e.preventDefault();
@@ -145,25 +153,23 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 
 <template>
   <div ref="containerEl" class="container">
-    <div class="">
-      <input ref="inputEl"
-             v-model="inputText"
-             autocomplete="off"
-             autofocus
-             class="marpebar-input"
-             spellcheck="false"
-             type="text">
-      <div ref="resultsEl" class="search-results">
-        <div v-for="tab in filteredTabs" :key="tab.id" class="grid gap-2 grid-cols-[40px,1fr]" tabindex="0" @keydown="handleKeyDown(tab, $event)">
-          <div class="search-result-type">
-            tab
-          </div>
-          <div class="tab-title" v-html="tab.highlighted.title" />
-          <div class="tab-favicon-container">
-            <img v-if="tab.favIconUrl" :src="tab.favIconUrl" alt="favicon" class="tab-favicon" height="16" width="16" />
-          </div>
-          <div class="tab-url" v-html="tab.highlighted.url" />
+    <input ref="inputEl"
+           v-model="inputText"
+           autocomplete="off"
+           autofocus
+           class="marpebar-input"
+           spellcheck="false"
+           type="text">
+    <div ref="resultsEl" class="search-results">
+      <div v-for="tab in filteredTabs" :key="tab.id" class="grid gap-x-2 gap-y-1 grid-cols-[40px,1fr] items-center" tabindex="0" @keydown="handleKeyDown(tab, $event)">
+        <div class="search-result-type">
+          tab
         </div>
+        <div class="tab-title" v-html="tab.highlighted.title" />
+        <div class="tab-favicon-container">
+          <img v-if="tab.favIconUrl" :src="tab.favIconUrl" alt="favicon" class="tab-favicon" height="16" width="16" />
+        </div>
+        <div class="tab-url" v-html="tab.highlighted.url" />
       </div>
     </div>
   </div>
@@ -176,6 +182,8 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 }
 
 .container {
+  display: flex;
+  flex-direction: column;
   background: var(--vimium-base);
   border-color: var(--vimium-lavender);
   border-radius: 6px;
@@ -183,6 +191,17 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
   padding: 1rem;
   pointer-events: auto;
   width: clamp(320px, 80dvw, 100dvw - 2rem);
+  max-height: 80dvh;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.5);
+
+  opacity: 1;
+  transform: scale(1.0) translateY(0);
+  transition: all 0.2s ease-out;
+
+  @starting-style {
+    transform: scale(0.9) translateY(30px);
+    opacity: 0;
+  }
 }
 
 .marpebar-input {
@@ -194,6 +213,8 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
   font-weight: 500;
   padding: 1rem 1rem;
   width: 100%;
+  border-radius: 0;
+  border-bottom: 1px solid var(--vimium-surface0);
 
   &:focus {
     outline: none;
@@ -207,6 +228,7 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 .tab-title, .tab-url {
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .tab-title {
@@ -216,6 +238,7 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 
 .tab-url {
   color: var(--vimium-lavender);
+  font-size: 0.9rem;
 }
 
 .search-result-type {
@@ -223,12 +246,15 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
 }
 
 .search-results {
+  overflow-y: auto;
+
   > div {
     border-top: 1px solid var(--vimium-surface0);
     padding: 0.5rem;
 
     &:focus {
       background: var(--vimium-surface0);
+      outline: none;
     }
   }
 }
