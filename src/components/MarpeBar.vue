@@ -19,12 +19,7 @@ const containerEl = useTemplateRef("containerEl");
 const emit = defineEmits<{ hide: [] }>();
 
 async function getTabs() {
-	const response = await sendMessage(
-		"ACTION",
-		{ message: "Hello from MarpeBar" },
-		"background",
-	);
-
+	const response = await chrome.runtime.sendMessage("GET_TABS");
 	tabs.value = response.tabs;
 }
 
@@ -99,7 +94,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  console.log("unmounted MarpeBar");
+	console.log("unmounted MarpeBar");
 });
 
 async function handleKeyDown(

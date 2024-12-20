@@ -1,6 +1,6 @@
 <script lang="ts"
         setup>
-import { onKeyStroke, useEventListener, useFocusWithin } from "@vueuse/core";
+import { onKeyStroke, useFocusWithin } from "@vueuse/core";
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
 onMounted(() => {
@@ -16,6 +16,8 @@ const showBar = ref(false);
 onKeyStroke(
 	["T"],
 	(e) => {
+		console.log("keydown", e);
+
 		const ignoredTags = ["INPUT", "SELECT", "TEXTAREA"];
 		const element = (e.target || e.srcElement) as HTMLElement | null;
 		const tagName = element?.tagName;
@@ -27,12 +29,14 @@ onKeyStroke(
 
 		e.preventDefault();
 
+		console.log("show");
 		showBar.value = true;
 	},
 	{ eventName: "keydown" },
 );
 
 function onHide() {
+	console.log("hide!");
 	showBar.value = false;
 }
 
