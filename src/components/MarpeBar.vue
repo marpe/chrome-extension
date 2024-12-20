@@ -170,7 +170,7 @@ const regexp = computed(() => new RegExp(inputText.value, "gi"));
     <div ref="resultsEl" class="search-results">
       <div v-for="tab in filteredTabs" :key="tab.id" class="grid gap-x-2 gap-y-1 grid-cols-[40px,1fr] items-center" tabindex="0" @keydown="handleKeyDown(tab, $event)">
         <div class="search-result-type">
-          tab
+<!--          tab-->
         </div>
         <div class="tab-title" v-html="tab.highlighted.title" />
         <div class="tab-favicon-container">

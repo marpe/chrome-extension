@@ -3,15 +3,6 @@
 import { onKeyStroke, useEventListener, useFocusWithin } from "@vueuse/core";
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
-useEventListener(window, "message", (event: MessageEvent) => {
-	console.log("marpe app received message", event.data);
-	if (event.data.type === "keydown") {
-		if (event.data.key === "T") {
-			showBar.value = true;
-		}
-	}
-});
-
 onMounted(() => {
 	console.log("mounted marpe app");
 });
