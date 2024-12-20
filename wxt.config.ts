@@ -1,3 +1,4 @@
+// import vue from "@vitejs/plugin-vue";
 // See https://wxt.dev/api/config.html
 // https://wxt.dev/guide/key-concepts/manifest.html
 import IconsResolver from "unplugin-icons/resolver";
@@ -13,6 +14,8 @@ import vueDevTools from "vite-plugin-vue-devtools";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
+	srcDir: "src",
+	extensionApi: "chrome",
 	outDir: import.meta.env.NODE_ENV === "production" ? ".dist" : ".output",
 	hooks: {
 		"vite:devServer:extendConfig": (config) => {
@@ -20,18 +23,19 @@ export default defineConfig({
 				"extending vite dev server config",
 				config.server?.watch?.ignored,
 			);
-			config.plugins!.push(
+			/*			config.plugins!.push(
 				vueDevTools({
 					launchEditor: "webstorm",
-					appendTo: "entrypoints/options/main.ts",
+					appendTo: "src/entrypoints/options/main.ts",
 				}),
 				vueDevTools({
 					launchEditor: "webstorm",
-					appendTo: "entrypoints/popup/main.ts",
+					appendTo: "src/entrypoints/popup/main.ts",
 				}),
-			);
+			);*/
 		},
 	},
+	manifestVersion: 3,
 	manifest: {
 		version: "0.0.8",
 		permissions: [
@@ -68,6 +72,12 @@ export default defineConfig({
 				},
 			},
 		},
+		web_accessible_resources: [
+			{
+				resources: ["/marpe-bar.html"],
+				matches: ["<all_urls>"],
+			},
+		],
 	},
 	modules: ["@wxt-dev/module-vue", "@wxt-dev/auto-icons"],
 	autoIcons: {
@@ -86,7 +96,7 @@ export default defineConfig({
 			plugins: [
 				// https://github.com/antfu/unplugin-vue-components
 				Components({
-					dirs: ["components"],
+					dirs: ["src/components"],
 					// generate `components.d.ts` for ts support with Volar
 					dts: true,
 					resolvers: [
@@ -97,7 +107,7 @@ export default defineConfig({
 				}),
 				VueRouter({
 					dts: "typed-router.d.ts",
-					routesFolder: ["entrypoints/options/pages"],
+					routesFolder: ["src/entrypoints/options/pages"],
 					/*extendRoute(route) {
             if (route.name === '/options') {
               route.addAlias('/')
@@ -120,7 +130,7 @@ export default defineConfig({
 				TurboConsole({
 					/* options here */
 				}),
-				// vue()
+				// vue(),
 			],
 		};
 	},

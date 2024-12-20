@@ -88,7 +88,7 @@ export default defineBackground({
 			});*/
 
 			browser.contextMenus.create({
-				id: "menu",
+				id: "marpe-menu",
 				title: "marpe menu",
 				contexts: ["all"],
 			});

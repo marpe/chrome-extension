@@ -7,20 +7,20 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppLink: typeof import('./components/AppLink.vue')['default']
-    BackLink: typeof import('./components/BackLink.vue')['default']
-    Debug: typeof import('./components/Debug.vue')['default']
-    EditEntry: typeof import('./components/EditEntry.vue')['default']
-    LogLine: typeof import('./components/LogLine.vue')['default']
-    LogToast: typeof import('./components/LogToast.vue')['default']
-    MarpeBar: typeof import('./components/MarpeBar.vue')['default']
-    MessageButtons: typeof import('./components/MessageButtons.vue')['default']
-    MonacoEditor: typeof import('./components/MonacoEditor.vue')['default']
-    NavLink: typeof import('./components/NavLink.vue')['default']
-    NotFound: typeof import('./components/NotFound.vue')['default']
-    PopoverMenu: typeof import('./components/PopoverMenu.vue')['default']
+    AppLink: typeof import('./src/components/AppLink.vue')['default']
+    BackLink: typeof import('./src/components/BackLink.vue')['default']
+    Debug: typeof import('./src/components/Debug.vue')['default']
+    EditEntry: typeof import('./src/components/EditEntry.vue')['default']
+    LogLine: typeof import('./src/components/LogLine.vue')['default']
+    LogToast: typeof import('./src/components/LogToast.vue')['default']
+    MarpeBar: typeof import('./src/components/MarpeBar.vue')['default']
+    MessageButtons: typeof import('./src/components/MessageButtons.vue')['default']
+    MonacoEditor: typeof import('./src/components/MonacoEditor.vue')['default']
+    NavLink: typeof import('./src/components/NavLink.vue')['default']
+    NotFound: typeof import('./src/components/NotFound.vue')['default']
+    PopoverMenu: typeof import('./src/components/PopoverMenu.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    ThemeSwitch: typeof import('./components/ThemeSwitch.vue')['default']
+    ThemeSwitch: typeof import('./src/components/ThemeSwitch.vue')['default']
   }
 }

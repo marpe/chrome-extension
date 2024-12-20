@@ -2,7 +2,7 @@
         setup>
 import { AddHighlight } from "@/composables/Highlight";
 import { onKeyStroke } from "@vueuse/core";
-import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import { sendMessage } from "webext-bridge/popup";
 import type { Tabs } from "webextension-polyfill";
 
@@ -96,6 +96,10 @@ onKeyStroke(true, (e) => {
 onMounted(() => {
 	console.log("mounted MarpeBar");
 	inputEl.value?.focus();
+});
+
+onUnmounted(() => {
+  console.log("unmounted MarpeBar");
 });
 
 async function handleKeyDown(

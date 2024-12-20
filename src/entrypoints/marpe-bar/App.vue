@@ -1,12 +1,24 @@
 <script lang="ts"
         setup>
-import { useAppStore } from "@/stores/app.store";
-import { onKeyStroke, useFocusWithin } from "@vueuse/core";
-import { ref, useTemplateRef, watch } from "vue";
+import { onKeyStroke, useEventListener, useFocusWithin } from "@vueuse/core";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 
-console.log("mounted app");
+useEventListener(window, "message", (event: MessageEvent) => {
+	console.log("marpe app received message", event.data);
+	if (event.data.type === "keydown") {
+		if (event.data.key === "T") {
+			showBar.value = true;
+		}
+	}
+});
 
-const store = useAppStore();
+onMounted(() => {
+	console.log("mounted marpe app");
+});
+
+onUnmounted(() => {
+	console.log("unmounted marpe app");
+});
 
 const showBar = ref(false);
 
@@ -64,7 +76,7 @@ watch(focused, (value) => {
 
 <style>
 html {
-  background: transparent;
+  background: transparent !important;
   pointer-events: none;
 }
 
