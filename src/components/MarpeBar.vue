@@ -35,13 +35,11 @@ const resultsEl = useTemplateRef("resultsEl");
 function moveFocus(direction: "up" | "down") {
 	const focused = resultsEl.value?.querySelector(":focus");
 	if (!focused) {
-		if (direction === "down") {
-			const first = resultsEl.value?.firstElementChild as HTMLDivElement | null;
-			first?.focus();
-		} else {
-			const last = resultsEl.value?.lastElementChild as HTMLDivElement | null;
-			last?.focus();
-		}
+		const tabEl =
+			direction === "down"
+				? resultsEl.value?.firstElementChild
+				: resultsEl.value?.lastElementChild;
+		(tabEl as HTMLDivElement)?.focus();
 		return;
 	}
 	const nextEl =
