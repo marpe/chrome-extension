@@ -1,7 +1,7 @@
 <script lang="ts"
         setup>
 import { AddHighlight } from "@/composables/Highlight";
-import { onKeyStroke } from "@vueuse/core";
+import { onKeyStroke, useFocusWithin } from "@vueuse/core";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import type { Tabs } from "webextension-polyfill";
 import { sendMessage } from "webext-bridge/content-script";
@@ -51,12 +51,24 @@ function moveFocus(direction: "up" | "down") {
 	}
 }
 
+const { focused } = useFocusWithin(containerEl);
+
 onKeyStroke(true, (e) => {
 	if (e.type !== "keydown") {
 		return;
 	}
 
-	if (e.key === "Shift" || e.key === "Control" || e.key === "Alt") {
+	if (focused.value) {
+		e.preventDefault();
+	}
+
+	// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
+	if (
+		e.key === "Shift" ||
+		e.key === "Control" ||
+		e.key === "Alt" ||
+		e.key === "Meta"
+	) {
 		return;
 	}
 
@@ -65,24 +77,18 @@ onKeyStroke(true, (e) => {
 		e.key === "ArrowUp" ||
 		(e.key === "Tab" && e.shiftKey)
 	) {
-		console.log("up", e);
 		moveFocus("up");
-		e.preventDefault();
 	} else if (
 		e.key === "PageDown" ||
 		e.key === "ArrowDown" ||
 		(e.key === "Tab" && !e.shiftKey)
 	) {
-		console.log("down", e);
 		moveFocus("down");
-		e.preventDefault();
 	} else if (e.key === "Escape") {
 		emit("hide");
-		e.preventDefault();
 	} else if (e.key === "Enter") {
 		filteredTabs.value[0] && handleKeyDown(filteredTabs.value[0], e);
 		emit("hide");
-		e.preventDefault();
 	} else {
 		inputEl.value?.focus();
 	}
@@ -149,8 +155,6 @@ const filteredTabs = computed(() =>
 			};
 		}),
 );
-
-const regexp = computed(() => new RegExp(inputText.value, "gi"));
 </script>
 
 <template>
