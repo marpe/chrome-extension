@@ -1,7 +1,7 @@
 <script lang="ts"
         setup>
 import { AddHighlight } from "@/composables/Highlight";
-import { onKeyStroke, useFocusWithin } from "@vueuse/core";
+import { onClickOutside, onKeyStroke, useFocusWithin } from "@vueuse/core";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import type { Tabs } from "webextension-polyfill";
 import { sendMessage } from "webext-bridge/content-script";
@@ -20,13 +20,11 @@ const emit = defineEmits<{ hide: [] }>();
 
 async function getTabs() {
 	// const response = await chrome.runtime.sendMessage("GET_TABS");
-	const response = await sendMessage(
-		"ACTION",
-		{ message: "Hello from MarpeBar" },
-		"background",
-	);
+	const response = await sendMessage("GET_TABS", {}, "background");
 
-	tabs.value = response.tabs.toSorted(((tab1, tab2) => (tab2?.lastAccessed ?? 0) - (tab1?.lastAccessed ?? 0)));
+	tabs.value = response.tabs.toSorted(
+		(tab1, tab2) => (tab2?.lastAccessed ?? 0) - (tab1?.lastAccessed ?? 0),
+	);
 }
 
 await getTabs();
@@ -49,14 +47,17 @@ function moveFocus(direction: "up" | "down") {
 	const nextEl =
 		direction === "down"
 			? focused.nextElementSibling ?? focused.parentElement?.firstElementChild
-			: focused.previousElementSibling ??	focused.parentElement?.lastElementChild;
+			: focused.previousElementSibling ??
+				focused.parentElement?.lastElementChild;
 
 	if (nextEl) {
 		(nextEl as HTMLDivElement).focus();
 	}
 }
 
-const { focused } = useFocusWithin(containerEl);
+onClickOutside(containerEl, () => {
+  emit("hide");
+});
 
 onKeyStroke((e) => {
 	if (e.type !== "keydown") {
@@ -113,11 +114,7 @@ async function handleKeyDown(
 	e: KeyboardEvent,
 ) {
 	if (e.key === "Enter") {
-		const response = await sendMessage(
-			"ACTIVATE_TAB",
-			{ tabId: tab.id, windowId: tab.windowId },
-			"background",
-		);
+		await activateTab(tab);
 	}
 }
 
@@ -160,6 +157,19 @@ const filteredTabs = computed(() =>
 			};
 		}),
 );
+
+async function handleClick(tab: Pick<Tabs.Tab, "id" | "windowId">, e: MouseEvent) {
+  await activateTab(tab);
+  emit("hide");
+}
+
+async function activateTab(tab: Pick<Tabs.Tab, "id" | "windowId">) {
+  const response = await sendMessage(
+    "ACTIVATE_TAB",
+    { tabId: tab.id, windowId: tab.windowId },
+    "background",
+  );
+}
 </script>
 
 <template>
@@ -172,7 +182,12 @@ const filteredTabs = computed(() =>
            spellcheck="false"
            type="text">
     <div ref="resultsEl" class="search-results">
-      <div v-for="tab in filteredTabs" :key="tab.id" class="grid gap-x-2 gap-y-1 grid-cols-[40px,1fr] items-center" tabindex="0" @keydown="handleKeyDown(tab, $event)">
+      <div v-for="tab in filteredTabs"
+           :key="tab.id"
+           class="grid gap-x-2 gap-y-1 grid-cols-[40px,1fr] items-center"
+           tabindex="0"
+           @click="handleClick(tab, $event)"
+           @keydown="handleKeyDown(tab, $event)">
         <div class="search-result-type">
 <!--          tab-->
         </div>

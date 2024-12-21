@@ -49,27 +49,15 @@ onKeyStroke(
 );
 
 const containerEl = useTemplateRef("containerEl");
-
-const { focused } = useFocusWithin(containerEl);
-
-watch(focused, (value) => {
-	/*if (import.meta.env.MODE === "development") {
-		return;
-	}*/
-
-	if (!value) {
-		onHide();
-	}
-});
 </script>
 
 <template>
   <div ref="containerEl" class="marpebar-container">
-  <template v-if="showBar">
-    <Suspense>
-      <MarpeBar @hide="onHide" />
-    </Suspense>
-  </template>
+    <template v-if="showBar">
+      <Suspense>
+        <MarpeBar @hide="onHide" />
+      </Suspense>
+    </template>
   </div>
 </template>
 

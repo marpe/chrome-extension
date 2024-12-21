@@ -94,7 +94,7 @@ export default defineBackground({
 			});
 		});
 
-		onMessage("ACTION", async ({ data }) => {
+		onMessage("GET_TABS", async () => {
 			const tabs = await browser.tabs.query({});
 			return { message: "hello!", tabs };
 		});
