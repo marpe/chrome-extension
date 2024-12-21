@@ -19,7 +19,13 @@ const containerEl = useTemplateRef("containerEl");
 const emit = defineEmits<{ hide: [] }>();
 
 async function getTabs() {
-	const response = await chrome.runtime.sendMessage("GET_TABS");
+	// const response = await chrome.runtime.sendMessage("GET_TABS");
+	const response = await sendMessage(
+		"ACTION",
+		{ message: "Hello from MarpeBar" },
+		"background",
+	);
+
 	tabs.value = response.tabs;
 }
 
@@ -53,13 +59,9 @@ function moveFocus(direction: "up" | "down") {
 
 const { focused } = useFocusWithin(containerEl);
 
-onKeyStroke(true, (e) => {
+onKeyStroke((e) => {
 	if (e.type !== "keydown") {
 		return;
-	}
-
-	if (focused.value) {
-		e.preventDefault();
 	}
 
 	// https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
@@ -78,17 +80,21 @@ onKeyStroke(true, (e) => {
 		(e.key === "Tab" && e.shiftKey)
 	) {
 		moveFocus("up");
+		e.preventDefault();
 	} else if (
 		e.key === "PageDown" ||
 		e.key === "ArrowDown" ||
 		(e.key === "Tab" && !e.shiftKey)
 	) {
 		moveFocus("down");
+		e.preventDefault();
 	} else if (e.key === "Escape") {
 		emit("hide");
+		e.preventDefault();
 	} else if (e.key === "Enter") {
 		filteredTabs.value[0] && handleKeyDown(filteredTabs.value[0], e);
 		emit("hide");
+		e.preventDefault();
 	} else {
 		inputEl.value?.focus();
 	}
@@ -171,11 +177,28 @@ const filteredTabs = computed(() =>
         <div class="search-result-type">
 <!--          tab-->
         </div>
-        <div class="tab-title" v-html="tab.highlighted.title" />
+
         <div class="tab-favicon-container">
-          <img v-if="tab.favIconUrl" :src="tab.favIconUrl" alt="favicon" class="tab-favicon" height="16" width="16" />
+          <template v-if="tab.favIconUrl">
+            <img v-if="tab.favIconUrl" :src="tab.favIconUrl" alt="favicon" class="tab-favicon" height="24" width="24" />
+          </template>
+          <template v-else>
+              <div class="tab-favicon tab-favicon-fallback text-gray-900">
+                <i-lucide-star />
+              </div>
+          </template>
         </div>
-        <div class="tab-url" v-html="tab.highlighted.url" />
+
+        <div class="tab-header">
+          <div class="tab-top flex-split">
+            <div class="tab-title" v-html="tab.highlighted.title" />
+            <div><RelativeDate :value="tab.lastAccessed" /></div>
+          </div>
+          <div class="tab-subheader flex-split">
+            <div class="tab-url" v-html="tab.highlighted.url" />
+            <div class="tab-window">{{tab.windowId}}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -188,7 +211,7 @@ const filteredTabs = computed(() =>
 }
 
 .container {
-  background: var(--vimium-base);
+  background-color: var(--vimium-base);
   border-color: var(--vimium-lavender);
   border-radius: 6px;
   border-width: 2px;
@@ -211,7 +234,7 @@ const filteredTabs = computed(() =>
 }
 
 .marpebar-input {
-  background: var(--vimium-base);
+  background-color: var(--vimium-base);
   border: none;
   border-bottom: 1px solid var(--vimium-surface0);
   border-radius: 0;
@@ -227,8 +250,14 @@ const filteredTabs = computed(() =>
   }
 }
 
-.tab-favicon {
-  border: 1px solid var(--vimium-lavender);
+.tab-favicon, .tab-favicon-fallback {
+  /*border: 1px solid var(--vimium-lavender);*/
+  height: 24px;
+  width: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-title, .tab-url {
@@ -237,14 +266,29 @@ const filteredTabs = computed(() =>
   white-space: nowrap;
 }
 
+.tab-header {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.flex-split {
+  align-items: start;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 .tab-title {
   color: var(--vimium-blue);
   font-weight: bold;
+  overflow: hidden;
 }
 
 .tab-url {
   color: var(--vimium-lavender);
   font-size: 0.9rem;
+  overflow: hidden;
 }
 
 .search-result-type {
@@ -252,6 +296,7 @@ const filteredTabs = computed(() =>
 }
 
 .search-results {
+  overflow-x: clip;
   overflow-y: auto;
 
   > div {
@@ -259,9 +304,26 @@ const filteredTabs = computed(() =>
     padding: 0.5rem;
 
     &:focus {
-      background: var(--vimium-surface0);
+      background-color: var(--vimium-surface0);
       outline: none;
     }
+  }
+}
+
+.tab-window {
+  color: oklch(from currentColor calc(l - 0.4) c h);
+}
+
+.tab-favicon-container, .search-result-type {
+  align-items: center;
+  display: flex;
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  justify-content: center;
+
+  .tab-favicon {
+    background-color: var(--vimium-lavender) !important;
+    border-radius: 5px;
   }
 }
 

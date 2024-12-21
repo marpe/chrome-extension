@@ -94,7 +94,12 @@ export default defineBackground({
 			});
 		});
 
-		chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+		onMessage("ACTION", async ({ data }) => {
+			const tabs = await browser.tabs.query({});
+			return { message: "hello!", tabs };
+		});
+
+		/*chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			if (message === "GET_TABS") {
 				browser.tabs.query({}).then((tabs) => {
 					sendResponse({ tabs });
@@ -102,7 +107,7 @@ export default defineBackground({
 				return true;
 			}
 			return false;
-		});
+		});*/
 
 		onMessage("ACTIVATE_TAB", async ({ data }) => {
 			const { tabId, windowId } = data;
