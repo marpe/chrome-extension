@@ -173,17 +173,28 @@ async function activateTab(tab: Pick<Tabs.Tab, "id" | "windowId">) {
 		"background",
 	);
 }
+
+const version = __APP_VERSION__;
+
+function hideOnEscape(e: KeyboardEvent) {
+	if (e.key === "Escape") {
+		console.log("esc hide");
+		emit("hide");
+	}
+}
 </script>
 
 <template>
   <div ref="containerEl" class="container">
+    <div class="absolute left-0 right-0 top-0 text-center">{{ version }}</div>
     <input ref="inputEl"
            v-model="inputText"
            autocomplete="off"
            autofocus
            class="marpebar-input"
            spellcheck="false"
-           type="text">
+           type="text"
+           @keydown="hideOnEscape">
     <div ref="resultsEl" class="search-results">
       <div v-for="tab in filteredTabs"
            :key="tab.id"

@@ -18,7 +18,6 @@ function createOverlay(ctx: ContentScriptContext) {
 		onMount: (container, _shadow, shadowHost) => {
 			const app = createApp(App);
 			app.mount(container);
-			console.log("Mounted app", { container, _shadow, shadowHost });
 			return app;
 		},
 		onRemove: (app) => {

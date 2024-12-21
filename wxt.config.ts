@@ -12,6 +12,7 @@ import Components from "unplugin-vue-components/vite";
 import VueRouter from "unplugin-vue-router/vite";
 import vueDevTools from "vite-plugin-vue-devtools";
 import { defineConfig } from "wxt";
+import { version } from "./package.json";
 
 export default defineConfig({
 	srcDir: "src",
@@ -37,7 +38,7 @@ export default defineConfig({
 	},
 	manifestVersion: 3,
 	manifest: {
-		version: "0.0.8",
+		// version: "0.0.9",
 		permissions: [
 			"contextMenus",
 			"storage",
@@ -85,6 +86,9 @@ export default defineConfig({
 	},
 	vite: (_configEnv) => {
 		return {
+			define: {
+				__APP_VERSION__: JSON.stringify(version),
+			},
 			build: {
 				sourcemap: false,
 			},
