@@ -4,8 +4,8 @@ import { useTimeAgo } from "@vueuse/core";
 
 const { value } = defineProps({
 	value: {
-		type: Object as PropType<string | number | Date | undefined>,
-		required: true,
+		type: [Number, String, Date],
+		required: false,
 	},
 });
 

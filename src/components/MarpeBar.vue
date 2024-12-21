@@ -26,7 +26,7 @@ async function getTabs() {
 		"background",
 	);
 
-	tabs.value = response.tabs;
+	tabs.value = response.tabs.toSorted(((tab1, tab2) => (tab2?.lastAccessed ?? 0) - (tab1?.lastAccessed ?? 0)));
 }
 
 await getTabs();
@@ -249,14 +249,18 @@ const filteredTabs = computed(() =>
   }
 }
 
+.tab-favicon-fallback {
+  background-color: var(--vimium-lavender) !important;
+}
+
 .tab-favicon, .tab-favicon-fallback {
   /*border: 1px solid var(--vimium-lavender);*/
-  height: 24px;
-  width: 24px;
-
-  display: flex;
   align-items: center;
+  display: flex;
+
+  height: 24px;
   justify-content: center;
+  width: 24px;
 }
 
 .tab-title, .tab-url {
@@ -321,7 +325,6 @@ const filteredTabs = computed(() =>
   justify-content: center;
 
   .tab-favicon {
-    background-color: var(--vimium-lavender) !important;
     border-radius: 5px;
   }
 }

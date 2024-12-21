@@ -53,9 +53,9 @@ const containerEl = useTemplateRef("containerEl");
 const { focused } = useFocusWithin(containerEl);
 
 watch(focused, (value) => {
-	if (import.meta.env.MODE === "development") {
+	/*if (import.meta.env.MODE === "development") {
 		return;
-	}
+	}*/
 
 	if (!value) {
 		onHide();
