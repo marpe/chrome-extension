@@ -12,6 +12,7 @@ function createOverlay(ctx: ContentScriptContext) {
 	return createShadowRootUi(ctx, {
 		name: "marpe-bar",
 		position: "modal",
+		anchor: "body",
 		// isolateEvents: true,
 		zIndex: 99999,
 		onMount: (container, _shadow, shadowHost) => {

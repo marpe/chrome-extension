@@ -49,8 +49,7 @@ function moveFocus(direction: "up" | "down") {
 	const nextEl =
 		direction === "down"
 			? focused.nextElementSibling ?? focused.parentElement?.firstElementChild
-			: focused.previousElementSibling ??
-				focused.parentElement?.lastElementChild;
+			: focused.previousElementSibling ??	focused.parentElement?.lastElementChild;
 
 	if (nextEl) {
 		(nextEl as HTMLDivElement).focus();
