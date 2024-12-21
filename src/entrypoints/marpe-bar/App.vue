@@ -40,14 +40,6 @@ function onHide() {
 	showBar.value = false;
 }
 
-onKeyStroke(
-	["Escape"],
-	(e) => {
-		onHide();
-	},
-	{ eventName: "keydown" },
-);
-
 const containerEl = useTemplateRef("containerEl");
 </script>
 

@@ -1,7 +1,7 @@
 <script lang="ts"
         setup>
 import { AddHighlight } from "@/composables/Highlight";
-import { onClickOutside, onKeyStroke, useFocusWithin } from "@vueuse/core";
+import { onClickOutside, onKeyStroke } from "@vueuse/core";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import type { Tabs } from "webextension-polyfill";
 import { sendMessage } from "webext-bridge/content-script";
@@ -46,9 +46,8 @@ function moveFocus(direction: "up" | "down") {
 	}
 	const nextEl =
 		direction === "down"
-			? focused.nextElementSibling ?? focused.parentElement?.firstElementChild
-			: focused.previousElementSibling ??
-				focused.parentElement?.lastElementChild;
+			? focused.nextElementSibling ?? inputEl.value
+			: focused.previousElementSibling ?? inputEl.value;
 
 	if (nextEl) {
 		(nextEl as HTMLDivElement).focus();
@@ -56,7 +55,7 @@ function moveFocus(direction: "up" | "down") {
 }
 
 onClickOutside(containerEl, () => {
-  emit("hide");
+	emit("hide");
 });
 
 onKeyStroke((e) => {
@@ -74,7 +73,10 @@ onKeyStroke((e) => {
 		return;
 	}
 
-	if (
+	if (e.key === "Escape") {
+		emit("hide");
+		e.preventDefault();
+	} else if (
 		e.key === "PageUp" ||
 		e.key === "ArrowUp" ||
 		(e.key === "Tab" && e.shiftKey)
@@ -158,17 +160,20 @@ const filteredTabs = computed(() =>
 		}),
 );
 
-async function handleClick(tab: Pick<Tabs.Tab, "id" | "windowId">, e: MouseEvent) {
-  await activateTab(tab);
-  emit("hide");
+async function handleClick(
+	tab: Pick<Tabs.Tab, "id" | "windowId">,
+	e: MouseEvent,
+) {
+	await activateTab(tab);
+	emit("hide");
 }
 
 async function activateTab(tab: Pick<Tabs.Tab, "id" | "windowId">) {
-  const response = await sendMessage(
-    "ACTIVATE_TAB",
-    { tabId: tab.id, windowId: tab.windowId },
-    "background",
-  );
+	const response = await sendMessage(
+		"ACTIVATE_TAB",
+		{ tabId: tab.id, windowId: tab.windowId },
+		"background",
+	);
 }
 </script>
 
