@@ -40,7 +40,7 @@ export default defineContentScript({
 		});
 
 		ctx.addEventListener(window, "wxt:locationchange", (event) => {
-			console.log("Location changed", event);
+			// console.log("Location changed", event);
 		});
 	},
 });
